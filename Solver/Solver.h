@@ -36,10 +36,12 @@ using solution_vector_type = typename global_solution_vector_type::value_type;
         double Q, double theta, double mf, double Lambda_in, double gamma,
         double number_of_cells, double CFL, double x_max, double x_min, double final_time_in,
         double frames_in, std::string filename_in) :
-          global_solution_vector(initial_solution_in), Lambda(Lambda_in),
-          final_time(final_time_in), dx((x_max - x_min)/number_of_cells), frames(frames_in), filename(filename_in),
-          march(Marching<global_solution_vector_type>(Pr, Le, Q, theta, mf, Lambda, gamma, number_of_cells, CFL, dx)) {
-    plot<global_solution_vector_type>(filename + std::to_string(static_cast<int>(Lambda)) + "_0", global_solution_vector, dx);
+          global_solution_vector(initial_solution_in), final_time(final_time_in), frames(frames_in),
+          filename(filename_in),
+          march(Marching<global_solution_vector_type>(Pr, Le, Q, theta, mf, Lambda_in, gamma,
+          number_of_cells, CFL, (x_max - x_min)/number_of_cells)) {
+    plot<global_solution_vector_type>(filename + std::to_string(static_cast<int>(Lambda_in)) + "_0",
+                                      global_solution_vector, (x_max - x_min)/number_of_cells);
   }
 
   /////////////////////////////////////////////////////////////////////////
@@ -49,9 +51,7 @@ using solution_vector_type = typename global_solution_vector_type::value_type;
  private:
    global_solution_vector_type global_solution_vector;
    double current_time = 0.0;
-   const double Lambda;
    const double final_time;
-   const double dx;
    const int frames;
    std::string filename;
    Marching<global_solution_vector_type> march;
@@ -67,7 +67,7 @@ double Solver<global_solution_vector_type>::solve() {
     std::cout << "Time = " <<  current_time << std::endl;
     march.timemarch(time_per_frame, global_solution_vector);
     current_time += time_per_frame;
-    plot<global_solution_vector_type>(filename + std::to_string(static_cast<int>(Lambda)) + "_" + std::to_string(static_cast<int>(i)+1), global_solution_vector, dx);
+    plot<global_solution_vector_type>(filename + std::to_string(static_cast<int>(march.get_Lambda())) + "_" + std::to_string(static_cast<int>(i)+1), global_solution_vector, march.get_dx());
   }
 
   double sum = 0.0;

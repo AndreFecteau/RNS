@@ -48,6 +48,20 @@ class Marching {
   /// \param global_solution_vector vector containing cell states from all the cells.
   void timemarch(double time_frame, global_solution_vector_type &global_solution_vector);
 
+  /////////////////////////////////////////////////////////////////////////
+  /// \brief
+  /// \param
+  double get_Lambda() {
+    return Lambda;
+  }
+
+  /////////////////////////////////////////////////////////////////////////
+  /// \brief
+  /// \param
+  double get_dx() {
+    return dx;
+  }
+
  private:
   HLLE<global_solution_vector_type> hyperbolic_flux;
   Centered_Difference<global_solution_vector_type> parabolic_flux;
@@ -112,6 +126,7 @@ class Marching {
   // void get_residual(solution_vector_type solution_vector) {
   //   residual = solution_vector.squaredNorm()
   // }
+
 };
 
 
