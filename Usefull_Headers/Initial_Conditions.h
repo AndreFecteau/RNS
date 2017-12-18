@@ -1,6 +1,30 @@
 #ifndef INITIAL_CONDITIONS_H
 #define INITIAL_CONDITIONS_H
 
+template <typename T>
+std::string tostring(T name) {
+  return std::to_string(static_cast<int>(name));
+}
+
+void bisection_lambda(double& lambda_min, double& lambda_max, double& lambda_run, double& T_sum_initial, double& T_sum) {
+  if (T_sum < T_sum_initial){
+    lambda_min = lambda_run;
+    lambda_run = (lambda_min + lambda_max)*0.5;
+  } else {
+    lambda_max = lambda_run;
+    lambda_run = (lambda_min + lambda_max)*0.5;
+  }
+}
+
+double flame_position_algorithm(global_solution_vector_type global_solution_vector, double gamma) {
+  double sum = 0.0;
+  for (size_t i = 0; i < global_solution_vector.size(); ++i){
+    Variable_Vector_Isolator<solution_vector_type> var_vec = Variable_Vector_Isolator<solution_vector_type>(global_solution_vector[i], gamma);
+    sum += var_vec.T();
+  }
+  return sum;
+}
+
 solution_vector_type make_RK4_solution_vector(RK4_Low_Mach_Solver low_mach_solution, double x, double gamma, double mf) {
   solution_vector_type temp_vec;
   temp_vec <<   low_mach_solution.get_rho(x),

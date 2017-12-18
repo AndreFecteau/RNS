@@ -6,36 +6,11 @@
 #include "Eigen/Dense"
 #include <cmath>
 #include <chrono>
-#comment to check
+
 typedef Eigen::Matrix<double, 5, 1> Vector5d;
 using global_solution_vector_type = std::vector<Vector5d>;
 using solution_vector_type = typename global_solution_vector_type::value_type;
 #include "Usefull_Headers/Initial_Conditions.h"
-
-template <typename T>
-std::string tostring(T name) {
-  return std::to_string(static_cast<int>(name));
-}
-
-void bisection_lambda(double& lambda_min, double& lambda_max, double& lambda_run, double& T_sum_initial, double& T_sum) {
-  if (T_sum < T_sum_initial){
-    lambda_min = lambda_run;
-    lambda_run = (lambda_min + lambda_max)*0.5;
-  } else {
-    lambda_max = lambda_run;
-    lambda_run = (lambda_min + lambda_max)*0.5;
-  }
-}
-
-double flame_position_algorithm(global_solution_vector_type global_solution_vector, double gamma) {
-  double sum = 0.0;
-  for (size_t i = 0; i < global_solution_vector.size(); ++i){
-    Variable_Vector_Isolator<solution_vector_type> var_vec = Variable_Vector_Isolator<solution_vector_type>(global_solution_vector[i], gamma);
-    sum += var_vec.T();
-  }
-  return sum;
-}
-
 
 int main(){
   // double Pr = 0.75;
