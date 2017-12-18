@@ -1,5 +1,5 @@
 # ignore a single file
-#mycode.class
+RNS_Solver
 
 # ignore an entire directory
 /Movie/
