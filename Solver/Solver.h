@@ -70,22 +70,15 @@ double Solver<global_solution_vector_type>::solve() {
     plot<global_solution_vector_type>(filename + std::to_string(static_cast<int>(march.get_Lambda())) + "_" + std::to_string(static_cast<int>(i)+1), global_solution_vector, march.get_dx());
   }
 
-  double sum = 0.0;
-  for (size_t i = 0; i < global_solution_vector.size(); ++i){
-    Variable_Vector_Isolator<solution_vector_type> var_vec = Variable_Vector_Isolator<solution_vector_type>(global_solution_vector[i], 1.4);
-    sum += var_vec.T();
+  int i = 0;
+  auto var_vec = Variable_Vector_Isolator<solution_vector_type>(global_solution_vector[0], 1.4);
+  while (var_vec.rho() < 0.5) {
+  std::cout << global_solution_vector[i][0] << std::endl;
+  ++i;
+  var_vec = Variable_Vector_Isolator<solution_vector_type>(global_solution_vector[i], 1.4);
   }
-  return sum;
+  return i;
 
-  //
-  // double max_p = 0;
-  // for (size_t i = 1000; i < global_solution_vector.size(); ++i) {
-  //   Variable_Vector_Isolator<solution_vector_type> var_vec = Variable_Vector_Isolator<solution_vector_type>(global_solution_vector[i], 1.4);
-  //   if (max_p < var_vec.p()) {
-  //     max_p = var_vec.p();
-  //   }
-  // }
-  // return max_p;
 }
 
 #endif //#ifndef SOLVER_H
