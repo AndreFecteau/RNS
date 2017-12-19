@@ -25,8 +25,8 @@ int main(){
   double gamma = 1.4;
   double mf = 0.005;
   int    number_of_cells = 6000;
-  double final_time = 2.0;
-  int    frames = 2;
+  double final_time = 4.0;
+  int    frames = 4;
 
   double T_ignition = 1.0;
   double lambda = 0.0;
@@ -49,9 +49,9 @@ int main(){
   std::cout << "//////////////////////" << std::endl;
 
   T_sum_initial = flame_position_algorithm(initial_solution, gamma);
-  lambda_max = 94350;
-  lambda_min = 92500;
-  lambda_run = 93250;
+  lambda_max = 94500;
+  lambda_min = 94000;
+  lambda_run = 94250;
   for (int i = 0; i < 200; ++i) {
   std::string filename = "Movie/Refinement_" + tostring(final_time) + "_" + tostring(number_of_cells) + "_";
   RK4_low_mach(lambda, number_of_cells, initial_solution, Le, Q, theta, T_ignition, gamma, x_max, mf);

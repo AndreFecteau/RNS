@@ -112,6 +112,16 @@ class Marching {
   // void get_residual(solution_vector_type solution_vector) {
   //   residual = solution_vector.squaredNorm()
   // }
+
+  /////////////////////////////////////////////////////////////////////////
+  /// \brief
+  /// \param
+  double squaredNorm(solution_vector_type solution_vector){
+    return sqrt(solution_vector[0]*solution_vector[0] +
+                solution_vector[1]*solution_vector[1] +
+                solution_vector[2]*solution_vector[2] +
+                solution_vector[3]*solution_vector[3]);
+  }
 };
 
 
@@ -157,36 +167,37 @@ void Marching<global_solution_vector_type>::timemarch(double time_frame, global_
     for (int i = 1; i < number_of_cells-1; ++i) {
       global_flux_vector[i] += (hyperbolic_flux_vector[i] - hyperbolic_flux_vector[i+1]) / dx * dt ;
       global_flux_vector[i] += parabolic_flux.flux(global_solution_vector[i-1], global_solution_vector[i], global_solution_vector[i+1], gamma, Le, Pr, dx) * dt;
-      global_flux_vector[i][4] = 0.0;
       global_flux_vector[i] += sources.flux(global_solution_vector[i], gamma, Q, Lambda, theta) * dt;
       global_flux_vector[i][4] /= dt;
     }
 
 #pragma omp for reduction (+:residual)
     for (int i = 1; i < number_of_cells-1; ++i) {
+
+      global_solution_vector[i][4] = 0.0;
       global_solution_vector[i] += global_flux_vector[i];
-      residual += global_flux_vector[i].squaredNorm() * dx / dt;
+      residual += squaredNorm(global_flux_vector[i]) * dx / dt;
     }
 
 #pragma omp single
     boundary_conditions(global_solution_vector);
 
-#pragma omp for
-    for (int i = 1; i < number_of_cells - 2; ++i) {
-      Variable_Vector_Isolator<solution_vector_type> var_vec = Variable_Vector_Isolator<solution_vector_type>(global_solution_vector[i], gamma);
-      double rho_local = var_vec.rho();
-      double u_local = var_vec.u();
-      double T_local = var_vec.T();
-      double Y_local = var_vec.Y();
-      rho_local = std::min(rho_local, 1.0);
-      u_local = std::max(u_local,1.0);
-      u_local = std::min(u_local, 10.0);
-      T_local = std::max(T_local, 1.0 / (gamma*mf*mf));
-      global_solution_vector[i] <<  rho_local,
-                                    rho_local * u_local,
-                                    rho_local*T_local/(gamma - 1.0) + rho_local * u_local * u_local * 0.5,
-                                    rho_local*Y_local;
-    }
+// #pragma omp for
+//     for (int i = 1; i < number_of_cells - 2; ++i) {
+//       Variable_Vector_Isolator<solution_vector_type> var_vec = Variable_Vector_Isolator<solution_vector_type>(global_solution_vector[i], gamma);
+//       double rho_local = var_vec.rho();
+//       double u_local = var_vec.u();
+//       double T_local = var_vec.T();
+//       double Y_local = var_vec.Y();
+//       rho_local = std::min(rho_local, 1.0);
+//       u_local = std::max(u_local,1.0);
+//       u_local = std::min(u_local, 10.0);
+//       T_local = std::max(T_local, 1.0 / (gamma*mf*mf));
+//       global_solution_vector[i] <<  rho_local,
+//                                     rho_local * u_local,
+//                                     rho_local*T_local/(gamma - 1.0) + rho_local * u_local * u_local * 0.5,
+//                                     rho_local*Y_local;
+//     }
 #pragma omp single
     current_time += dt;
   }
