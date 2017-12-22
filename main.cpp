@@ -36,8 +36,8 @@ int main(){
   double lambda_max;
   double lambda_min;
   double lambda_run;
-  double T_sum_initial;
-  double T_sum;
+  int init_position;
+  int position;
   // std::string filename = "../Movie/_" + tostring(final_time) + "_" + tostring(number_of_cells) + "_";
   // std::string filename = "../Movie/Test_" + tostring(final_time) + "_" + tostring(number_of_cells) + "_";
   // std::string filename = "../Movie/Case_" + tostring(final_time) + "_" + tostring(number_of_cells) + "_";
@@ -48,22 +48,22 @@ int main(){
   std::cout << "Initial Conditions" << std::endl;
   std::cout << "//////////////////////" << std::endl;
 
-  T_sum_initial = flame_position_algorithm(initial_solution, gamma);
-  lambda_max = 94500;
-  lambda_min = 94000;
-  lambda_run = 94250;
+  lambda_max = 94350;
+  lambda_min = 92500;
+  lambda_run = 93250;
   for (int i = 0; i < 200; ++i) {
   std::string filename = "Movie/Refinement_" + tostring(final_time) + "_" + tostring(number_of_cells) + "_";
   RK4_low_mach(lambda, number_of_cells, initial_solution, Le, Q, theta, T_ignition, gamma, x_max, mf);
+  init_position = flame_position_algorithm(initial_solution, gamma);
   auto start = std::chrono::high_resolution_clock::now();
   std::cout << "//////////////////////" << std::endl;
   std::cout << "Solver, Lambda =" << lambda_run << std::endl;
   std::cout << "//////////////////////" << std::endl;
   auto solver = Solver<global_solution_vector_type>(initial_solution,Pr, Le, Q/(mf*mf*(gamma-1)), theta/(gamma*mf*mf), mf, lambda_run, gamma, number_of_cells, CFL, x_max, x_min, final_time, frames, filename);
-  T_sum = solver.solve();
+  position = solver.solve();
   auto finish = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> elapsed = finish - start;
   std::cout << "Elapsed time: " << elapsed.count() << " s\n";
-  bisection_lambda(lambda_min, lambda_max, lambda_run, T_sum_initial, T_sum);
+  bisection_lambda(lambda_min, lambda_max, lambda_run, init_position, position);
 }
 };

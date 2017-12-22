@@ -48,6 +48,20 @@ class Marching {
   /// \param global_solution_vector vector containing cell states from all the cells.
   void timemarch(double time_frame, global_solution_vector_type &global_solution_vector);
 
+  /////////////////////////////////////////////////////////////////////////
+  /// \brief
+  /// \param
+  double get_Lambda() {
+    return Lambda;
+  }
+
+  /////////////////////////////////////////////////////////////////////////
+  /// \brief
+  /// \param
+  double get_dx() {
+    return dx;
+  }
+
  private:
   HLLE<global_solution_vector_type> hyperbolic_flux;
   Centered_Difference<global_solution_vector_type> parabolic_flux;
@@ -182,22 +196,22 @@ void Marching<global_solution_vector_type>::timemarch(double time_frame, global_
 #pragma omp single
     boundary_conditions(global_solution_vector);
 
-// #pragma omp for
-//     for (int i = 1; i < number_of_cells - 2; ++i) {
-//       Variable_Vector_Isolator<solution_vector_type> var_vec = Variable_Vector_Isolator<solution_vector_type>(global_solution_vector[i], gamma);
-//       double rho_local = var_vec.rho();
-//       double u_local = var_vec.u();
-//       double T_local = var_vec.T();
-//       double Y_local = var_vec.Y();
-//       rho_local = std::min(rho_local, 1.0);
-//       u_local = std::max(u_local,1.0);
-//       u_local = std::min(u_local, 10.0);
-//       T_local = std::max(T_local, 1.0 / (gamma*mf*mf));
-//       global_solution_vector[i] <<  rho_local,
-//                                     rho_local * u_local,
-//                                     rho_local*T_local/(gamma - 1.0) + rho_local * u_local * u_local * 0.5,
-//                                     rho_local*Y_local;
-//     }
+#pragma omp for
+    for (int i = 1; i < number_of_cells - 2; ++i) {
+      Variable_Vector_Isolator<solution_vector_type> var_vec = Variable_Vector_Isolator<solution_vector_type>(global_solution_vector[i], gamma);
+      double rho_local = var_vec.rho();
+      double u_local = var_vec.u();
+      double T_local = var_vec.T();
+      double Y_local = var_vec.Y();
+      rho_local = std::min(rho_local, 1.0);
+      u_local = std::max(u_local,1.0);
+      u_local = std::min(u_local, 10.0);
+      T_local = std::max(T_local, 1.0 / (gamma*mf*mf));
+      global_solution_vector[i] <<  rho_local,
+                                    rho_local * u_local,
+                                    rho_local*T_local/(gamma - 1.0) + rho_local * u_local * u_local * 0.5,
+                                    rho_local*Y_local;
+    }
 #pragma omp single
     current_time += dt;
   }
