@@ -72,13 +72,13 @@ double Solver<global_solution_vector_type>::solve() {
 
   int i = 0;
   auto var_vec = Variable_Vector_Isolator<solution_vector_type>(global_solution_vector[0], 1.4);
-  while (var_vec.rho() < 0.5) {
-  std::cout << global_solution_vector[i][0] << std::endl;
+  while (var_vec.rho() > 0.5) {
+  // std::cout << global_solution_vector[i][0] << std::endl;
   ++i;
   var_vec = Variable_Vector_Isolator<solution_vector_type>(global_solution_vector[i], 1.4);
   }
+  std::cout << "i:" << i << std::endl;
   return i;
-
 }
 
 #endif //#ifndef SOLVER_H
