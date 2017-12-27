@@ -171,7 +171,7 @@ void Marching<global_solution_vector_type>::timemarch(double time_frame, global_
 #pragma omp for private (parabolic_flux, sources)
     for (int i = 1; i < number_of_cells-1; ++i) {
       global_flux_vector[i] += (hyperbolic_flux_vector[i] - hyperbolic_flux_vector[i+1]) / dx * dt ;
-      global_flux_vector[i] += parabolic_flux.flux(global_solution_vector[i-1], global_solution_vector[i], global_solution_vector[i+1], gamma, Le, Pr, dx) * dt;
+      // global_flux_vector[i] += parabolic_flux.flux(global_solution_vector[i-1], global_solution_vector[i], global_solution_vector[i+1], gamma, Le, Pr, dx) * dt;
       global_flux_vector[i][4] = 0.0;
       global_flux_vector[i] += sources.flux(global_solution_vector[i], gamma, Q, Lambda, theta) * dt;
       // global_flux_vector[i][4] /= dt;

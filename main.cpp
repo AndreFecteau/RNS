@@ -25,7 +25,7 @@ int main(){
   double gamma = 1.4;
   double mf = 0.005;
   int    number_of_cells = 600;
-  double final_time = 0.01;
+  double final_time = 0.001;
   int    frames = 2;
 
   double T_ignition = 1.0;
