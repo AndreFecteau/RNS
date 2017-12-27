@@ -77,11 +77,11 @@ private:
   }
 
   double energy_centered_difference() {
-    return (gamma / (gamma - 1.0) * (plus1_var.T() - 2.0 * centered_var.T() +
-           min1_var.T()) / (dx * dx) +
-           4.0 / 3.0 * Pr * (plus1_var.u() * plus1_var.u() -
-           2.0 * centered_var.u() * centered_var.u() +
-           min1_var.u() * min1_var.u()) * 0.5 / (dx * dx));
+    return gamma / (gamma - 1.0) * (plus1_var.T() - 2.0 * centered_var.T() +
+           min1_var.T()) / (dx * dx);//+
+          //  4.0 / 3.0 * Pr * (plus1_var.u() * plus1_var.u() -
+          //  2.0 * centered_var.u() * centered_var.u() +
+          //  min1_var.u() * min1_var.u()) * 0.5 / (dx * dx);
   }
 
 
