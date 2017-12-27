@@ -24,8 +24,8 @@ int main(){
   double theta =500.0/9.0;
   double gamma = 1.4;
   double mf = 0.005;
-  int    number_of_cells = 6000;
-  double final_time = 5;
+  int    number_of_cells = 600;
+  double final_time = 0.05;
   int    frames = 2;
 
   double T_ignition = 1.0;
