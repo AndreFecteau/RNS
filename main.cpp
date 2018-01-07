@@ -25,8 +25,8 @@ int main(){
   double gamma = 1.4;
   double mf = 0.005;
   int    number_of_cells = 6000;
-  double final_time = 5;
-  int    frames = 2;
+  double final_time = 100;
+  int    frames = 10;
 
   double T_ignition = 1.0;
   double lambda = 0.0;
@@ -49,12 +49,12 @@ int main(){
   std::cout << "//////////////////////" << std::endl;
 
 
-  lambda_max = 96000;
-  lambda_min = 93250;
-  lambda_run = 90000;
+  lambda_max = 94150;
+  lambda_min = 98000;
+  lambda_run = 94000;
 
   for (int i = 0; i < 200; ++i) {
-  std::string filename = "Christmas/Refinement_" + tostring(final_time) + "_" + tostring(number_of_cells) + "_";
+  std::string filename = "Movie/Refinement_" + tostring(final_time) + "_" + tostring(number_of_cells) + "_";
   RK4_low_mach(lambda, number_of_cells, initial_solution, Le, Q, theta, T_ignition, gamma, x_max, mf);
   init_position = flame_position_algorithm(initial_solution, gamma);
   auto start = std::chrono::high_resolution_clock::now();
