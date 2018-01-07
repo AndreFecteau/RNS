@@ -36,7 +36,8 @@ solution_vector_type make_RK4_solution_vector(RK4_Low_Mach_Solver low_mach_solut
                 (gamma - 1.0) +
                 low_mach_solution.get_rho(x) * low_mach_solution.get_U(x) *
                 low_mach_solution.get_U(x) * 0.5,
-                low_mach_solution.get_rho(x) * low_mach_solution.get_Y(x);
+                low_mach_solution.get_rho(x) * low_mach_solution.get_Y(x),
+                0.0;
   return temp_vec;
 }
 
@@ -56,7 +57,8 @@ void RK4_low_mach(double &lambda, int number_of_cells, global_solution_vector_ty
       1.0 * 1.0,
       1.0 / (gamma * mf * mf) /
       (gamma - 1.0) + 1.0 * 1.0 * 1.0 * 0.5,
-      1.0 * 1.0;
+      1.0 * 1.0,
+      0.0;
     } else if (i < number_of_cells * space_in_front/domaine_length && i > number_of_cells * (space_in_front*0.85)/domaine_length) {
       initial_solution[i] << make_RK4_solution_vector(initial_low_mach, (0.0) * dx + 0.5*dx, gamma, mf);
       // initial_solution[i] << 1.0,

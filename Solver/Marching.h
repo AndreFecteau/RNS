@@ -151,6 +151,9 @@ void Marching<global_solution_vector_type>::timemarch(double time_frame, global_
   solution_vector_type::Zero());
 #pragma omp parallel
   {
+  #pragma omp single
+  std::cout << "Number of threads being used: " << omp_get_num_threads() << std::endl;
+
   while (current_time < time_frame){
   residual = 0.0;
   auto global_flux_vector = global_solution_vector_type(global_solution_vector.size(),
@@ -210,7 +213,8 @@ void Marching<global_solution_vector_type>::timemarch(double time_frame, global_
       global_solution_vector[i] <<  rho_local,
                                     rho_local * u_local,
                                     rho_local*T_local/(gamma - 1.0) + rho_local * u_local * u_local * 0.5,
-                                    rho_local*Y_local;
+                                    rho_local*Y_local,
+                                    global_solution_vector[i][4];
     }
 #pragma omp single
     current_time += dt;
