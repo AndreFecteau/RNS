@@ -5,7 +5,17 @@ set key title "CFL"
 #set yrange [-0.1:1]
 #set xrange [0:1]
 plot \
-"./Movie/Refinement_2_1000_94500_0.dat"   using 1:2 title " " with lines,\
+"./Movie/Refinement_100_6000_94000_0.dat"   using 1:2 title " " with lines,\
+"./Movie/Refinement_100_6000_94000_1.dat"   using 1:2 title " " with lines,\
+"./Movie/Refinement_100_6000_94000_2.dat"   using 1:2 title " " with lines,\
+"./Movie/Refinement_100_6000_94000_6.dat"   using 1:2 title " " with lines,\
+"./Movie/Refinement_100_6000_94000_8.dat"   using 1:2 title " " with lines,\
+"./Movie/Refinement_100_6000_94000_10.dat"   using 1:2 title " " with lines,\
+
+
+
+
+#"./Movie/Refinement_2_1000_94500_0.dat"   using 1:2 title " " with lines,\
 "./Movie/Refinement_2_1000_93250_1.dat"   using 1:2 title " " with lines,\
 "./Movie/Refinement_2_1000_93250_2.dat"   using 1:2 title " " with lines,\
 "./Movie/Refinement_2_1000_92875_1.dat"   using 1:2 title " " with lines,\
