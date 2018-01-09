@@ -24,8 +24,8 @@ int main(){
   double theta =500.0/9.0;
   double gamma = 1.4;
   double mf = 0.005;
-  int    number_of_cells = 600;
-  double final_time = 0.001;
+  int    number_of_cells = 1000;
+  double final_time = 1.0;
   int    frames = 2;
 
   double T_ignition = 1.0;
@@ -35,24 +35,31 @@ int main(){
   double x_max;
   double lambda_max;
   double lambda_min;
-  double lambda_run;
+  double lambda_run = 93600;
   int init_position;
   int position;
-  // std::string filename = "../Movie/_" + tostring(final_time) + "_" + tostring(number_of_cells) + "_";
-  // std::string filename = "../Movie/Test_" + tostring(final_time) + "_" + tostring(number_of_cells) + "_";
-  // std::string filename = "../Movie/Case_" + tostring(final_time) + "_" + tostring(number_of_cells) + "_";
   global_solution_vector_type initial_solution;
-  initial_solution.resize(number_of_cells);
 
   std::cout << "//////////////////////" << std::endl;
   std::cout << "Initial Conditions" << std::endl;
   std::cout << "//////////////////////" << std::endl;
 
+<<<<<<< HEAD
   lambda_max = 96000;
   lambda_min = 93250;
   lambda_run = 90000;
   for (int i = 0; i < 200; ++i) {
   std::string filename = "Movie/Explicit_" + tostring(final_time) + "_" + tostring(number_of_cells) + "_";
+=======
+  // lambda_max = 94350;
+  // lambda_min = 92500;
+  // lambda_run = 93250;
+  // for (int i = 0; i < 200; ++i) {
+  for (int i = 1; i < 10; ++i) {
+  number_of_cells = i * 1000;
+  std::string filename = "Refinement/" + tostring(final_time) + "_" + tostring(number_of_cells) + "_";
+  initial_solution.resize(number_of_cells);
+>>>>>>> working
   RK4_low_mach(lambda, number_of_cells, initial_solution, Le, Q, theta, T_ignition, gamma, x_max, mf);
   init_position = flame_position_algorithm(initial_solution, gamma);
   auto start = std::chrono::high_resolution_clock::now();
@@ -64,6 +71,6 @@ int main(){
   auto finish = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> elapsed = finish - start;
   std::cout << "Elapsed time: " << elapsed.count() << " s\n";
-  bisection_lambda(lambda_min, lambda_max, lambda_run, init_position, position);
+  // bisection_lambda(lambda_min, lambda_max, lambda_run, init_position, position);
 }
 };

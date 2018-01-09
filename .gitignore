@@ -3,9 +3,11 @@ RNS_Solver
 
 # ignore an entire directory
 /Movie/
+/Refinement/
 
 # ignore a file type
 #*.json
+*.log
 
 # add an exception (using !) to the preceding rule to track a specific file
 #!package.json
