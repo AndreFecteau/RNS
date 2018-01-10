@@ -60,6 +60,20 @@ class Marching {
     archive(Pr, Le, Q, theta, mf, gamma, CFL, number_of_cells, dx, dt);
   }
 
+  /////////////////////////////////////////////////////////////////////////
+  /// \brief
+  /// \param
+  double get_Lambda() {
+    return Lambda;
+  }
+
+  /////////////////////////////////////////////////////////////////////////
+  /// \brief
+  /// \param
+  double get_dx() {
+    return dx;
+  }
+
  private:
   HLLE<global_solution_vector_type> hyperbolic_flux;
   Centered_Difference<global_solution_vector_type> parabolic_flux;
