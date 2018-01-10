@@ -39,20 +39,20 @@ find_package (Eigen3 3.3.4 REQUIRED NO_MODULE)
 find_package (Cereal REQUIRED)
 
 # find a OpenMP install
-#find_package (OpenMP)
+find_package (OpenMP)
 
 # Set a default C++ compile flag
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
 
 # Add OpenMP Flags if found
-#if(OpenMP_FOUND)
-#  message ("OpenMP found")
-#  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-#  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-#  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
-#else()
-#  message (FATAL_ERROR "Cannot find OpenMP")
-#endif()
+if(OpenMP_FOUND)
+  message ("OpenMP found")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
+else()
+  message (FATAL_ERROR "Cannot find OpenMP")
+endif()
 
 if(Cereal_FOUND)
   message ("Cereal found")
