@@ -8,6 +8,7 @@
 #include "../Flux_and_Sources/HLLE.h"
 #include "../Flux_and_Sources/Centered_Difference.h"
 #include "../Flux_and_Sources/Sources.h"
+#include "../Serialization/Serialization_Eigen.h"
 
 template <typename global_solution_vector_type>
 class Marching {
@@ -37,23 +38,16 @@ class Marching {
   /// \brief Move assignment operator.
   Marching& operator=(Marching&&) = default;
 
-  Marching(double Pr_in, double Le_in, double Q_in, double theta_in, double mf_in, double Lambda_in,
+  Marching(double Pr_in, double Le_in, double Q_in, double theta_in, double mf_in,
            double gamma_in, double number_of_cells_in,  double CFL_in, double dx_in) :
-           Pr(Pr_in), Le(Le_in), Q(Q_in), theta(theta_in), mf(mf_in), Lambda(Lambda_in), gamma(gamma_in),
+           Pr(Pr_in), Le(Le_in), Q(Q_in), theta(theta_in), mf(mf_in), gamma(gamma_in),
            CFL(CFL_in), number_of_cells(number_of_cells_in), dx(dx_in) {}
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief Execute step in time.
   /// \param time_frame Time to stop the time marching.
   /// \param global_solution_vector vector containing cell states from all the cells.
-  void timemarch(double time_frame, global_solution_vector_type &global_solution_vector);
-
-  /////////////////////////////////////////////////////////////////////////
-  /// \brief
-  /// \param
-  double get_Lambda() {
-    return Lambda;
-  }
+  void timemarch(double time_frame, global_solution_vector_type &global_solution_vector, double lambda);
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief
@@ -61,23 +55,25 @@ class Marching {
   double get_dx() {
     return dx;
   }
+  template<typename Archive>
+  void serialize(Archive& archive) {
+    archive(Pr, Le, Q, theta, mf, gamma, CFL, number_of_cells, dx, dt);
+  }
 
  private:
   HLLE<global_solution_vector_type> hyperbolic_flux;
   Centered_Difference<global_solution_vector_type> parabolic_flux;
   Sources<global_solution_vector_type> sources;
-  const double Pr;
-  const double Le;
-  const double Q;
-  const double theta;
-  const double mf;
-  const double Lambda;
-  const double gamma;
-  const double CFL;
-  const int number_of_cells;
-  const double dx;
+  double Pr;
+  double Le;
+  double Q;
+  double theta;
+  double mf;
+  double gamma;
+  double CFL;
+  int number_of_cells;
+  double dx;
   double dt;
-  double residual;
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief Calculates maximum stable timestep.
@@ -127,6 +123,15 @@ class Marching {
   //   residual = solution_vector.squaredNorm()
   // }
 
+  /////////////////////////////////////////////////////////////////////////
+  /// \brief
+  /// \param
+  double squaredNorm(solution_vector_type solution_vector){
+    return sqrt(solution_vector[0]*solution_vector[0] +
+                solution_vector[1]*solution_vector[1] +
+                solution_vector[2]*solution_vector[2] +
+                solution_vector[3]*solution_vector[3]);
+  }
 };
 
 
@@ -134,14 +139,18 @@ class Marching {
 // TimeMarch
 ///////////////////////////////////////////////////////////////////////////////
 template <typename global_solution_vector_type>
-void Marching<global_solution_vector_type>::timemarch(double time_frame, global_solution_vector_type &global_solution_vector) {
+void Marching<global_solution_vector_type>::timemarch(double time_frame, global_solution_vector_type &global_solution_vector, double lambda) {
   double current_time = 0.0;
   auto phi = global_solution_vector_type(global_solution_vector.size(),
   solution_vector_type::Zero());;
   auto hyperbolic_flux_vector = global_solution_vector_type(global_solution_vector.size(),
   solution_vector_type::Zero());
-#pragma omp parallel
+  double residual = 0.0;
+#pragma omp parallel num_threads (12)
   {
+  #pragma omp single
+  std::cout << "Number of threads being used: " << omp_get_num_threads() << std::endl;
+
   while (current_time < time_frame){
   residual = 0.0;
   auto global_flux_vector = global_solution_vector_type(global_solution_vector.size(),
@@ -179,8 +188,10 @@ void Marching<global_solution_vector_type>::timemarch(double time_frame, global_
 
 #pragma omp for reduction (+:residual)
     for (int i = 1; i < number_of_cells-1; ++i) {
+
+      global_solution_vector[i][4] = 0.0;
       global_solution_vector[i] += global_flux_vector[i];
-      residual += global_flux_vector[i].squaredNorm() * dx / dt;
+      residual += squaredNorm(global_flux_vector[i]) * dx / dt;
     }
 
 #pragma omp single
@@ -200,13 +211,15 @@ void Marching<global_solution_vector_type>::timemarch(double time_frame, global_
       global_solution_vector[i] <<  rho_local,
                                     rho_local * u_local,
                                     rho_local*T_local/(gamma - 1.0) + rho_local * u_local * u_local * 0.5,
-                                    rho_local*Y_local;
+                                    rho_local*Y_local,
+                                    global_solution_vector[i][4];
     }
 #pragma omp single
     current_time += dt;
   }
-  }
+  #pragma omp single
   std::cout << "residual: " << residual << std::endl;
+  }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -307,14 +320,14 @@ void Marching<global_solution_vector_type>::boundary_conditions(global_solution_
 ///////////////////////////////////////////////////////////////////////////////
 template <typename global_solution_vector_type>
 double Marching<global_solution_vector_type>::lambda_eigenvalue(const global_solution_vector_type &global_solution_vector){
-  double lambda = 0.0;
+  double cst = 0.0;
   for (int i = 0; i < number_of_cells; ++i) {
     Variable_Vector_Isolator<solution_vector_type> var_vec = Variable_Vector_Isolator<solution_vector_type>(global_solution_vector[i], gamma);
-    if (lambda < std::fabs(var_vec.u()) + sqrt(gamma * var_vec.p()/var_vec.rho())) {
-      lambda = std::fabs(var_vec.u()) + sqrt(gamma*var_vec.p()/var_vec.rho());
+    if (cst < std::fabs(var_vec.u()) + sqrt(gamma * var_vec.p()/var_vec.rho())) {
+      cst = std::fabs(var_vec.u()) + sqrt(gamma*var_vec.p()/var_vec.rho());
     }
   }
-  return lambda;
+  return cst;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

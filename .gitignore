@@ -1,7 +1,12 @@
 # ignore a single file
 RNS_Solver
+RNS_Solver_restart
+Makefile
+cmake_install.cmake
+CMakeCache.txt
 
 # ignore an entire directory
+/CMakeFiles/
 /Movie/
 /Refinement/
 

@@ -6,29 +6,6 @@ std::string tostring(T name) {
   return std::to_string(static_cast<int>(name));
 }
 
-void bisection_lambda(double& lambda_min, double& lambda_max, double& lambda_run, int& sum_initial, int& sum) {
-  if (sum > sum_initial){
-    lambda_min = lambda_run;
-    lambda_run = (lambda_min + lambda_max)*0.5;
-  } else {
-    lambda_max = lambda_run;
-    lambda_run = (lambda_min + lambda_max)*0.5;
-  }
-}
-
-int flame_position_algorithm(global_solution_vector_type global_solution_vector, double gamma) {
-  int i = 0;
-  auto var_vec = Variable_Vector_Isolator<solution_vector_type>(global_solution_vector[0], gamma);
-  // std::cout << "initial:" << var_vec.rho() << std::endl;
-  while (var_vec.rho() > 0.5) {
-  // std::cout << global_solution_vector[i][0] << std::endl;
-  ++i;
-  var_vec = Variable_Vector_Isolator<solution_vector_type>(global_solution_vector[i], gamma);
-  }
-  std::cout << "initial:" << i << std::endl;
-  return i;
-}
-
 solution_vector_type make_RK4_solution_vector(RK4_Low_Mach_Solver low_mach_solution, double x, double gamma, double mf) {
   solution_vector_type temp_vec;
   temp_vec <<   low_mach_solution.get_rho(x),
@@ -37,7 +14,8 @@ solution_vector_type make_RK4_solution_vector(RK4_Low_Mach_Solver low_mach_solut
                 (gamma - 1.0) +
                 low_mach_solution.get_rho(x) * low_mach_solution.get_U(x) *
                 low_mach_solution.get_U(x) * 0.5,
-                low_mach_solution.get_rho(x) * low_mach_solution.get_Y(x);
+                low_mach_solution.get_rho(x) * low_mach_solution.get_Y(x),
+                0.0;
   return temp_vec;
 }
 
@@ -57,7 +35,8 @@ void RK4_low_mach(double &lambda, int number_of_cells, global_solution_vector_ty
       1.0 * 1.0,
       1.0 / (gamma * mf * mf) /
       (gamma - 1.0) + 1.0 * 1.0 * 1.0 * 0.5,
-      1.0 * 1.0;
+      1.0 * 1.0,
+      0.0;
     } else if (i < number_of_cells * space_in_front/domaine_length && i > number_of_cells * (space_in_front*0.85)/domaine_length) {
       initial_solution[i] << make_RK4_solution_vector(initial_low_mach, (0.0) * dx + 0.5*dx, gamma, mf);
       // initial_solution[i] << 1.0,

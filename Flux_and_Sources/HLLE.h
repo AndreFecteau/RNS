@@ -116,7 +116,7 @@ class HLLE {
   solution_vector_type create_flux_vector(double rho, double u, double p, double Y) {
     solution_vector_type partial_flux;
     partial_flux << rho * u, rho * u * u + p, u * (gamma * p / (gamma - 1.0) +
-                    rho * u * u * 0.5), rho * u * Y;
+                    rho * u * u * 0.5), rho * u * Y, 0.0;
     return partial_flux;
   }
 
