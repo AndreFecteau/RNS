@@ -6,28 +6,6 @@ std::string tostring(T name) {
   return std::to_string(static_cast<int>(name));
 }
 
-void bisection_lambda(double& lambda_min, double& lambda_max, double& lambda_run, int& sum_initial, int& sum) {
-  if (sum > sum_initial){
-    lambda_min = lambda_run;
-    lambda_run = (lambda_min + lambda_max)*0.5;
-  } else {
-    lambda_max = lambda_run;
-    lambda_run = (lambda_min + lambda_max)*0.5;
-  }
-}
-
-int flame_position_algorithm(global_solution_vector_type global_solution_vector, double gamma) {
-  int i = 0;
-  auto var_vec = Variable_Vector_Isolator<solution_vector_type>(global_solution_vector[0], gamma);
-  while (var_vec.rho() > 0.5) {
-  // std::cout << global_solution_vector[i][0] << std::endl;
-  ++i;
-  var_vec = Variable_Vector_Isolator<solution_vector_type>(global_solution_vector[i], gamma);
-  }
-  std::cout << "initial:" << i << std::endl;
-  return i;
-}
-
 solution_vector_type make_RK4_solution_vector(RK4_Low_Mach_Solver low_mach_solution, double x, double gamma, double mf) {
   solution_vector_type temp_vec;
   temp_vec <<   low_mach_solution.get_rho(x),

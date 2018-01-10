@@ -35,6 +35,9 @@ endif()
 # find a Eigen install
 find_package (Eigen3 3.3.4 REQUIRED NO_MODULE)
 
+# find a Cereal install
+find_package (Cereal REQUIRED)
+
 # find a OpenMP install
 find_package (OpenMP)
 
@@ -51,8 +54,26 @@ else()
   message (FATAL_ERROR "Cannot find OpenMP")
 endif()
 
+if(Cereal_FOUND)
+  message ("Cereal found")
+else()
+  message (FATAL_ERROR "Cannot find Cereal")
+endif()
+
+if(Eigen3_FOUND)
+  message ("Eigen3 found")
+else()
+  message (FATAL_ERROR "Cannot find Eigen3")
+endif()
+
 # Add an executable
 add_executable (RNS_Solver main.cpp)
 
 # Link Eigen librairies
 target_link_libraries (RNS_Solver Eigen3::Eigen)
+
+# Add an executable
+add_executable (RNS_Solver_restart main_load.cpp)
+
+# Link Eigen librairies
+target_link_libraries (RNS_Solver_restart Eigen3::Eigen)
