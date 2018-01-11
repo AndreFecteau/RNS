@@ -196,6 +196,7 @@ void Marching<global_solution_vector_type>::timemarch(double time_frame, global_
 #pragma omp single
     boundary_conditions(global_solution_vector);
 
+if defined(FIX){
 #pragma omp for
     for (int i = 1; i < number_of_cells - 2; ++i) {
       Variable_Vector_Isolator<solution_vector_type> var_vec = Variable_Vector_Isolator<solution_vector_type>(global_solution_vector[i], gamma);
@@ -213,6 +214,7 @@ void Marching<global_solution_vector_type>::timemarch(double time_frame, global_
                                     rho_local*Y_local,
                                     global_solution_vector[i][4];
     }
+}
 #pragma omp single
     current_time += dt;
   }

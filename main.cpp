@@ -6,6 +6,7 @@
 #include "Eigen/Dense"
 #include <cmath>
 
+#define FIX
 typedef Eigen::Matrix<double, 5, 1> Vector5d;
 using global_solution_vector_type = std::vector<Vector5d>;
 using solution_vector_type = typename global_solution_vector_type::value_type;
