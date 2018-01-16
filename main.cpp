@@ -6,7 +6,7 @@
 #include "Eigen/Dense"
 #include <cmath>
 
-#define FIX
+
 typedef Eigen::Matrix<double, 5, 1> Vector5d;
 using global_solution_vector_type = std::vector<Vector5d>;
 using solution_vector_type = typename global_solution_vector_type::value_type;
@@ -24,9 +24,9 @@ int main(){
   double theta =500.0/9.0;
   double gamma = 1.4;
   double mf = 0.005;
-  int    number_of_cells = 700;
-  double final_time = 30;
-  int    frames = 3;
+  int    number_of_cells = 6000;
+  double final_time = 100;
+  int    frames = 100;
 
   double T_ignition = 1.0;
   double lambda = 0.0;
@@ -49,9 +49,9 @@ int main(){
 
   lambda_max = 90000;
   lambda_min = 70000;
-  lambda_run = 80000;
+  lambda_run = 94500;
 
-  std::string filename = "Movie/Refinement1_" + tostring(final_time) + "_" + tostring(number_of_cells) + "_";
+  std::string filename = "Movie/Refinement9_" + tostring(final_time) + "_" + tostring(number_of_cells) + "_";
   RK4_low_mach(lambda, number_of_cells, initial_solution, Le, Q, theta, T_ignition, gamma, x_max, mf);
   auto solver = Solver<global_solution_vector_type>(initial_solution,Pr, Le, Q/(mf*mf*(gamma-1)), theta/(gamma*mf*mf), mf, lambda_run, lambda_min, lambda_max, gamma, number_of_cells, CFL, x_max, x_min, final_time, frames, filename);
   solver.solve();
