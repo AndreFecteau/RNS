@@ -6,7 +6,6 @@
 #include "Eigen/Dense"
 #include <cmath>
 
-
 typedef Eigen::Matrix<double, 5, 1> Vector5d;
 using global_solution_vector_type = std::vector<Vector5d>;
 using solution_vector_type = typename global_solution_vector_type::value_type;
@@ -45,9 +44,10 @@ int main(){
   std::cout << "Initial Conditions" << std::endl;
   std::cout << "//////////////////////" << std::endl;
 
-  lambda_max = 90000;
+
+  lambda_max = 100000;
   lambda_min = 70000;
-  lambda_run = 94500;
+  lambda_run = 95287;
 
   std::string filename = "Movie/Refinement9_" + tostring(final_time) + "_" + tostring(number_of_cells) + "_";
   RK4_low_mach(lambda, number_of_cells, initial_solution, Le, Q, theta, T_ignition, gamma, x_max, mf);
