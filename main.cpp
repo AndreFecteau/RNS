@@ -6,7 +6,6 @@
 #include "Eigen/Dense"
 #include <cmath>
 
-//#define FIX
 typedef Eigen::Matrix<double, 5, 1> Vector5d;
 using global_solution_vector_type = std::vector<Vector5d>;
 using solution_vector_type = typename global_solution_vector_type::value_type;
@@ -24,9 +23,9 @@ int main(){
   double theta =500.0/9.0;
   double gamma = 1.4;
   double mf = 0.005;
-  int    number_of_cells = 500;
+  int    number_of_cells = 6000;
   double final_time = 100;
-  int    frames = 10;
+  int    frames = 100;
 
   double T_ignition = 1.0;
   double lambda = 0.0;
