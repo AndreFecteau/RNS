@@ -8,6 +8,7 @@ CMakeCache.txt
 # ignore an entire directory
 /CMakeFiles/
 /Movie/
+/Movie_Test/
 /Refinement/
 
 # ignore a file type
