@@ -82,7 +82,7 @@ bool Solver<global_solution_vector_type, matrix_type>::solve(marching_type march
                                                              double gamma) {
   double residual = 100000.0;
   old_position = flame_position_algorithm(global_solution_vector, gamma);
-  // while (residual > target_residual){
+  while (residual > target_residual){
     auto start = std::chrono::high_resolution_clock::now();
     std::cout << "Time = " <<  current_time << std::endl;
     residual = march.timemarch(frame_time, global_solution_vector, lambda);
@@ -93,7 +93,7 @@ bool Solver<global_solution_vector_type, matrix_type>::solve(marching_type march
     auto finish = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> elapsed = finish - start;
     std::cout << "Elapsed time: " << elapsed.count() << " s\n";
-  // }
+  }
 
   int position = 0;
   auto var_vec = Variable_Vector_Isolator<solution_vector_type>(global_solution_vector[position], 1.4);
