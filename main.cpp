@@ -2,6 +2,7 @@
 #include "Low_Mach_Solver/RK4_Low_Mach_Solver.h"
 #include "Usefull_Headers/Variable_Vector_Isolator.h"
 #include "Usefull_Headers/Gnuplot_Primitive_Variables.h"
+#include "Explicit_Marching.h"
 #include "Eigen/Core"
 #include "Eigen/Dense"
 #include <cmath>
@@ -29,7 +30,7 @@ int main(){
 
   double T_ignition = 1.0;
   double lambda = 0.0;
-  double CFL = 0.5;
+  double CFL = 0.8;
   double x_min = 0.0;
   double x_max;
   double lambda_max;
@@ -42,6 +43,10 @@ int main(){
   std::cout << "Initial Conditions" << std::endl;
   std::cout << "//////////////////////" << std::endl;
 
+  auto explicit_march = Explicit_Marching<global_solution_vector_type>(Pr, Le, Q, theta, mf, gamma,
+                        number_of_cells, CFL, (x_max - x_min)/number_of_cells);
+  auto implicit_march = Implicit_Marching<global_solution_vector_type>(Pr, Le, Q, theta, mf, gamma,
+                        number_of_cells, CFL, (x_max - x_min)/number_of_cells);
 
   lambda_max = 100000;
   lambda_min = 90000;
@@ -52,7 +57,7 @@ int main(){
                                   T_ignition, gamma, x_max, mf);
   auto solver = Solver<global_solution_vector_type>(initial_solution,Pr, Le, Q/(mf*mf*(gamma-1)),
                 theta/(gamma*mf*mf), mf, lambda_run, lambda_min, lambda_max, gamma, number_of_cells,
-                CFL, x_max, x_min, final_time, frames, filename);
-  solver.solve();
+                CFL, x_max, x_min, filename);
+  solver.solve(target_residual, frame_time);
 
 };
