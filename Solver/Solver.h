@@ -4,14 +4,14 @@
 #include <math.h>
 #include <vector>
 #include <chrono>
-#include<cereal/cereal.hpp>
+#include <cereal/cereal.hpp>
 #include <cereal/types/vector.hpp>
 #include "../Usefull_Headers/Gnuplot_Primitive_Variables.h"
 #include "../Serialization/Serialization_Eigen.h"
 #include "../Serialization/Serialize.h"
 
 
-template <typename global_solution_vector_type>
+template <typename global_solution_vector_type, typename matrix_type>
 class Solver {
 using solution_vector_type = typename global_solution_vector_type::value_type;
  public:
@@ -37,14 +37,10 @@ using solution_vector_type = typename global_solution_vector_type::value_type;
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief Constructor setting up required inputs.
-  Solver(global_solution_vector_type initial_solution_in, double Pr, double Le,
-        double Q, double theta, double mf, double Lambda_in, double Lambda_min_in, double Lambda_max_in, double gamma,
-        double number_of_cells, double CFL, double x_max, double x_min, std::string filename_in) :
-          global_solution_vector(initial_solution_in), lambda(Lambda_in), lambda_min(Lambda_min_in),
-          lambda_max(Lambda_max_in), filename(filename_in) {
-    plot<global_solution_vector_type>(filename + std::to_string(static_cast<int>(Lambda_in)) + "_0",
-                                      global_solution_vector, (x_max - x_min)/number_of_cells);
-    old_position = flame_position_algorithm(initial_solution_in, gamma);
+  Solver(global_solution_vector_type initial_solution_in, double Lambda_in,
+         std::string filename_in) :
+          global_solution_vector(initial_solution_in), lambda(Lambda_in), filename(filename_in)
+  {
     std::cout << "//////////////////////" << std::endl;
     std::cout << "Solver, Lambda = " << lambda << std::endl;
     std::cout << "//////////////////////" << std::endl;
@@ -52,81 +48,74 @@ using solution_vector_type = typename global_solution_vector_type::value_type;
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief Runs the simulation. Outputs frames in a folder "../Movie".
-  void solve();
+  template <typename marching_type>
+  bool solve(marching_type marching, double target_residual, double frame_time, double gamma);
 
   template<typename Archive>
   void serialize(Archive& archive) {
-    archive(global_solution_vector, current_time, lambda, lambda_min,
-            lambda_max, final_time, frames, filename, explicit_march, old_position, curr_frame);
+    archive(global_solution_vector, current_time, lambda,
+            filename, old_position, current_frame);
   }
 
  private:
    global_solution_vector_type global_solution_vector;
-   double current_time = 0.0;
-   double lambda, lambda_min, lambda_max;
-   double final_time;
-   int frames;
    std::string filename;
+   double lambda;
+   double current_time = 0.0;
+   int current_frame = 0;
    int old_position;
-   int curr_frame = 0;
 
-   void bisection_lambda(double& lambda_min, double& lambda_max, double& lambda_run, int& sum_initial, int& sum);
-
+  /////////////////////////////////////////////////////////////////////////
+  /// \brief
+  /// \param
    int flame_position_algorithm(global_solution_vector_type global_solution_vector, double gamma);
 };
-
 
 ///////////////////////////////////////////////////////////////////////////////
 // Solver
 ///////////////////////////////////////////////////////////////////////////////
-template <typename global_solution_vector_type>
-void Solver<global_solution_vector_type>::solve() {
-  double time_per_frame = final_time / frames;
-
-  while (curr_frame < frames){
+template <typename global_solution_vector_type, typename matrix_type>
+template <typename marching_type>
+bool Solver<global_solution_vector_type, matrix_type>::solve(marching_type march,
+                                                             double target_residual,
+                                                             double frame_time,
+                                                             double gamma) {
+  double residual = 100000.0;
+  old_position = flame_position_algorithm(global_solution_vector, gamma);
+  // while (residual > target_residual){
     auto start = std::chrono::high_resolution_clock::now();
     std::cout << "Time = " <<  current_time << std::endl;
-    explicit_march.timemarch(time_per_frame, global_solution_vector, lambda);
-    current_time += time_per_frame;
-    plot<global_solution_vector_type>(filename + std::to_string(static_cast<int>(lambda)) + "_" + std::to_string(static_cast<int>(curr_frame)+1), global_solution_vector, explicit_march.get_dx());
-    curr_frame++;
+    residual = march.timemarch(frame_time, global_solution_vector, lambda);
+    current_time += frame_time;
+    plot<global_solution_vector_type>(filename + std::to_string(static_cast<int>(lambda)) + "_" + std::to_string(static_cast<int>(current_frame)+1), global_solution_vector, march.get_dx());
+    current_frame++;
     serialize_to_file(*this, filename);
     auto finish = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> elapsed = finish - start;
     std::cout << "Elapsed time: " << elapsed.count() << " s\n";
-  }
+  // }
 
   int position = 0;
   auto var_vec = Variable_Vector_Isolator<solution_vector_type>(global_solution_vector[position], 1.4);
   while (var_vec.rho() > 0.5) {
-  // std::cout << global_solution_vector[i][0] << std::endl;
   ++position;
   var_vec = Variable_Vector_Isolator<solution_vector_type>(global_solution_vector[position], 1.4);
   }
-  bisection_lambda(lambda_min, lambda_max, lambda, old_position, position);
-}
-
-template <typename global_solution_vector_type>
-void Solver<global_solution_vector_type>::bisection_lambda(double& lambda_min, double& lambda_max, double& lambda_run, int& sum_initial, int& sum) {
-  if (sum > sum_initial){
-    lambda_min = lambda_run;
-    lambda_run = (lambda_min + lambda_max)*0.5;
+  if(position < old_position) {
+    return 0;
   } else {
-    lambda_max = lambda_run;
-    lambda_run = (lambda_min + lambda_max)*0.5;
+    return 1;
   }
 }
 
-template <typename global_solution_vector_type>
-int Solver<global_solution_vector_type>::flame_position_algorithm(global_solution_vector_type global_solution_vector, double gamma) {
+template <typename global_solution_vector_type, typename matrix_type>
+int Solver<global_solution_vector_type, matrix_type>::flame_position_algorithm(global_solution_vector_type global_solution_vector, double gamma) {
   int i = 0;
   auto var_vec = Variable_Vector_Isolator<solution_vector_type>(global_solution_vector[0], gamma);
   while (var_vec.rho() > 0.5) {
-  // std::cout << global_solution_vector[i][0] << std::endl;
   ++i;
   var_vec = Variable_Vector_Isolator<solution_vector_type>(global_solution_vector[i], gamma);
   }
-  std::cout << "initial:" << i << std::endl;
   return i;
 }
 

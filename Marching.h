@@ -1,19 +1,17 @@
-#ifndef EXPLICIT_MARCHING_H
-#define EXPLICIT_MARCHING_H
+#ifndef MARCHING_H
+#define MARCHING_H
 
 #include <omp.h>
 #include <math.h>
 #include <limits>
 #include <vector>
-#include "Eigen/Core"
-#include "Eigen/Dense"
-#include "../Explicit_Flux_and_Sources/HLLE.h"
-#include "../Explicit_Flux_and_Sources/Centered_Difference.h"
-#include "../Explicit_Flux_and_Sources/Sources.h"
+#include "../Flux_and_Sources/HLLE.h"
+#include "../Flux_and_Sources/Centered_Difference.h"
+#include "../Flux_and_Sources/Sources.h"
 #include "../Serialization/Serialization_Eigen.h"
 
-template <typename global_solution_vector_type, typename matrix_type>
-class Explicit_Marching {
+template <typename global_solution_vector_type>
+class Marching {
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief type for individual cell solution vector.
@@ -22,25 +20,25 @@ class Explicit_Marching {
  public:
   /////////////////////////////////////////////////////////////////////////
   /// \brief Default constructor.
-  Explicit_Marching() = default;
+  Marching() = default;
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief Copy constructor.
-  Explicit_Marching(const Explicit_Marching&) = default;
+  Marching(const Marching&) = default;
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief Move constructor.
-  Explicit_Marching(Explicit_Marching&&) = default;
+  Marching(Marching&&) = default;
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief Copy assignment operator.
-  Explicit_Marching& operator=(const Explicit_Marching&) = default;
+  Marching& operator=(const Marching&) = default;
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief Move assignment operator.
-  Explicit_Marching& operator=(Explicit_Marching&&) = default;
+  Marching& operator=(Marching&&) = default;
 
-  Explicit_Marching(double Pr_in, double Le_in, double Q_in, double theta_in, double mf_in,
+  Marching(double Pr_in, double Le_in, double Q_in, double theta_in, double mf_in,
            double gamma_in, double number_of_cells_in,  double CFL_in, double dx_in) :
            Pr(Pr_in), Le(Le_in), Q(Q_in), theta(theta_in), mf(mf_in), gamma(gamma_in),
            CFL(CFL_in), number_of_cells(number_of_cells_in), dx(dx_in) {}
@@ -49,7 +47,7 @@ class Explicit_Marching {
   /// \brief Execute step in time.
   /// \param time_frame Time to stop the time marching.
   /// \param global_solution_vector vector containing cell states from all the cells.
-  double timemarch(double time_frame, global_solution_vector_type &global_solution_vector, double lambda);
+  void timemarch(double time_frame, global_solution_vector_type &global_solution_vector, double lambda);
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief
@@ -57,10 +55,6 @@ class Explicit_Marching {
   double get_dx() {
     return dx;
   }
-
-  /////////////////////////////////////////////////////////////////////////
-  /// \brief
-  /// \param
   template<typename Archive>
   void serialize(Archive& archive) {
     archive(Pr, Le, Q, theta, mf, gamma, CFL, number_of_cells, dx, dt);
@@ -79,9 +73,7 @@ class Explicit_Marching {
   double CFL;
   int number_of_cells;
   double dx;
-  double dt =0.0;
-  double residual;
-
+  double dt;
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief Calculates maximum stable timestep.
@@ -146,17 +138,15 @@ class Explicit_Marching {
 ///////////////////////////////////////////////////////////////////////////////
 // TimeMarch
 ///////////////////////////////////////////////////////////////////////////////
-template <typename global_solution_vector_type, typename matrix_type>
-double Explicit_Marching<global_solution_vector_type, matrix_type>::timemarch(double time_frame, global_solution_vector_type &global_solution_vector, double lambda) {
+template <typename global_solution_vector_type>
+void Marching<global_solution_vector_type>::timemarch(double time_frame, global_solution_vector_type &global_solution_vector, double lambda) {
   double current_time = 0.0;
   auto phi = global_solution_vector_type(global_solution_vector.size(),
   solution_vector_type::Zero());;
   auto hyperbolic_flux_vector = global_solution_vector_type(global_solution_vector.size(),
   solution_vector_type::Zero());
   double residual = 0.0;
-  std::cout << global_solution_vector.size() << std::endl;
-
-#pragma omp parallel
+#pragma omp parallel num_threads (12)
   {
   #pragma omp single
   std::cout << "Number of threads being used: " << omp_get_num_threads() << std::endl;
@@ -175,8 +165,7 @@ double Explicit_Marching<global_solution_vector_type, matrix_type>::timemarch(do
     }
 #pragma omp for
     for (int i = 1; i < number_of_cells-1; ++i) {
-      phi[i] = 0.5*minmod_limiter(global_solution_vector[i-1], global_solution_vector[i], global_solution_vector[i+1]) +
-               0.5*vanalbada_limiter(global_solution_vector[i-1], global_solution_vector[i], global_solution_vector[i+1]);
+      phi[i] = vanalbada_limiter(global_solution_vector[i-1], global_solution_vector[i], global_solution_vector[i+1]);
     }
 
 #pragma omp for private (hyperbolic_flux)
@@ -199,7 +188,7 @@ double Explicit_Marching<global_solution_vector_type, matrix_type>::timemarch(do
 #pragma omp for reduction (+:residual)
     for (int i = 1; i < number_of_cells-1; ++i) {
 
-      // global_solution_vector[i][4] = 0.0;
+      global_solution_vector[i][4] = 0.0;
       global_solution_vector[i] += global_flux_vector[i];
       residual += squaredNorm(global_flux_vector[i]) * dx / dt;
     }
@@ -207,20 +196,38 @@ double Explicit_Marching<global_solution_vector_type, matrix_type>::timemarch(do
 #pragma omp single
     boundary_conditions(global_solution_vector);
 
+// if defined(FIX){
+// #pragma omp for
+//     for (int i = 1; i < number_of_cells - 2; ++i) {
+//       Variable_Vector_Isolator<solution_vector_type> var_vec = Variable_Vector_Isolator<solution_vector_type>(global_solution_vector[i], gamma);
+//       double rho_local = var_vec.rho();
+//       double u_local = var_vec.u();
+//       double T_local = var_vec.T();
+//       double Y_local = var_vec.Y();
+//       rho_local = std::min(rho_local, 1.0);
+//       u_local = std::max(u_local,1.0);
+//       u_local = std::min(u_local, 10.0);
+//       T_local = std::max(T_local, 1.0 / (gamma*mf*mf));
+//       global_solution_vector[i] <<  rho_local,
+//                                     rho_local * u_local,
+//                                     rho_local*T_local/(gamma - 1.0) + rho_local * u_local * u_local * 0.5,
+//                                     rho_local*Y_local,
+//                                     global_solution_vector[i][4];
+//     }
+// }
 #pragma omp single
     current_time += dt;
   }
   #pragma omp single
   std::cout << "residual: " << residual << std::endl;
   }
-  return residual;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 // Calculate dt;
 ///////////////////////////////////////////////////////////////////////////////
-template <typename global_solution_vector_type, typename matrix_type>
-void Explicit_Marching<global_solution_vector_type, matrix_type>::calculate_dt(const global_solution_vector_type &global_solution_vector) {
+template <typename global_solution_vector_type>
+void Marching<global_solution_vector_type>::calculate_dt(const global_solution_vector_type &global_solution_vector) {
   double dt1 = CFL * dx / lambda_eigenvalue(global_solution_vector);
   double dt2 = CFL * dx*dx / (K_value(global_solution_vector));
   // std::cout << "Hyperbolic: " << dt1 << " Viscous: " << dt2 << std::endl;
@@ -230,8 +237,8 @@ void Explicit_Marching<global_solution_vector_type, matrix_type>::calculate_dt(c
 ///////////////////////////////////////////////////////////////////////////////
 // MinMod;
 ///////////////////////////////////////////////////////////////////////////////
-template <typename global_solution_vector_type, typename matrix_type>
-typename global_solution_vector_type::value_type Explicit_Marching<global_solution_vector_type, matrix_type>::minmod_limiter(const typename global_solution_vector_type::value_type &Ul,
+template <typename global_solution_vector_type>
+typename global_solution_vector_type::value_type Marching<global_solution_vector_type>::minmod_limiter(const typename global_solution_vector_type::value_type &Ul,
                                                                                                        const typename global_solution_vector_type::value_type &U,
                                                                                                        const typename global_solution_vector_type::value_type &Ur) {
   solution_vector_type phi;
@@ -246,8 +253,8 @@ typename global_solution_vector_type::value_type Explicit_Marching<global_soluti
 ///////////////////////////////////////////////////////////////////////////////
 // VanAlbata;
 ///////////////////////////////////////////////////////////////////////////////
-template <typename global_solution_vector_type, typename matrix_type>
-typename global_solution_vector_type::value_type Explicit_Marching<global_solution_vector_type, matrix_type>::vanalbada_limiter(const typename global_solution_vector_type::value_type &Ul,
+template <typename global_solution_vector_type>
+typename global_solution_vector_type::value_type Marching<global_solution_vector_type>::vanalbada_limiter(const typename global_solution_vector_type::value_type &Ul,
                                                                                                        const typename global_solution_vector_type::value_type &U,
                                                                                                        const typename global_solution_vector_type::value_type &Ur) {
   solution_vector_type phi;
@@ -261,8 +268,8 @@ typename global_solution_vector_type::value_type Explicit_Marching<global_soluti
 ///////////////////////////////////////////////////////////////////////////////
 // Calculate Next Step
 ///////////////////////////////////////////////////////////////////////////////
-// template <typename global_solution_vector_type, typename matrix_type>
-// void Explicit_Marching<global_solution_vector_type, matrix_type>::calculate_next_step(global_solution_vector_type &global_solution_vector) {
+// template <typename global_solution_vector_type>
+// void Marching<global_solution_vector_type>::calculate_next_step(global_solution_vector_type &global_solution_vector) {
 //   auto flux_vector = global_solution_vector_type(global_solution_vector.size(),
 //   solution_vector_type::Zero());
 //   solution_vector_type flux_left;// = hyperbolic_flux.flux(global_solution_vector[0], global_solution_vector[1], gamma);
@@ -302,8 +309,8 @@ typename global_solution_vector_type::value_type Explicit_Marching<global_soluti
 ///////////////////////////////////////////////////////////////////////////////
 // Boundary Conditions
 ///////////////////////////////////////////////////////////////////////////////
-template <typename global_solution_vector_type, typename matrix_type>
-void Explicit_Marching<global_solution_vector_type, matrix_type>::boundary_conditions(global_solution_vector_type &global_solution_vector) {
+template <typename global_solution_vector_type>
+void Marching<global_solution_vector_type>::boundary_conditions(global_solution_vector_type &global_solution_vector) {
   for(int i = 0; i < 2; ++i) {
     global_solution_vector[number_of_cells - 2 + i] << global_solution_vector[number_of_cells - 3];
   }
@@ -312,8 +319,8 @@ void Explicit_Marching<global_solution_vector_type, matrix_type>::boundary_condi
 ///////////////////////////////////////////////////////////////////////////////
 // WaveSpeed
 ///////////////////////////////////////////////////////////////////////////////
-template <typename global_solution_vector_type, typename matrix_type>
-double Explicit_Marching<global_solution_vector_type, matrix_type>::lambda_eigenvalue(const global_solution_vector_type &global_solution_vector){
+template <typename global_solution_vector_type>
+double Marching<global_solution_vector_type>::lambda_eigenvalue(const global_solution_vector_type &global_solution_vector){
   double cst = 0.0;
   for (int i = 0; i < number_of_cells; ++i) {
     Variable_Vector_Isolator<solution_vector_type> var_vec = Variable_Vector_Isolator<solution_vector_type>(global_solution_vector[i], gamma);
@@ -327,8 +334,8 @@ double Explicit_Marching<global_solution_vector_type, matrix_type>::lambda_eigen
 ///////////////////////////////////////////////////////////////////////////////
 // K value
 ///////////////////////////////////////////////////////////////////////////////
-template <typename global_solution_vector_type, typename matrix_type>
-double Explicit_Marching<global_solution_vector_type, matrix_type>::K_value(const global_solution_vector_type &global_solution_vector) {
+template <typename global_solution_vector_type>
+double Marching<global_solution_vector_type>::K_value(const global_solution_vector_type &global_solution_vector) {
   double min_rho = std::numeric_limits<double>::max();
   for (int i = 0; i < number_of_cells; ++i) {
     Variable_Vector_Isolator<solution_vector_type> var_vec = Variable_Vector_Isolator<solution_vector_type>(global_solution_vector[i], gamma);
@@ -340,4 +347,4 @@ double Explicit_Marching<global_solution_vector_type, matrix_type>::K_value(cons
 }
 
 
-#endif //#ifndef EXPLICIT_MARCHING_H
+#endif //#ifndef MARCHING_H

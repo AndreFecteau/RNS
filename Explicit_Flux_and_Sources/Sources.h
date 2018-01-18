@@ -53,7 +53,7 @@ class Sources {
     theta = theta_in;
     solution_vector_var = Variable_Vector_Isolator<solution_vector_type>(solution_vector, gamma);
     solution_vector_type sources_vector;
-    sources_vector << 0.0, 0.0, energy_source(), species_source(), -species_source();
+    sources_vector << 0.0, 0.0, energy_source(), species_source();
     return sources_vector;
   }
 

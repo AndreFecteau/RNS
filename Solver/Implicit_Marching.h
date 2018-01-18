@@ -1,5 +1,5 @@
-#ifndef MARCHING_H
-#define MARCHING_H
+#ifndef IMPLICIT_MARCHING_H
+#define IMPLICIT_MARCHING_H
 
 #include <omp.h>
 #include <math.h>
@@ -7,13 +7,13 @@
 #include <vector>
 #include "Eigen/Core"
 #include "Eigen/Dense"
-#include "../Flux_and_Sources/Create_Implicit_Matrix_Vectors.h"
+#include "../Implicit_Flux_and_Sources/Create_Implicit_Matrix_Vectors.h"
 #include "../Usefull_Headers/Block_Triagonal_Matrix_Inverse.h"
 #include "../Usefull_Headers/Variable_Vector_Isolator.h"
 
 
 template <typename global_solution_vector_type, typename matrix_type>
-class Marching {
+class Implicit_Marching {
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief type for individual cell solution vector.
@@ -22,25 +22,25 @@ class Marching {
  public:
   /////////////////////////////////////////////////////////////////////////
   /// \brief Default constructor.
-  Marching() = default;
+  Implicit_Marching() = default;
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief Copy constructor.
-  Marching(const Marching&) = default;
+  Implicit_Marching(const Implicit_Marching&) = default;
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief Move constructor.
-  Marching(Marching&&) = default;
+  Implicit_Marching(Implicit_Marching&&) = default;
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief Copy assignment operator.
-  Marching& operator=(const Marching&) = default;
+  Implicit_Marching& operator=(const Implicit_Marching&) = default;
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief Move assignment operator.
-  Marching& operator=(Marching&&) = default;
+  Implicit_Marching& operator=(Implicit_Marching&&) = default;
 
-  Marching(double Pr_in, double Le_in, double Q_in, double theta_in, double mf_in,
+  Implicit_Marching(double Pr_in, double Le_in, double Q_in, double theta_in, double mf_in,
            double gamma_in, double number_of_cells_in,  double CFL_in, double dx_in) :
            Pr(Pr_in), Le(Le_in), Q(Q_in), theta(theta_in), mf(mf_in), gamma(gamma_in),
            CFL(CFL_in), number_of_cells(number_of_cells_in), dx(dx_in) {}
@@ -49,7 +49,7 @@ class Marching {
   /// \brief Execute step in time.
   /// \param time_frame Time to stop the time marching.
   /// \param global_solution_vector vector containing cell states from all the cells.
-  void timemarch(double time_frame, global_solution_vector_type &global_solution_vector, double lambda);
+  double timemarch(double time_frame, global_solution_vector_type &global_solution_vector, double lambda);
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief
@@ -116,7 +116,7 @@ class Marching {
 // TimeMarch
 ///////////////////////////////////////////////////////////////////////////////
 template <typename global_solution_vector_type, typename matrix_type>
-void Marching<global_solution_vector_type, matrix_type>::timemarch(double time_frame, global_solution_vector_type &global_solution_vector, double Lambda) {
+double Implicit_Marching<global_solution_vector_type, matrix_type>::timemarch(double time_frame, global_solution_vector_type &global_solution_vector, double Lambda) {
   double current_time = 0.0;
   std::vector<matrix_type>    mid(global_solution_vector.size()-2);
   std::vector<matrix_type>    top(global_solution_vector.size()-2);
@@ -125,7 +125,7 @@ void Marching<global_solution_vector_type, matrix_type>::timemarch(double time_f
   global_solution_vector_type delta_global_solution_vector;
 #pragma omp parallel
   {
-  residual = 0.0;
+  residual = 10000000.0;
   while (current_time < time_frame){
 
 #pragma omp single
@@ -190,13 +190,14 @@ void Marching<global_solution_vector_type, matrix_type>::timemarch(double time_f
   }
   }
   std::cout << "residual: " << residual << std::endl;
+  return residual;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 // Calculate dt;
 ///////////////////////////////////////////////////////////////////////////////
 template <typename global_solution_vector_type, typename matrix_type>
-double Marching<global_solution_vector_type, matrix_type>::calculate_dt(const global_solution_vector_type &global_solution_vector) {
+double Implicit_Marching<global_solution_vector_type, matrix_type>::calculate_dt(const global_solution_vector_type &global_solution_vector) {
   double dt1 = CFL * dx / lambda_eigenvalue(global_solution_vector);
   double dt2 = CFL * dx*dx / (K_value(global_solution_vector));
   return std::min(dt1, dt2);
@@ -206,7 +207,7 @@ double Marching<global_solution_vector_type, matrix_type>::calculate_dt(const gl
 // WaveSpeed
 ///////////////////////////////////////////////////////////////////////////////
 template <typename global_solution_vector_type, typename matrix_type>
-double Marching<global_solution_vector_type, matrix_type>::lambda_eigenvalue(const global_solution_vector_type &global_solution_vector){
+double Implicit_Marching<global_solution_vector_type, matrix_type>::lambda_eigenvalue(const global_solution_vector_type &global_solution_vector){
   double lambda = 0.0;
   for (int i = 0; i < number_of_cells; ++i) {
     Variable_Vector_Isolator<solution_vector_type> var_vec = Variable_Vector_Isolator<solution_vector_type>(global_solution_vector[i], gamma);
@@ -221,7 +222,7 @@ double Marching<global_solution_vector_type, matrix_type>::lambda_eigenvalue(con
 // K value
 ///////////////////////////////////////////////////////////////////////////////
 template <typename global_solution_vector_type, typename matrix_type>
-double Marching<global_solution_vector_type, matrix_type>::K_value(const global_solution_vector_type &global_solution_vector) {
+double Implicit_Marching<global_solution_vector_type, matrix_type>::K_value(const global_solution_vector_type &global_solution_vector) {
   double min_rho = std::numeric_limits<double>::max();
   for (int i = 0; i < number_of_cells; ++i) {
     Variable_Vector_Isolator<solution_vector_type> var_vec = Variable_Vector_Isolator<solution_vector_type>(global_solution_vector[i], gamma);
@@ -233,4 +234,4 @@ double Marching<global_solution_vector_type, matrix_type>::K_value(const global_
 }
 
 
-#endif //#ifndef MARCHING_H
+#endif //#ifndef IMPLICIT_MARCHING_H
