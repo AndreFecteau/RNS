@@ -6,7 +6,7 @@
 #include <chrono>
 #include<cereal/cereal.hpp>
 #include <cereal/types/vector.hpp>
-#include "Marching.h"
+#include "Explicit_Marching.h"
 #include "../Usefull_Headers/Gnuplot_Primitive_Variables.h"
 #include "../Serialization/Serialization_Eigen.h"
 #include "../Serialization/Serialize.h"
@@ -44,7 +44,7 @@ using solution_vector_type = typename global_solution_vector_type::value_type;
         double frames_in, std::string filename_in) :
           global_solution_vector(initial_solution_in), lambda(Lambda_in), lambda_min(Lambda_min_in),
           lambda_max(Lambda_max_in), final_time(final_time_in), frames(frames_in), filename(filename_in),
-          march(Marching<global_solution_vector_type>(Pr, Le, Q, theta, mf, gamma,
+          explicit_march(Explicit_Marching<global_solution_vector_type>(Pr, Le, Q, theta, mf, gamma,
           number_of_cells, CFL, (x_max - x_min)/number_of_cells)) {
     plot<global_solution_vector_type>(filename + std::to_string(static_cast<int>(Lambda_in)) + "_0",
                                       global_solution_vector, (x_max - x_min)/number_of_cells);
@@ -61,7 +61,7 @@ using solution_vector_type = typename global_solution_vector_type::value_type;
   template<typename Archive>
   void serialize(Archive& archive) {
     archive(global_solution_vector, current_time, lambda, lambda_min,
-            lambda_max, final_time, frames, filename, march, old_position, curr_frame);
+            lambda_max, final_time, frames, filename, explicit_march, old_position, curr_frame);
   }
 
  private:
@@ -71,7 +71,7 @@ using solution_vector_type = typename global_solution_vector_type::value_type;
    double final_time;
    int frames;
    std::string filename;
-   Marching<global_solution_vector_type> march;
+   Explicit_Marching<global_solution_vector_type> explicit_march;
    int old_position;
    int curr_frame = 0;
 
@@ -91,9 +91,9 @@ void Solver<global_solution_vector_type>::solve() {
   while (curr_frame < frames){
     auto start = std::chrono::high_resolution_clock::now();
     std::cout << "Time = " <<  current_time << std::endl;
-    march.timemarch(time_per_frame, global_solution_vector, lambda);
+    explicit_march.timemarch(time_per_frame, global_solution_vector, lambda);
     current_time += time_per_frame;
-    plot<global_solution_vector_type>(filename + std::to_string(static_cast<int>(lambda)) + "_" + std::to_string(static_cast<int>(curr_frame)+1), global_solution_vector, march.get_dx());
+    plot<global_solution_vector_type>(filename + std::to_string(static_cast<int>(lambda)) + "_" + std::to_string(static_cast<int>(curr_frame)+1), global_solution_vector, explicit_march.get_dx());
     curr_frame++;
     serialize_to_file(*this, filename);
     auto finish = std::chrono::high_resolution_clock::now();

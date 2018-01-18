@@ -1,17 +1,17 @@
-#ifndef MARCHING_H
-#define MARCHING_H
+#ifndef EXPLICIT_MARCHING_H
+#define EXPLICIT_MARCHING_H
 
 #include <omp.h>
 #include <math.h>
 #include <limits>
 #include <vector>
-#include "../Flux_and_Sources/HLLE.h"
-#include "../Flux_and_Sources/Centered_Difference.h"
-#include "../Flux_and_Sources/Sources.h"
+#include "../Explicit_Flux_and_Sources/HLLE.h"
+#include "../Explicit_Flux_and_Sources/Centered_Difference.h"
+#include "../Explicit_Flux_and_Sources/Sources.h"
 #include "../Serialization/Serialization_Eigen.h"
 
 template <typename global_solution_vector_type>
-class Marching {
+class Explicit_Marching {
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief type for individual cell solution vector.
@@ -20,28 +20,28 @@ class Marching {
  public:
   /////////////////////////////////////////////////////////////////////////
   /// \brief Default constructor.
-  Marching() = default;
+  Explicit_Marching() = default;
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief Copy constructor.
-  Marching(const Marching&) = default;
+  Explicit_Marching(const Explicit_Marching&) = default;
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief Move constructor.
-  Marching(Marching&&) = default;
+  Explicit_Marching(Explicit_Marching&&) = default;
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief Copy assignment operator.
-  Marching& operator=(const Marching&) = default;
+  Explicit_Marching& operator=(const Explicit_Marching&) = default;
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief Move assignment operator.
-  Marching& operator=(Marching&&) = default;
+  Explicit_Marching& operator=(Explicit_Marching&&) = default;
 
-  Marching(double Pr_in, double Le_in, double Q_in, double theta_in, double mf_in,
-           double gamma_in, double number_of_cells_in,  double CFL_in, double dx_in) :
-           Pr(Pr_in), Le(Le_in), Q(Q_in), theta(theta_in), mf(mf_in), gamma(gamma_in),
-           CFL(CFL_in), number_of_cells(number_of_cells_in), dx(dx_in) {}
+  Explicit_Marching(double Pr_in, double Le_in, double Q_in, double theta_in, double mf_in,
+                    double gamma_in, double number_of_cells_in,  double CFL_in, double dx_in) :
+                    Pr(Pr_in), Le(Le_in), Q(Q_in), theta(theta_in), mf(mf_in), gamma(gamma_in),
+                    CFL(CFL_in), number_of_cells(number_of_cells_in), dx(dx_in) {}
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief Execute step in time.
@@ -139,7 +139,7 @@ class Marching {
 // TimeMarch
 ///////////////////////////////////////////////////////////////////////////////
 template <typename global_solution_vector_type>
-void Marching<global_solution_vector_type>::timemarch(double time_frame, global_solution_vector_type &global_solution_vector, double lambda) {
+void Explicit_Marching<global_solution_vector_type>::timemarch(double time_frame, global_solution_vector_type &global_solution_vector, double lambda) {
   double current_time = 0.0;
   auto phi = global_solution_vector_type(global_solution_vector.size(),
   solution_vector_type::Zero());;
@@ -228,7 +228,7 @@ void Marching<global_solution_vector_type>::timemarch(double time_frame, global_
 // Calculate dt;
 ///////////////////////////////////////////////////////////////////////////////
 template <typename global_solution_vector_type>
-void Marching<global_solution_vector_type>::calculate_dt(const global_solution_vector_type &global_solution_vector) {
+void Explicit_Marching<global_solution_vector_type>::calculate_dt(const global_solution_vector_type &global_solution_vector) {
   double dt1 = CFL * dx / lambda_eigenvalue(global_solution_vector);
   double dt2 = CFL * dx*dx / (K_value(global_solution_vector));
   // std::cout << "Hyperbolic: " << dt1 << " Viscous: " << dt2 << std::endl;
@@ -239,7 +239,7 @@ void Marching<global_solution_vector_type>::calculate_dt(const global_solution_v
 // MinMod;
 ///////////////////////////////////////////////////////////////////////////////
 template <typename global_solution_vector_type>
-typename global_solution_vector_type::value_type Marching<global_solution_vector_type>::minmod_limiter(const typename global_solution_vector_type::value_type &Ul,
+typename global_solution_vector_type::value_type Explicit_Marching<global_solution_vector_type>::minmod_limiter(const typename global_solution_vector_type::value_type &Ul,
                                                                                                        const typename global_solution_vector_type::value_type &U,
                                                                                                        const typename global_solution_vector_type::value_type &Ur) {
   solution_vector_type phi;
@@ -255,7 +255,7 @@ typename global_solution_vector_type::value_type Marching<global_solution_vector
 // VanAlbata;
 ///////////////////////////////////////////////////////////////////////////////
 template <typename global_solution_vector_type>
-typename global_solution_vector_type::value_type Marching<global_solution_vector_type>::vanalbada_limiter(const typename global_solution_vector_type::value_type &Ul,
+typename global_solution_vector_type::value_type Explicit_Marching<global_solution_vector_type>::vanalbada_limiter(const typename global_solution_vector_type::value_type &Ul,
                                                                                                        const typename global_solution_vector_type::value_type &U,
                                                                                                        const typename global_solution_vector_type::value_type &Ur) {
   solution_vector_type phi;
@@ -270,7 +270,7 @@ typename global_solution_vector_type::value_type Marching<global_solution_vector
 // Calculate Next Step
 ///////////////////////////////////////////////////////////////////////////////
 // template <typename global_solution_vector_type>
-// void Marching<global_solution_vector_type>::calculate_next_step(global_solution_vector_type &global_solution_vector) {
+// void Explicit_Marching<global_solution_vector_type>::calculate_next_step(global_solution_vector_type &global_solution_vector) {
 //   auto flux_vector = global_solution_vector_type(global_solution_vector.size(),
 //   solution_vector_type::Zero());
 //   solution_vector_type flux_left;// = hyperbolic_flux.flux(global_solution_vector[0], global_solution_vector[1], gamma);
@@ -311,7 +311,7 @@ typename global_solution_vector_type::value_type Marching<global_solution_vector
 // Boundary Conditions
 ///////////////////////////////////////////////////////////////////////////////
 template <typename global_solution_vector_type>
-void Marching<global_solution_vector_type>::boundary_conditions(global_solution_vector_type &global_solution_vector) {
+void Explicit_Marching<global_solution_vector_type>::boundary_conditions(global_solution_vector_type &global_solution_vector) {
   for(int i = 0; i < 2; ++i) {
     global_solution_vector[number_of_cells - 2 + i] << global_solution_vector[number_of_cells - 3];
   }
@@ -321,7 +321,7 @@ void Marching<global_solution_vector_type>::boundary_conditions(global_solution_
 // WaveSpeed
 ///////////////////////////////////////////////////////////////////////////////
 template <typename global_solution_vector_type>
-double Marching<global_solution_vector_type>::lambda_eigenvalue(const global_solution_vector_type &global_solution_vector){
+double Explicit_Marching<global_solution_vector_type>::lambda_eigenvalue(const global_solution_vector_type &global_solution_vector){
   double cst = 0.0;
   for (int i = 0; i < number_of_cells; ++i) {
     Variable_Vector_Isolator<solution_vector_type> var_vec = Variable_Vector_Isolator<solution_vector_type>(global_solution_vector[i], gamma);
@@ -336,7 +336,7 @@ double Marching<global_solution_vector_type>::lambda_eigenvalue(const global_sol
 // K value
 ///////////////////////////////////////////////////////////////////////////////
 template <typename global_solution_vector_type>
-double Marching<global_solution_vector_type>::K_value(const global_solution_vector_type &global_solution_vector) {
+double Explicit_Marching<global_solution_vector_type>::K_value(const global_solution_vector_type &global_solution_vector) {
   double min_rho = std::numeric_limits<double>::max();
   for (int i = 0; i < number_of_cells; ++i) {
     Variable_Vector_Isolator<solution_vector_type> var_vec = Variable_Vector_Isolator<solution_vector_type>(global_solution_vector[i], gamma);
@@ -348,4 +348,4 @@ double Marching<global_solution_vector_type>::K_value(const global_solution_vect
 }
 
 
-#endif //#ifndef MARCHING_H
+#endif //#ifndef EXPLICIT_MARCHING_H
