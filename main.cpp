@@ -39,6 +39,7 @@ int main(){
   // std::string filename = "../Movie/Test_" + tostring(final_time) + "_" + tostring(number_of_cells) + "_";
   // std::string filename = "../Movie/Case_" + tostring(final_time) + "_" + tostring(number_of_cells) + "_";
   global_solution_vector_type initial_solution;
+  initial_solution.resize(number_of_cells);
 
   std::cout << "//////////////////////" << std::endl;
   std::cout << "Initial Conditions" << std::endl;
@@ -48,7 +49,6 @@ int main(){
   lambda_max = 100000;
   lambda_min = 70000;
   lambda_run = 95287;
-
   std::string filename = "Movie/Refinement9_" + tostring(final_time) + "_" + tostring(number_of_cells) + "_";
   RK4_low_mach(lambda, number_of_cells, initial_solution, Le, Q, theta, T_ignition, gamma, x_max, mf);
   auto solver = Solver<global_solution_vector_type>(initial_solution,Pr, Le, Q/(mf*mf*(gamma-1)), theta/(gamma*mf*mf), mf, lambda_run, lambda_min, lambda_max, gamma, number_of_cells, CFL, x_max, x_min, final_time, frames, filename);
