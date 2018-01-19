@@ -154,7 +154,8 @@ double Explicit_Marching<global_solution_vector_type, matrix_type>::timemarch(do
   auto hyperbolic_flux_vector = global_solution_vector_type(global_solution_vector.size(),
   solution_vector_type::Zero());
   double residual = 0.0;
-  std::cout << global_solution_vector.size() << std::endl;
+  std::cout << "dx: " << dx << std::endl;
+  std::cout << "num_cell: " << number_of_cells << std::endl;
 
 #pragma omp parallel
   {
@@ -193,7 +194,7 @@ double Explicit_Marching<global_solution_vector_type, matrix_type>::timemarch(do
       global_flux_vector[i] += (hyperbolic_flux_vector[i] - hyperbolic_flux_vector[i+1]) / dx * dt ;
       global_flux_vector[i] += parabolic_flux.flux(global_solution_vector[i-1], global_solution_vector[i], global_solution_vector[i+1], gamma, Le, Pr, dx) * dt;
       global_flux_vector[i] += sources.flux(global_solution_vector[i], gamma, Q, lambda, theta) * dt;
-      global_flux_vector[i][4] /= dt;
+      // global_flux_vector[i][4] /= dt;
     }
 
 #pragma omp for reduction (+:residual)
