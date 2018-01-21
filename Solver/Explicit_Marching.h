@@ -153,6 +153,10 @@ double Explicit_Marching<global_solution_vector_type, matrix_type>::timemarch(do
   solution_vector_type::Zero());;
   auto hyperbolic_flux_vector = global_solution_vector_type(global_solution_vector.size(),
   solution_vector_type::Zero());
+  auto hyperbolic_flux_future_vector = global_solution_vector_type(global_solution_vector.size(),
+  solution_vector_type::Zero());
+  auto global_solution_vector_future = global_solution_vector_type(global_solution_vector.size(),
+  solution_vector_type::Zero());
   double residual = 0.0;
   std::cout << "dx: " << dx << std::endl;
   std::cout << "num_cell: " << number_of_cells << std::endl;
@@ -164,6 +168,8 @@ double Explicit_Marching<global_solution_vector_type, matrix_type>::timemarch(do
 
   while (current_time < time_frame){
   residual = 0.0;
+  auto global_flux_future_vector = global_solution_vector_type(global_solution_vector.size(),
+  solution_vector_type::Zero());
   auto global_flux_vector = global_solution_vector_type(global_solution_vector.size(),
   solution_vector_type::Zero());
 
@@ -176,8 +182,8 @@ double Explicit_Marching<global_solution_vector_type, matrix_type>::timemarch(do
     }
 #pragma omp for
     for (int i = 1; i < number_of_cells-1; ++i) {
-      phi[i] = 0.5*minmod_limiter(global_solution_vector[i-1], global_solution_vector[i], global_solution_vector[i+1]) +
-               0.5*vanalbada_limiter(global_solution_vector[i-1], global_solution_vector[i], global_solution_vector[i+1]);
+      phi[i] = vanalbada_limiter(global_solution_vector[i-1], global_solution_vector[i], global_solution_vector[i+1]);
+              //  0.5*vanalbada_limiter(global_solution_vector[i-1], global_solution_vector[i], global_solution_vector[i+1]);
     }
 
 #pragma omp for private (hyperbolic_flux)
@@ -194,16 +200,46 @@ double Explicit_Marching<global_solution_vector_type, matrix_type>::timemarch(do
       global_flux_vector[i] += (hyperbolic_flux_vector[i] - hyperbolic_flux_vector[i+1]) / dx * dt ;
       global_flux_vector[i] += parabolic_flux.flux(global_solution_vector[i-1], global_solution_vector[i], global_solution_vector[i+1], gamma, Le, Pr, dx) * dt;
       global_flux_vector[i] += sources.flux(global_solution_vector[i], gamma, Q, lambda, theta) * dt;
-      // global_flux_vector[i][4] /= dt;
+    }
+
+global_solution_vector_future = global_solution_vector;
+#pragma omp for reduction (+:residual)
+    for (int i = 1; i < number_of_cells-1; ++i) {
+      global_solution_vector_future[i] += global_flux_vector[i];
+      // residual += squaredNorm(global_flux_vector[i]) * dx / dt;
+    }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+#pragma omp for
+    for (int i = 1; i < number_of_cells-1; ++i) {
+      phi[i] = vanalbada_limiter(global_solution_vector_future[i-1], global_solution_vector_future[i], global_solution_vector_future[i+1]);
+    }
+
+#pragma omp for private (hyperbolic_flux)
+    for (int i = 1; i < number_of_cells; ++i) {
+      solution_vector_type Ul;
+      solution_vector_type Ur;
+      Ul = global_solution_vector_future[i-1] + phi[i-1] * dx * 0.5;
+      Ur = global_solution_vector_future[i] - phi[i] * dx * 0.5;
+      hyperbolic_flux_vector[i] = hyperbolic_flux.flux(Ul, Ur, gamma);
+    }
+
+#pragma omp for private (parabolic_flux, sources)
+    for (int i = 1; i < number_of_cells-1; ++i) {
+      global_flux_future_vector[i] += (hyperbolic_flux_vector[i] - hyperbolic_flux_vector[i+1]) / dx * dt ;
+      global_flux_future_vector[i] += parabolic_flux.flux(global_solution_vector_future[i-1], global_solution_vector_future[i], global_solution_vector_future[i+1], gamma, Le, Pr, dx) * dt;
+      global_flux_future_vector[i] += sources.flux(global_solution_vector_future[i], gamma, Q, lambda, theta) * dt;
     }
 
 #pragma omp for reduction (+:residual)
     for (int i = 1; i < number_of_cells-1; ++i) {
-
-      // global_solution_vector[i][4] = 0.0;
-      global_solution_vector[i] += global_flux_vector[i];
+      global_solution_vector[i] += (global_flux_vector[i]+global_flux_future_vector[i])*0.5;
       residual += squaredNorm(global_flux_vector[i]) * dx / dt;
     }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
 
 #pragma omp single
     boundary_conditions(global_solution_vector);

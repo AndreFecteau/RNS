@@ -4,21 +4,17 @@
 #include "Usefull_Headers/Gnuplot_Primitive_Variables.h"
 #include "Solver/Implicit_Marching.h"
 #include "Solver/Explicit_Marching.h"
-#include "Solver/Explicit_Marching_Euler.h"
 #include "Eigen/Core"
 #include "Eigen/Dense"
 #include <cmath>
 
 typedef Eigen::Matrix<double, 3, 1> Vector_type;
-using matrix_type = Eigen::Matrix<double, 3, 3>;
 using global_solution_vector_type = std::vector<Vector_type>;
 using solution_vector_type = typename global_solution_vector_type::value_type;
 #include "Usefull_Headers/Initial_Conditions.h"
 
 using implicit_marching_type = Implicit_Marching<global_solution_vector_type, matrix_type>;
 using explicit_marching_type = Explicit_Marching<global_solution_vector_type, matrix_type>;
-using explicit_euler_marching_type = Explicit_Marching_Euler<global_solution_vector_type>;
-
 
 
 void bisection_lambda(double& lambda_min, double& lambda_max, double& lambda_run, bool check) {
@@ -42,24 +38,23 @@ int main(){
   double mf = 0.005;
   double gamma = 1.4;
   double Q_low_mach = 9.0;
-  double T_ignition = 1.0;
+
   double theta_low_mach =500.0/9.0;
   double Q = Q_low_mach/(mf*mf*(gamma-1));
   double theta =theta_low_mach/(gamma*mf*mf);
-
   int    number_of_cells = 500;
-  double frame_time = 1;
+  double frame_time = 20;
 
+  double T_ignition = 1.0;
   double lambda = 0.0;
-  double CFL =  0.9;
+  double CFL = 0.8;
   double x_min = 0.0;
   double x_max;
   double lambda_max;
   double lambda_min;
   double lambda_run;
-  double target_residual = 1e1;
-  // std::string filename = "Movie/Plot_Euler_" + tostring(frame_time) + "_" + tostring(number_of_cells) + "_";
-  std::string filename = "Movie/Plot_Euler1_" + tostring(number_of_cells) + "_";
+  double target_residual = 1e-16;
+  std::string filename = "Movie/Plot01_" + tostring(frame_time) + "_" + tostring(number_of_cells) + "_";
 
   global_solution_vector_type initial_solution;
   initial_solution.resize(number_of_cells);
@@ -73,27 +68,23 @@ int main(){
   lambda_run = 95287;
 
   // while(1>0) {
-  // case_4(frame_time, number_of_cells, initial_solution, gamma, x_max, x_min);
   RK4_low_mach_initial_conditions(lambda, number_of_cells, initial_solution, Le, Q_low_mach,
                theta_low_mach, T_ignition, gamma, x_max, mf);
-  // frame_time *=;
+
   auto explicit_march = explicit_marching_type(Pr, Le, Q, theta, mf, gamma,
                         number_of_cells, CFL, (x_max - x_min)/number_of_cells);
-  auto explicit_euler_march = explicit_euler_marching_type(gamma,
-                        number_of_cells, CFL, (x_max - x_min)/number_of_cells);
-  // auto implicit_march = implicit_marching_type(Pr, Le, Q, theta, mf, gamma,
-  //                       number_of_cells, 2, (x_max - x_min)/number_of_cells);
+  auto implicit_march = implicit_marching_type(Pr, Le, Q, theta, mf, gamma,
+                        number_of_cells, 2, (x_max - x_min)/number_of_cells);
 
   plot<global_solution_vector_type>(filename + std::to_string(static_cast<int>(lambda_run)) + "_0",
                                     initial_solution, (x_max - x_min)/number_of_cells);
 
   auto solver = Solver<global_solution_vector_type, matrix_type>(initial_solution, lambda_run,
                                                                  filename);
-  // bool check = solver.solve<implicit_marching_type>(implicit_march, target_residual,
-  //                                                           frame_time, gamma);
+  bool check = solver.solve<implicit_marching_type>(implicit_march, target_residual,
+                                                            frame_time, gamma);
 
-  solver.solve<explicit_marching_type>(explicit_march, target_residual, frame_time, gamma);
-  // solver.solve<explicit_euler_marching_type>(explicit_euler_march, target_residual, frame_time, gamma);
+  // solver.solve<explicit_marching_type>(explicit_march, target_residual, frame_time, gamma);
 
   // bisection_lambda(lambda_min, lambda_max, lambda_run, check);
 // }
