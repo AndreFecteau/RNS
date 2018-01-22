@@ -79,7 +79,7 @@ private:
   /////////////////////////////////////////////////////////////////////////
   /// \brief Function to isolate T.
   double isolate_p(solution_vector_type solution_vector) {
-    return (solution_vector[2] - 0.5 * solution_vector[1] *solution_vector[1] / solution_vector[0])*(gamma-1.0);
+    return (solution_vector[2] - solution_vector[1] *solution_vector[1] / solution_vector[0] / 2.0 )*(gamma-1.0);
   }
 
   double u_var;

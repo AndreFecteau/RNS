@@ -128,6 +128,8 @@ double Explicit_Marching_Euler<global_solution_vector_type>::timemarch(double ti
   double current_time = 0.0;
   auto phi = global_solution_vector_type(global_solution_vector.size(),
   solution_vector_type::Zero());
+  auto phi_futire = global_solution_vector_type(global_solution_vector.size(),
+  solution_vector_type::Zero());
   auto hyperbolic_flux_vector = global_solution_vector_type(global_solution_vector.size(),
   solution_vector_type::Zero());
   auto hyperbolic_flux_future_vector = global_solution_vector_type(global_solution_vector.size(),
@@ -150,51 +152,50 @@ double Explicit_Marching_Euler<global_solution_vector_type>::timemarch(double ti
       dt = time_frame - current_time;
     }
     }
-// #pragma omp for
+    // for (int i = 1; i < number_of_cells-1; ++i) {
+    //   auto var_vec_l = Variable_Vector_Isolator_Euler<solution_vector_type>(global_solution_vector[i-1], gamma);
+    //   auto var_vec = Variable_Vector_Isolator_Euler<solution_vector_type>(global_solution_vector[i], gamma);
+    //   auto var_vec_r = Variable_Vector_Isolator_Euler<solution_vector_type>(global_solution_vector[i+1], gamma);
+    // }
+    phi[0] << 0,0,0;
 // #pragma omp for private (hyperbolic_flux)
     for (int i = 1; i < number_of_cells-1; ++i) {
       auto var_vec_l = Variable_Vector_Isolator_Euler<solution_vector_type>(global_solution_vector[i-1], gamma);
       auto var_vec = Variable_Vector_Isolator_Euler<solution_vector_type>(global_solution_vector[i], gamma);
       auto var_vec_r = Variable_Vector_Isolator_Euler<solution_vector_type>(global_solution_vector[i+1], gamma);
       phi[i] = vanalbada_limiter(var_vec_l.w(),var_vec.w(), var_vec_r.w());
-      solution_vector_type Ul = var_vec_l.w().array() + phi[i-1].array() *dx / 2.0;
-      solution_vector_type Ur = var_vec.w().array() - (phi[i].array() * dx / 2.0);
-      // if(Ul[0] > var_vec.w()[0]) {
-      //   std::cout << "fuck" << std::endl;
-      // }
-      hyperbolic_flux_vector[i] = hyperbolic_flux.flux(Ul, Ur, gamma);
-      // std::cout << gamma << std::endl;
+      // phi[i] = vanalbada_limiter(var_vec_l.w(),var_vec.w(), var_vec_r.w());
+      solution_vector_type Wl = var_vec_l.w().array() + phi[i-1].array() *dx / 2.0;
+      solution_vector_type Wr = var_vec.w().array() - phi[i].array() * dx / 2.0;
+      hyperbolic_flux_vector[i] = hyperbolic_flux.flux(Wl, Wr, gamma);
     }
     global_solution_vector_future = global_solution_vector;
     for (int i = 1; i < number_of_cells-2; ++i) {
-      global_solution_vector_future[i] +=(hyperbolic_flux_vector[i] - hyperbolic_flux_vector[i+1]) / dx * dt ;
-      // residual += squaredNorm(global_flux_vector[i]) * dx / dt;
+      global_solution_vector_future[i] =  global_solution_vector[i] + (hyperbolic_flux_vector[i] - hyperbolic_flux_vector[i+1]) / dx * dt ;
     }
-
+    // for (int i = 1; i < number_of_cells-1; ++i) {
+    //   auto var_vec_l = Variable_Vector_Isolator_Euler<solution_vector_type>(global_solution_vector_future[i-1], gamma);
+    //   auto var_vec = Variable_Vector_Isolator_Euler<solution_vector_type>(global_solution_vector_future[i], gamma);
+    //   auto var_vec_r = Variable_Vector_Isolator_Euler<solution_vector_type>(global_solution_vector_future[i+1], gamma);
+    // }
     for (int i = 1; i < number_of_cells-1; ++i) {
       auto var_vec_l = Variable_Vector_Isolator_Euler<solution_vector_type>(global_solution_vector_future[i-1], gamma);
       auto var_vec = Variable_Vector_Isolator_Euler<solution_vector_type>(global_solution_vector_future[i], gamma);
       auto var_vec_r = Variable_Vector_Isolator_Euler<solution_vector_type>(global_solution_vector_future[i+1], gamma);
-      phi[i] = vanalbada_limiter(var_vec_l.w(),var_vec.w(), var_vec_r.w());
-      solution_vector_type Ul = var_vec_l.w().array() + phi[i-1].array() *dx / 2.0;
-      solution_vector_type Ur = var_vec.w().array() - (phi[i].array() * dx / 2.0);
-      // if(Ul[0] > var_vec.w()[0]) {
-      //   std::cout << "fuck" << std::endl;
-      // }
+      phi_futire[i] = vanalbada_limiter(var_vec_l.w(),var_vec.w(), var_vec_r.w());
+      // phi[i] = vanalbada_limiter(var_vec_l.w(),var_vec.w(), var_vec_r.w());
+      solution_vector_type Ul = var_vec_l.w().array() + phi_futire[i-1].array() *dx / 2.0;
+      solution_vector_type Ur = var_vec.w().array() - phi_futire[i].array() * dx / 2.0;
       hyperbolic_flux_future_vector[i] = hyperbolic_flux.flux(Ul, Ur, gamma);
-      // std::cout << gamma << std::endl;
     }
-// #pragma omp single
-    // plot_2<global_solution_vector_type>("me", phi, dx);
 
 // #pragma omp for
     for (int i = 1; i < number_of_cells-2; ++i) {
-      global_solution_vector[i] += (hyperbolic_flux_vector[i] - hyperbolic_flux_vector[i+1] +hyperbolic_flux_future_vector[i] - hyperbolic_flux_future_vector[i+1]) / (2*dx) * dt ;
+      global_solution_vector[i] += (hyperbolic_flux_vector[i] - hyperbolic_flux_vector[i+1] +
+                                    hyperbolic_flux_future_vector[i] - hyperbolic_flux_future_vector[i+1]) / (2.0*dx) * dt ;
       // residual += squaredNorm(global_flux_vector[i]) * dx / dt;
     }
 
-// #pragma omp single
-    // std::cout << "did" << std::endl;
 // #pragma omp single
     // boundary_conditions(global_solution_vector);
 
@@ -230,9 +231,16 @@ typename global_solution_vector_type::value_type Explicit_Marching_Euler<global_
   solution_vector_type dudt = (Wr - Wl) / (2*dx);
 
   for(int i = 0; i < 3; ++i) {
-  phi[i] = sign(a[i])*std::max(0.0,std::min(fabs(a[i]), sign(a[i])*b[i]));
+  // phi[i] = sign(a[i])*std::max(0.0,std::min(fabs(a[i]), sign(a[i])*b[i]));
+  phi[i] = sign(a[i])*std::fmax(0.0,std::fmin(fabs(a[i]), sign(a[i])*b[i]));
   }
-  return phi.array();
+  // for (int i = 0; i < 3; ++i) {
+  //   // phi[i] = (fabs(a[i] * b[i]) + a[i] * b[i])/(a[i] + b[i]);
+  //   if (a[i] + b[i] = 0.0) {
+  //     phi[i] = 0.0;
+  //   }
+  // }
+  return phi;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -243,14 +251,13 @@ typename global_solution_vector_type::value_type Explicit_Marching_Euler<global_
                                                             const typename global_solution_vector_type::value_type Wl,
                                                             const typename global_solution_vector_type::value_type W,
                                                             const typename global_solution_vector_type::value_type Wr) {
-  solution_vector_type a = (W - Wl).array() / (dx);
-  solution_vector_type b = (Wr - W).array() / (dx);
+  solution_vector_type a = (W - Wl) / (dx);
+  solution_vector_type b = (Wr - W) / (dx);
   double epsilon = 1.0e-6;
-  solution_vector_type phi = a.array() * b.array() * (a.array() + b.array()) / (a.array() * a.array() + b.array() * b.array() + epsilon);
-// solution_vector_type phi;
+  solution_vector_type phi =  a.array() * b.array() * (a.array() + b.array()) / (a.array() * a.array() + b.array() * b.array() + epsilon);
+  // solution_vector_type phi =(a.array()+b.array()) * (a.array() * b.array() / (a.array() * a.array() + b.array() * b.array() + epsilon));
   for (int i = 0; i < 3; ++i) {
-    // phi[i] = (fabs(a[i] * b[i]) + a[i] * b[i])/(a[i] + b[i]);
-    if (a[i] / b[i] <= 0.0) {
+    if (a[i] / b[i] <= 0.0 || b[i] == 0) {
       phi[i] = 0.0;
     }
   }

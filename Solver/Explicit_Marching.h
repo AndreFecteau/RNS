@@ -180,59 +180,61 @@ double Explicit_Marching<global_solution_vector_type, matrix_type>::timemarch(do
       dt = time_frame - current_time;
     }
     }
-#pragma omp for
-    for (int i = 1; i < number_of_cells-1; ++i) {
-      phi[i] = vanalbada_limiter(global_solution_vector[i-1], global_solution_vector[i], global_solution_vector[i+1]);
-              //  0.5*vanalbada_limiter(global_solution_vector[i-1], global_solution_vector[i], global_solution_vector[i+1]);
-    }
-
+// #pragma omp for
+    // phi[0] << 0,0,0;
 #pragma omp for private (hyperbolic_flux)
-    for (int i = 1; i < number_of_cells; ++i) {
-      solution_vector_type Ul;
-      solution_vector_type Ur;
-      Ul = global_solution_vector[i-1] + phi[i-1] * dx * 0.5;
-      Ur = global_solution_vector[i] - phi[i] * dx * 0.5;
-      hyperbolic_flux_vector[i] = hyperbolic_flux.flux(Ul, Ur, gamma);
-    }
-
-#pragma omp for private (parabolic_flux, sources)
     for (int i = 1; i < number_of_cells-1; ++i) {
+      auto var_vec_l = Variable_Vector_Isolator<solution_vector_type>(global_solution_vector[i-1], gamma);
+      auto var_vec = Variable_Vector_Isolator<solution_vector_type>(global_solution_vector[i], gamma);
+      auto var_vec_r = Variable_Vector_Isolator<solution_vector_type>(global_solution_vector[i+1], gamma);
+      phi[i] = vanalbada_limiter(var_vec_l.w(),var_vec.w(), var_vec_r.w());
+      solution_vector_type Wl = var_vec_l.w().array() + phi[i-1].array() *dx / 2.0;
+      solution_vector_type Wr = var_vec.w().array() - phi[i].array() * dx / 2.0;
+      hyperbolic_flux_vector[i] = hyperbolic_flux.flux(Wl, Wr, gamma);
+    }
+// std::cout << dx << std::endl;
+#pragma omp for private (parabolic_flux, sources)
+    for (int i = 1; i < number_of_cells-2; ++i) {
       global_flux_vector[i] += (hyperbolic_flux_vector[i] - hyperbolic_flux_vector[i+1]) / dx * dt ;
       global_flux_vector[i] += parabolic_flux.flux(global_solution_vector[i-1], global_solution_vector[i], global_solution_vector[i+1], gamma, Le, Pr, dx) * dt;
       global_flux_vector[i] += sources.flux(global_solution_vector[i], gamma, Q, lambda, theta) * dt;
     }
 
-global_solution_vector_future = global_solution_vector;
+#pragma omp single
+    global_solution_vector_future = global_solution_vector;
 #pragma omp for reduction (+:residual)
-    for (int i = 1; i < number_of_cells-1; ++i) {
+    for (int i = 1; i < number_of_cells-2; ++i) {
       global_solution_vector_future[i] += global_flux_vector[i];
       // residual += squaredNorm(global_flux_vector[i]) * dx / dt;
     }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-#pragma omp for
-    for (int i = 1; i < number_of_cells-1; ++i) {
-      phi[i] = vanalbada_limiter(global_solution_vector_future[i-1], global_solution_vector_future[i], global_solution_vector_future[i+1]);
-    }
+// // #pragma omp for
+//     for (int i = 1; i < number_of_cells-1; ++i) {
+//       phi[i] = vanalbada_limiter(global_solution_vector_future[i-1], global_solution_vector_future[i], global_solution_vector_future[i+1]);
+//     }
 
 #pragma omp for private (hyperbolic_flux)
-    for (int i = 1; i < number_of_cells; ++i) {
-      solution_vector_type Ul;
-      solution_vector_type Ur;
-      Ul = global_solution_vector_future[i-1] + phi[i-1] * dx * 0.5;
-      Ur = global_solution_vector_future[i] - phi[i] * dx * 0.5;
-      hyperbolic_flux_vector[i] = hyperbolic_flux.flux(Ul, Ur, gamma);
+    for (int i = 1; i < number_of_cells-1; ++i) {
+      auto var_vec_l = Variable_Vector_Isolator<solution_vector_type>(global_solution_vector_future[i-1], gamma);
+      auto var_vec = Variable_Vector_Isolator<solution_vector_type>(global_solution_vector_future[i], gamma);
+      auto var_vec_r = Variable_Vector_Isolator<solution_vector_type>(global_solution_vector_future[i+1], gamma);
+      phi[i] = vanalbada_limiter(var_vec_l.w(),var_vec.w(), var_vec_r.w());
+      // phi[i] = vanalbada_limiter(var_vec_l.w(),var_vec.w(), var_vec_r.w());
+      solution_vector_type Ul = var_vec_l.w().array() + phi[i-1].array() *dx / 2.0;
+      solution_vector_type Ur = var_vec.w().array() - phi[i].array() * dx / 2.0;
+      hyperbolic_flux_future_vector[i] = hyperbolic_flux.flux(Ul, Ur, gamma);
     }
 
 #pragma omp for private (parabolic_flux, sources)
-    for (int i = 1; i < number_of_cells-1; ++i) {
-      global_flux_future_vector[i] += (hyperbolic_flux_vector[i] - hyperbolic_flux_vector[i+1]) / dx * dt ;
+    for (int i = 1; i < number_of_cells-2; ++i) {
+      global_flux_future_vector[i] += (hyperbolic_flux_future_vector[i] - hyperbolic_flux_future_vector[i+1]) / dx * dt ;
       global_flux_future_vector[i] += parabolic_flux.flux(global_solution_vector_future[i-1], global_solution_vector_future[i], global_solution_vector_future[i+1], gamma, Le, Pr, dx) * dt;
       global_flux_future_vector[i] += sources.flux(global_solution_vector_future[i], gamma, Q, lambda, theta) * dt;
     }
 
 #pragma omp for reduction (+:residual)
-    for (int i = 1; i < number_of_cells-1; ++i) {
+    for (int i = 1; i < number_of_cells-2; ++i) {
       global_solution_vector[i] += (global_flux_vector[i]+global_flux_future_vector[i])*0.5;
       residual += squaredNorm(global_flux_vector[i]) * dx / dt;
     }
@@ -247,7 +249,7 @@ global_solution_vector_future = global_solution_vector;
 #pragma omp single
     current_time += dt;
   }
-  #pragma omp single
+#pragma omp single
   std::cout << "residual: " << residual << std::endl;
   }
   return residual;
@@ -287,13 +289,18 @@ template <typename global_solution_vector_type, typename matrix_type>
 typename global_solution_vector_type::value_type Explicit_Marching<global_solution_vector_type, matrix_type>::vanalbada_limiter(const typename global_solution_vector_type::value_type &Ul,
                                                                                                        const typename global_solution_vector_type::value_type &U,
                                                                                                        const typename global_solution_vector_type::value_type &Ur) {
-  solution_vector_type phi;
   solution_vector_type a = (U - Ul) / dx;
   solution_vector_type b = (Ur - U) / dx;
-  for(int i = 0; i < 4; ++i) {
-  phi[i] = (a[i] * b[i]) / (a[i]*a[i] + b[i]*b[i] + 0.0001) * (a[i]+b[i]);
+  double epsilon = 1.0e-6;
+  solution_vector_type phi =  a.array() * b.array() * (a.array() + b.array()) / (a.array() * a.array() + b.array() * b.array() + epsilon);
+  // solution_vector_type phi =(a.array()+b.array()) * (a.array() * b.array() / (a.array() * a.array() + b.array() * b.array() + epsilon));
+  for (int i = 0; i < 3; ++i) {
+    if (a[i] / b[i] <= 0.0 || b[i] == 0) {
+      phi[i] = 0.0;
+    }
   }
   return phi;
+
 }
 ///////////////////////////////////////////////////////////////////////////////
 // Calculate Next Step

@@ -125,10 +125,10 @@ void case_4(double &final_time, int number_of_cells, global_solution_vector_type
   final_time = 7.0e-3; //  s
   x_max = 10.0;
   for (int i = 0; i < number_of_cells; ++i) {
-    if ((i+0.5) * (x_max - x_min) / number_of_cells < discontinuaty_location) {
-      initial_solution[i] << rho_left, rho_left*u_left, p_left/(gamma-1) + rho_left * pow(u_left, 2) / 2.0;
+    if ((i+0.5) * (x_max - x_min) / number_of_cells <= discontinuaty_location) {
+      initial_solution[i] << rho_left, rho_left*u_left, p_left/(gamma-1) + rho_left * pow(u_left, 2) / 2.0,0;
     } else {
-      initial_solution[i] << rho_right, rho_right*u_right, p_right/(gamma-1) + rho_right * pow(u_right, 2) / 2.0;
+      initial_solution[i] << rho_right, rho_right*u_right, p_right/(gamma-1) + rho_right * pow(u_right, 2) / 2.0,0;
     }
   }
 }
