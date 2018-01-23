@@ -204,11 +204,8 @@ double Explicit_Marching<global_solution_vector_type, matrix_type>::timemarch(do
     for (int i = 1; i < number_of_cells-2; ++i) {
       global_solution_vector_future[i] += global_flux_vector[i];
     }
-<<<<<<< HEAD
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-=======
->>>>>>> e3fed34c21c347b1028e4afe95948c258fe360fe
 #pragma omp for private (hyperbolic_flux)
     for (int i = 1; i < number_of_cells-1; ++i) {
       auto var_vec_l = Variable_Vector_Isolator<solution_vector_type>(global_solution_vector_future[i-1], gamma);
