@@ -7,8 +7,11 @@
 #include <vector>
 #include "Eigen/Core"
 #include "Eigen/Dense"
+#include "../Explicit_Flux_and_Sources/HLLE.h"
 #include "../Implicit_Flux_and_Sources/Create_Implicit_Matrix_Vectors.h"
-#include "../Usefull_Headers/Block_Triagonal_Matrix_Inverse.h"
+#include "../Explicit_Flux_and_Sources/Centered_Difference.h"
+// #include "../Usefull_Headers/Block_Triagonal_Matrix_Inverse.h"
+#include "../Matrix_Inverse/Gaussian_Block_Triagonal_Matrix_Inverse.h"
 #include "../Usefull_Headers/Variable_Vector_Isolator.h"
 
 
@@ -67,6 +70,7 @@ class Implicit_Marching {
   }
 
  private:
+  HLLE<global_solution_vector_type> hyperbolic_flux;
   double Pr;
   double Le;
   double Q;
@@ -156,6 +160,11 @@ double Implicit_Marching<global_solution_vector_type, matrix_type>::timemarch(do
                                      (global_solution_vector[i-1],global_solution_vector[i-1], global_solution_vector[i],
                                       global_solution_vector[i+1], global_solution_vector[i+2], gamma, Pr, Le, Q, Lambda,
                                       theta, dx, dt);
+      auto var_vec_l = Variable_Vector_Isolator<solution_vector_type>(global_solution_vector[i-1], gamma);
+      auto var_vec = Variable_Vector_Isolator<solution_vector_type>(global_solution_vector[i], gamma);
+      auto var_vec_r = Variable_Vector_Isolator<solution_vector_type>(global_solution_vector[i+1], gamma);
+      // rhs[i-1] = dt/dx*(hyperbolic_flux.flux(var_vec_l.w(), var_vec.w(), gamma) - hyperbolic_flux.flux(var_vec.w(), var_vec_r.w(), gamma));
+
     }
   #pragma omp for
     for(size_t i = 2; i < global_solution_vector.size()-2; ++i) {
@@ -175,6 +184,11 @@ double Implicit_Marching<global_solution_vector_type, matrix_type>::timemarch(do
                                      (global_solution_vector[i-2],global_solution_vector[i-1], global_solution_vector[i],
                                       global_solution_vector[i+1], global_solution_vector[i+2], gamma, Pr, Le, Q, Lambda,
                                       theta, dx, dt);
+      // auto var_vec_l = Variable_Vector_Isolator<solution_vector_type>(global_solution_vector[i-1], gamma);
+      // auto var_vec = Variable_Vector_Isolator<solution_vector_type>(global_solution_vector[i], gamma);
+      // auto var_vec_r = Variable_Vector_Isolator<solution_vector_type>(global_solution_vector[i+1], gamma);
+      // rhs[i] -= dt/dx*(hyperbolic_flux.flux(var_vec_l.w(), var_vec.w(), gamma) - hyperbolic_flux.flux(var_vec.w(), var_vec_r.w(), gamma));
+
       // if (mid[i-1].determinant() < (bot[i-1].determinant() + top[i-1].determinant())) {
       //   std::cout << "Matrix inverse will not work." << std::endl;
       // }
@@ -197,7 +211,12 @@ double Implicit_Marching<global_solution_vector_type, matrix_type>::timemarch(do
                                          (global_solution_vector[i-1],global_solution_vector[i-1], global_solution_vector[i],
                                           global_solution_vector[i+1], global_solution_vector[i+1], gamma, Pr, Le, Q, Lambda,
                                           theta, dx, dt);
+          auto var_vec_l = Variable_Vector_Isolator<solution_vector_type>(global_solution_vector[i-1], gamma);
+          auto var_vec = Variable_Vector_Isolator<solution_vector_type>(global_solution_vector[i], gamma);
+          auto var_vec_r = Variable_Vector_Isolator<solution_vector_type>(global_solution_vector[i+1], gamma);
+          // rhs[i-1] = dt/dx*(hyperbolic_flux.flux(var_vec_l.w(), var_vec.w(), gamma) - hyperbolic_flux.flux(var_vec.w(), var_vec_r.w(), gamma));
         }
+
 
 #pragma omp single
     mid[global_solution_vector.size()-3] +=

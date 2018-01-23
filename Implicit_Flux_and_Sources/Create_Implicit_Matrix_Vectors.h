@@ -2,6 +2,10 @@
 #define CREATE_IMPLICIT_MATRIX_VECTOR_H
 
 #include "../Explicit_Flux_and_Sources/HLLE.h"
+#include "../Explicit_Flux_and_Sources/Centered_Difference.h"
+#include "../Explicit_Flux_and_Sources/Sources.h"
+
+
 
 template <typename T>
 T Power(T num, int expo) {
@@ -158,9 +162,12 @@ solution_vector_type create_rhs_vector(const solution_vector_type solution_vecto
 
   solution_vector_type rhs;
   solution_vector_type rhs2;
-  // using global_solution_vector_type = std::vector<solution_vector_type>;
-  // HLLE<global_solution_vector_type> hyperbolic_flux;
+  using global_solution_vector_type = std::vector<solution_vector_type>;
+  HLLE<global_solution_vector_type> hyperbolic_flux;
+  Centered_Difference<global_solution_vector_type> parabolic_flux;
+  Sources<global_solution_vector_type> sources;
 
+  //
   rhs << dt*(0. - (-rhom/(2.*dx) + rhop/(2.*dx))*u - rho*(-um/(2.*dx) + up/(2.*dx))),
    dt*(0. - (-rhom/(2.*dx) + rhop/(2.*dx))*Power(u,2) + (3*Pr*((-2*u)/Power(dx,2) + um/Power(dx,2) + up/Power(dx,2)))/4. -
       2*rho*u*(-um/(2.*dx) + up/(2.*dx)) - (-1 + gamma)*(-em/(2.*dx) + ep/(2.*dx) - ((-rhom/(2.*dx) + rhop/(2.*dx))*Power(u,2))/2. -
@@ -178,10 +185,37 @@ solution_vector_type create_rhs_vector(const solution_vector_type solution_vecto
       (lambda*Q*rho*Y)/exp((rho*theta)/((-1 + gamma)*(e - (rho*Power(u,2))/2.)))),
    dt*(-((lambda*rho*Y)/exp((rho*theta)/((-1 + gamma)*(e - (rho*Power(u,2))/2.)))) - (-rhom/(2.*dx) + rhop/(2.*dx))*u*Y -
       rho*(-um/(2.*dx) + up/(2.*dx))*Y + ((-2*Y)/Power(dx,2) + Ym/Power(dx,2) + Yp/Power(dx,2))/Le - rho*u*(-Ym/(2.*dx) + Yp/(2.*dx)));
+  //
+  // rhs << 0.,dt*(0. + (3*Pr*((-2*u)/Power(dx,2) + um/Power(dx,2) + up/Power(dx,2)))/4.),
+  //  dt*((3*Pr*u*((-2*u)/Power(dx,2) + um/Power(dx,2) + up/Power(dx,2)))/4. + (3*Pr*Power(-um/(2.*dx) + up/(2.*dx),2))/4. +
+  //     (gamma*(-(((-1 + gamma)*((-2*rho)/Power(dx,2) + rhom/Power(dx,2) + rhop/Power(dx,2))*(e - (rho*Power(u,2))/2.))/Power(rho,2)) +
+  //          (2*(-1 + gamma)*Power(-rhom/(2.*dx) + rhop/(2.*dx),2)*(e - (rho*Power(u,2))/2.))/Power(rho,3) -
+  //          (2*(-1 + gamma)*(-rhom/(2.*dx) + rhop/(2.*dx))*(-em/(2.*dx) + ep/(2.*dx) - ((-rhom/(2.*dx) + rhop/(2.*dx))*Power(u,2))/2. -
+  //               rho*u*(-um/(2.*dx) + up/(2.*dx))))/Power(rho,2) +
+  //          ((-1 + gamma)*((-2*e)/Power(dx,2) + em/Power(dx,2) + ep/Power(dx,2) -
+  //               (((-2*rho)/Power(dx,2) + rhom/Power(dx,2) + rhop/Power(dx,2))*Power(u,2))/2. -
+  //               rho*u*((-2*u)/Power(dx,2) + um/Power(dx,2) + up/Power(dx,2)) - 2*(-rhom/(2.*dx) + rhop/(2.*dx))*u*(-um/(2.*dx) + up/(2.*dx)) -
+  //               rho*Power(-um/(2.*dx) + up/(2.*dx),2)))/rho))/(-1 + gamma) +
+  //     (lambda*Q*rho*Y)/exp((rho*theta)/((-1 + gamma)*(e - (rho*Power(u,2))/2.)))),
+  //  dt*(-((lambda*rho*Y)/exp((rho*theta)/((-1 + gamma)*(e - (rho*Power(u,2))/2.)))) + ((-2*Y)/Power(dx,2) + Ym/Power(dx,2) + Yp/Power(dx,2))/Le);
+    rhs2 << 0.2/8.0*(solution_vector_pp-4.0*solution_vector_p + 6.0*solution_vector - 4.0*solution_vector_m+solution_vector_mm);
+    rhs -= rhs2;
+  //     auto var_vec_l = Variable_Vector_Isolator<solution_vector_type>(solution_vector_m, gamma);
+  //     auto var_vec = Variable_Vector_Isolator<solution_vector_type>(solution_vector, gamma);
+  //     auto var_vec_r = Variable_Vector_Isolator<solution_vector_type>(solution_vector_p, gamma);
+  //     rhs += dt/dx*(hyperbolic_flux.flux(var_vec_l.w(), var_vec.w(), gamma) - hyperbolic_flux.flux(var_vec.w(), var_vec_r.w(), gamma));
 
-  rhs2 << 0.2/8.0*(solution_vector_pp-4.0*solution_vector_p + 6.0*solution_vector - 4.0*solution_vector_m+solution_vector_mm);
-  rhs -= rhs2;
 
+  // rhs << dt*(-((-rhom/(2.*dx) + rhop/(2.*dx))*u) - rho*(-um/(2.*dx) + up/(2.*dx))),
+  //  dt*(-((-rhom/(2.*dx) + rhop/(2.*dx))*Power(u,2)) - 2*rho*u*(-um/(2.*dx) + up/(2.*dx)) -
+  //     (-1 + gamma)*(-em/(2.*dx) + ep/(2.*dx) - ((-rhom/(2.*dx) + rhop/(2.*dx))*Power(u,2))/2. - rho*u*(-um/(2.*dx) + up/(2.*dx)))),
+  //  dt*(-((e + (-1 + gamma)*(e - (rho*Power(u,2))/2.))*(-um/(2.*dx) + up/(2.*dx))) -
+  //     u*(-em/(2.*dx) + ep/(2.*dx) + (-1 + gamma)*(-em/(2.*dx) + ep/(2.*dx) - ((-rhom/(2.*dx) + rhop/(2.*dx))*Power(u,2))/2. -
+  //           rho*u*(-um/(2.*dx) + up/(2.*dx))))),dt*(-((-rhom/(2.*dx) + rhop/(2.*dx))*u*Y) - rho*(-um/(2.*dx) + up/(2.*dx))*Y -
+  //     rho*u*(-Ym/(2.*dx) + Yp/(2.*dx)));
+  //
+  // rhs += parabolic_flux.flux(solution_vector_m, solution_vector, solution_vector_p, gamma, Le, Pr, dx) * dt;
+  // rhs += sources.flux(solution_vector, gamma, Q, lambda, theta) * dt;
       // std::cout << "rhs2" << rhs2 << std::endl;
 
   return rhs;
