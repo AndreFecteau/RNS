@@ -26,32 +26,34 @@ int main(){
   double Q = Q_low_mach/(mf*mf*(gamma-1));
   double theta_low_mach =500.0/9.0;
   double theta =theta_low_mach/(gamma*mf*mf);
-  int    number_of_cells = 1000;
-  double frame_time = 10.0;
+  int    number_of_cells = 500;
+  double frame_time = 1e-4;
   // int    frames = 100;
 
   double T_ignition = 1.0;
   double lambda = 0.0;
-  double CFL = 0.5;
+  double CFL = 0.02;
   double x_min = 0.0;
   double x_max;
   double lambda_max;
   double lambda_min;
   double lambda_run;
   double target_residual = 1e-14;
-  std::string filename = "Movie/Plot_" + tostring(20) + "_" + tostring(number_of_cells) + "_";
+  std::string filename = "Movie/Plot_" + tostring(10) + "_" + tostring(500) + "_";
     global_solution_vector_type initial_solution;
     initial_solution.resize(number_of_cells);
   RK4_low_mach_initial_conditions(lambda, number_of_cells, initial_solution, Le, Q_low_mach,
                theta_low_mach, T_ignition, gamma, x_max, mf);
   auto solver = Solver<global_solution_vector_type, matrix_type>();
   unserialize_to_file(solver, filename);
+  std::cout << "x_max" << x_max << std::endl;
   auto implicit_march = implicit_marching_type(Pr, Le, Q, theta, mf, gamma,
                         number_of_cells, CFL, (x_max - x_min)/number_of_cells);
   auto explicit_march = explicit_marching_type(Pr, Le, Q, theta, mf, gamma,
                         number_of_cells, CFL, (x_max - x_min)/number_of_cells);
+  solver.expand_solution_vector<explicit_marching_type>(1,explicit_march);
   // solver.solve<implicit_marching_type>(implicit_march, target_residual, frame_time, gamma);
-  solver.solve<explicit_marching_type>(explicit_march, target_residual*1e-2, frame_time, gamma);
+  solver.solve<explicit_marching_type>(explicit_march, target_residual, frame_time, gamma);
 
 
 

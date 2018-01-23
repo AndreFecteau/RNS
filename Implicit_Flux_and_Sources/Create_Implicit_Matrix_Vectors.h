@@ -1,6 +1,7 @@
 #ifndef CREATE_IMPLICIT_MATRIX_VECTOR_H
-
 #define CREATE_IMPLICIT_MATRIX_VECTOR_H
+
+#include "../Explicit_Flux_and_Sources/HLLE.h"
 
 template <typename T>
 T Power(T num, int expo) {
@@ -133,9 +134,11 @@ Matrix_type create_bot_band_matrix(const solution_vector_type solution_vector_m,
 }
 
 template <typename solution_vector_type, typename Matrix_type>
-solution_vector_type create_rhs_vector(const solution_vector_type solution_vector_m,
+solution_vector_type create_rhs_vector(const solution_vector_type solution_vector_mm,
+                                       const solution_vector_type solution_vector_m,
                                        const solution_vector_type solution_vector,
                                        const solution_vector_type solution_vector_p,
+                                       const solution_vector_type solution_vector_pp,
                                        const double& gamma, const double& Pr,
                                        const double& Le, const double& Q, const double& lambda,
                                        const double& theta, const double& dx, const double& dt) {
@@ -154,6 +157,9 @@ solution_vector_type create_rhs_vector(const solution_vector_type solution_vecto
   double Yp = solution_vector_p[3]/solution_vector_p[0];
 
   solution_vector_type rhs;
+  solution_vector_type rhs2;
+  // using global_solution_vector_type = std::vector<solution_vector_type>;
+  // HLLE<global_solution_vector_type> hyperbolic_flux;
 
   rhs << dt*(0. - (-rhom/(2.*dx) + rhop/(2.*dx))*u - rho*(-um/(2.*dx) + up/(2.*dx))),
    dt*(0. - (-rhom/(2.*dx) + rhop/(2.*dx))*Power(u,2) + (3*Pr*((-2*u)/Power(dx,2) + um/Power(dx,2) + up/Power(dx,2)))/4. -
@@ -173,6 +179,10 @@ solution_vector_type create_rhs_vector(const solution_vector_type solution_vecto
    dt*(-((lambda*rho*Y)/exp((rho*theta)/((-1 + gamma)*(e - (rho*Power(u,2))/2.)))) - (-rhom/(2.*dx) + rhop/(2.*dx))*u*Y -
       rho*(-um/(2.*dx) + up/(2.*dx))*Y + ((-2*Y)/Power(dx,2) + Ym/Power(dx,2) + Yp/Power(dx,2))/Le - rho*u*(-Ym/(2.*dx) + Yp/(2.*dx)));
 
+  rhs2 << 0.2/8.0*(solution_vector_pp-4.0*solution_vector_p + 6.0*solution_vector - 4.0*solution_vector_m+solution_vector_mm);
+  rhs -= rhs2;
+
+      // std::cout << "rhs2" << rhs2 << std::endl;
 
   return rhs;
 }

@@ -137,8 +137,9 @@ double Implicit_Marching<global_solution_vector_type, matrix_type>::timemarch(do
     }
     }
 
-  #pragma omp for
-    for(size_t i = 1; i < global_solution_vector.size()-1; ++i) {
+    // #pragma omp single
+    {
+      int i = 1;
       mid[i-1] = create_mid_band_matrix<solution_vector_type, matrix_type>
                                      (global_solution_vector[i-1], global_solution_vector[i],
                                       global_solution_vector[i+1], gamma, Pr, Le, Q, Lambda,
@@ -152,13 +153,51 @@ double Implicit_Marching<global_solution_vector_type, matrix_type>::timemarch(do
                                       global_solution_vector[i+1], gamma, Pr, Le, Q, Lambda,
                                       theta, dx, dt);
       rhs[i-1] = create_rhs_vector<solution_vector_type, matrix_type>
+                                     (global_solution_vector[i-1],global_solution_vector[i-1], global_solution_vector[i],
+                                      global_solution_vector[i+1], global_solution_vector[i+2], gamma, Pr, Le, Q, Lambda,
+                                      theta, dx, dt);
+    }
+  #pragma omp for
+    for(size_t i = 2; i < global_solution_vector.size()-2; ++i) {
+      mid[i-1] = create_mid_band_matrix<solution_vector_type, matrix_type>
                                      (global_solution_vector[i-1], global_solution_vector[i],
                                       global_solution_vector[i+1], gamma, Pr, Le, Q, Lambda,
+                                      theta, dx, dt);
+      bot[i-1] = create_bot_band_matrix<solution_vector_type, matrix_type>
+                                     (global_solution_vector[i-1], global_solution_vector[i],
+                                      global_solution_vector[i+1], gamma, Pr, Le, Q, Lambda,
+                                      theta, dx, dt);
+      top[i-1] = create_top_band_matrix<solution_vector_type, matrix_type>
+                                     (global_solution_vector[i-1], global_solution_vector[i],
+                                      global_solution_vector[i+1], gamma, Pr, Le, Q, Lambda,
+                                      theta, dx, dt);
+      rhs[i-1] = create_rhs_vector<solution_vector_type, matrix_type>
+                                     (global_solution_vector[i-2],global_solution_vector[i-1], global_solution_vector[i],
+                                      global_solution_vector[i+1], global_solution_vector[i+2], gamma, Pr, Le, Q, Lambda,
                                       theta, dx, dt);
       // if (mid[i-1].determinant() < (bot[i-1].determinant() + top[i-1].determinant())) {
       //   std::cout << "Matrix inverse will not work." << std::endl;
       // }
     }
+        {
+          int i = global_solution_vector.size()-2;
+          mid[i-1] = create_mid_band_matrix<solution_vector_type, matrix_type>
+                                         (global_solution_vector[i-1], global_solution_vector[i],
+                                          global_solution_vector[i+1], gamma, Pr, Le, Q, Lambda,
+                                          theta, dx, dt);
+          bot[i-1] = create_bot_band_matrix<solution_vector_type, matrix_type>
+                                         (global_solution_vector[i-1], global_solution_vector[i],
+                                          global_solution_vector[i+1], gamma, Pr, Le, Q, Lambda,
+                                          theta, dx, dt);
+          top[i-1] = create_top_band_matrix<solution_vector_type, matrix_type>
+                                         (global_solution_vector[i-1], global_solution_vector[i],
+                                          global_solution_vector[i+1], gamma, Pr, Le, Q, Lambda,
+                                          theta, dx, dt);
+          rhs[i-1] = create_rhs_vector<solution_vector_type, matrix_type>
+                                         (global_solution_vector[i-1],global_solution_vector[i-1], global_solution_vector[i],
+                                          global_solution_vector[i+1], global_solution_vector[i+1], gamma, Pr, Le, Q, Lambda,
+                                          theta, dx, dt);
+        }
 
 #pragma omp single
     mid[global_solution_vector.size()-3] +=

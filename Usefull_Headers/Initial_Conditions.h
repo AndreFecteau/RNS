@@ -53,85 +53,85 @@ void RK4_low_mach_initial_conditions(double &lambda, int number_of_cells,
 }
 
 
-// void case_1(double &final_time, int number_of_cells, global_solution_vector_type &initial_solution, double gamma, double &x_max, double &x_min) {
-//   // // ------------ Problem 1 ----------- //
-//   double discontinuaty_location = 2.0; //  m
-//   double rho_left   = 2.281;   //  kg/m^3
-//   double rho_right  = 1.408;   //  kg/m^3
-//   double u_left     = 164.83;  //  m/s
-//   double u_right    = 0.0;     //  m/s
-//   double p_left     = 201170;  //  Pa
-//   double p_right    = 101100;   // Pa
-//   final_time = 12.0e-3; //  s
-//   x_max = 10.0;
-//   for (int i = 0; i < number_of_cells; ++i) {
-//     if ((i+0.5) * (x_max - x_min) / number_of_cells < discontinuaty_location) {
-//       initial_solution[i] << rho_left, rho_left*u_left, p_left/(gamma-1) + rho_left * pow(u_left, 2) / 2, 0;
-//     } else {
-//       initial_solution[i] << rho_right, rho_right*u_right, p_right/(gamma-1) + rho_right * pow(u_right, 2) / 2, 0;
-//     }
-//   }
-// }
+void case_1(double &final_time, int number_of_cells, global_solution_vector_type &initial_solution, double gamma, double &x_max, double &x_min) {
+  // // ------------ Problem 1 ----------- //
+  double discontinuaty_location = 2.0; //  m
+  double rho_left   = 2.281;   //  kg/m^3
+  double rho_right  = 1.408;   //  kg/m^3
+  double u_left     = 164.83;  //  m/s
+  double u_right    = 0.0;     //  m/s
+  double p_left     = 201170;  //  Pa
+  double p_right    = 101100;   // Pa
+  final_time = 12.0e-3; //  s
+  x_max = 10.0;
+  for (int i = 0; i < number_of_cells; ++i) {
+    if ((i+0.5) * (x_max - x_min) / number_of_cells < discontinuaty_location) {
+      initial_solution[i] << rho_left, rho_left*u_left, p_left/(gamma-1) + rho_left * pow(u_left, 2) / 2, 0;
+    } else {
+      initial_solution[i] << rho_right, rho_right*u_right, p_right/(gamma-1) + rho_right * pow(u_right, 2) / 2, 0;
+    }
+  }
+}
 //
-// void case_2(double &final_time, int number_of_cells, global_solution_vector_type &initial_solution, double gamma, double &x_max, double &x_min) {
-//     // ------------ Problem 2 ----------- //
-//   double discontinuaty_location = 2.0; //  m
-//   double rho_left   = 1.045;   //  kg/m^3
-//   double rho_right  = 3.483;   //  kg/m^3
-//   double u_left     = 200.0;   //  m/s
-//   double u_right    = 200.0;   //  m/s
-//   double p_left     = 300000;  //  Pa
-//   double p_right    = 300000;  // Pa
-//   final_time = 25.0e-3; //  s
-//   x_max = 10.0;
-//   for (int i = 0; i < number_of_cells; ++i) {
-//     if ((i+0.5) * (x_max - x_min) / number_of_cells < discontinuaty_location) {
-//       initial_solution[i] << rho_left, rho_left*u_left, p_left/(gamma-1) + rho_left * pow(u_left, 2) / 2, 0;
-//     } else {
-//       initial_solution[i] << rho_right, rho_right*u_right, p_right/(gamma-1) + rho_right * pow(u_right, 2) / 2, 0;
-//     }
-//   }
-// }
+void case_2(double &final_time, int number_of_cells, global_solution_vector_type &initial_solution, double gamma, double &x_max, double &x_min) {
+    // ------------ Problem 2 ----------- //
+  double discontinuaty_location = 2.0; //  m
+  double rho_left   = 1.045;   //  kg/m^3
+  double rho_right  = 3.483;   //  kg/m^3
+  double u_left     = 200.0;   //  m/s
+  double u_right    = 200.0;   //  m/s
+  double p_left     = 300000;  //  Pa
+  double p_right    = 300000;  // Pa
+  final_time = 25.0e-3; //  s
+  x_max = 10.0;
+  for (int i = 0; i < number_of_cells; ++i) {
+    if ((i+0.5) * (x_max - x_min) / number_of_cells < discontinuaty_location) {
+      initial_solution[i] << rho_left, rho_left*u_left, p_left/(gamma-1) + rho_left * pow(u_left, 2) / 2, 0;
+    } else {
+      initial_solution[i] << rho_right, rho_right*u_right, p_right/(gamma-1) + rho_right * pow(u_right, 2) / 2, 0;
+    }
+  }
+}
 //
-// void case_3(double &final_time, int number_of_cells, global_solution_vector_type &initial_solution, double gamma, double &x_max, double &x_min) {
-//   // ------------ Problem 3 ----------- //
-//   double discontinuaty_location = 5.0; //  m
-//   double rho_left   = 1.598;   //  kg/m^3
-//   double rho_right  = 2.787;   //  kg/m^3
-//   double u_left     = -383.64;  //  m/s
-//   double u_right    = -216.97;     //  m/s
-//   double p_left     = 91880;  //  Pa
-//   double p_right    = 200000;   // Pa
-//   final_time = 35.0e-3; //  s
-//   x_max = 10.0;
-//   for (int i = 0; i < number_of_cells; ++i) {
-//     if ((i+0.5) * (x_max - x_min) / number_of_cells < discontinuaty_location) {
-//       initial_solution[i] << rho_left, rho_left*u_left, p_left/(gamma-1) + rho_left * pow(u_left, 2) / 2, 0;
-//     } else {
-//       initial_solution[i] << rho_right, rho_right*u_right, p_right/(gamma-1) + rho_right * pow(u_right, 2) / 2, 0;
-//     }
-//   }
-// }
-//
-// void case_4(double &final_time, int number_of_cells, global_solution_vector_type &initial_solution, double gamma, double &x_max, double &x_min) {
-//   // ------------ Problem 4 ----------- //
-//   double discontinuaty_location = 5.0; //  m
-//   double rho_left   = 4.696;   //  kg/m^3
-//   double rho_right  = 1.408;   //  kg/m^3
-//   double u_left     = 0.0;  //  m/s
-//   double u_right    = 0.0;     //  m/s
-//   double p_left     = 404400;  //  Pa
-//   double p_right    = 101100;   // Pa
-//   final_time = 7.0e-3; //  s
-//   x_max = 10.0;
-//   for (int i = 0; i < number_of_cells; ++i) {
-//     if ((i+0.5) * (x_max - x_min) / number_of_cells < discontinuaty_location) {
-//       initial_solution[i] << rho_left, rho_left*u_left, p_left/(gamma-1) + rho_left * pow(u_left, 2) / 2, 0;
-//     } else {
-//       initial_solution[i] << rho_right, rho_right*u_right, p_right/(gamma-1) + rho_right * pow(u_right, 2) / 2, 0;
-//     }
-//   }
-// }
+void case_3(double &final_time, int number_of_cells, global_solution_vector_type &initial_solution, double gamma, double &x_max, double &x_min) {
+  // ------------ Problem 3 ----------- //
+  double discontinuaty_location = 5.0; //  m
+  double rho_left   = 1.598;   //  kg/m^3
+  double rho_right  = 2.787;   //  kg/m^3
+  double u_left     = -383.64;  //  m/s
+  double u_right    = -216.97;     //  m/s
+  double p_left     = 91880;  //  Pa
+  double p_right    = 200000;   // Pa
+  final_time = 35.0e-3; //  s
+  x_max = 10.0;
+  for (int i = 0; i < number_of_cells; ++i) {
+    if ((i+0.5) * (x_max - x_min) / number_of_cells < discontinuaty_location) {
+      initial_solution[i] << rho_left, rho_left*u_left, p_left/(gamma-1) + rho_left * pow(u_left, 2) / 2, 0;
+    } else {
+      initial_solution[i] << rho_right, rho_right*u_right, p_right/(gamma-1) + rho_right * pow(u_right, 2) / 2, 0;
+    }
+  }
+}
+
+void case_4(double &final_time, int number_of_cells, global_solution_vector_type &initial_solution, double gamma, double &x_max, double &x_min) {
+  // ------------ Problem 4 ----------- //
+  double discontinuaty_location = 5.0; //  m
+  double rho_left   = 4.696;   //  kg/m^3
+  double rho_right  = 1.408;   //  kg/m^3
+  double u_left     = 0.0;  //  m/s
+  double u_right    = 0.0;     //  m/s
+  double p_left     = 404400;  //  Pa
+  double p_right    = 101100;   // Pa
+  final_time = 7.0e-3; //  s
+  x_max = 10.0;
+  for (int i = 0; i < number_of_cells; ++i) {
+    if ((i+0.5) * (x_max - x_min) / number_of_cells <= discontinuaty_location) {
+      initial_solution[i] << rho_left, rho_left*u_left, p_left/(gamma-1) + rho_left * pow(u_left, 2) / 2.0,0;
+    } else {
+      initial_solution[i] << rho_right, rho_right*u_right, p_right/(gamma-1) + rho_right * pow(u_right, 2) / 2.0,0;
+    }
+  }
+}
 
 
 #endif //#ifndef INITIAL_CONDITIONS_H
