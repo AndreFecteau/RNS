@@ -5,7 +5,8 @@ set key title "CFL"
 #set yrange [-0.1:1]
 #set xrange [0:1]
 plot \
-"./Movie/Plot_Euler008_500_95654_0.dat"          using 1:4 title " " with lines,\
-"./Movie/Plot_Euler008_500_95654_1.dat"          using 1:4 title " " with lines,\
+"./Movie/Plot_20_1000_95654_134.dat"          using 1:4 title " " with lines,\
+"./Movie/Plot_20_1000_95654_135.dat"          using 1:4 title " " with lines,\
+"./Movie/Plot_20_1000_95654_136.dat"          using 1:4 title " " with lines,\
 
 pause -1

@@ -207,13 +207,6 @@ double Explicit_Marching<global_solution_vector_type, matrix_type>::timemarch(do
       global_solution_vector_future[i] += global_flux_vector[i];
       // residual += squaredNorm(global_flux_vector[i]) * dx / dt;
     }
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-// // #pragma omp for
-//     for (int i = 1; i < number_of_cells-1; ++i) {
-//       phi[i] = vanalbada_limiter(global_solution_vector_future[i-1], global_solution_vector_future[i], global_solution_vector_future[i+1]);
-//     }
-
 #pragma omp for private (hyperbolic_flux)
     for (int i = 1; i < number_of_cells-1; ++i) {
       auto var_vec_l = Variable_Vector_Isolator<solution_vector_type>(global_solution_vector_future[i-1], gamma);
