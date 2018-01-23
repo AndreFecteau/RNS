@@ -1,4 +1,4 @@
-#include "Solver/Solver.h"
+  #include "Solver/Solver.h"
 #include "Low_Mach_Solver/RK4_Low_Mach_Solver.h"
 #include "Usefull_Headers/Variable_Vector_Isolator.h"
 #include "Usefull_Headers/Gnuplot_Primitive_Variables.h"
@@ -48,8 +48,8 @@ int main(){
   double Q = Q_low_mach/(mf*mf*(gamma-1));
   double theta =theta_low_mach/(gamma*mf*mf);
 
-  int    number_of_cells = 2000;
-  double frame_time = 1e-1;
+  int    number_of_cells = 1000;
+  double frame_time = 20;
 
   double lambda = 0.0;
   double CFL =  0.5;
@@ -58,7 +58,7 @@ int main(){
   double lambda_max;
   double lambda_min;
   double lambda_run;
-  double target_residual = 1e-160;
+  double target_residual = 1e-16;
   // std::string filename = "Movie/Plot_Euler_" + tostring(frame_time) + "_" + tostring(number_of_cells) + "_";
   std::string filename = "Movie/Test2_" + tostring(number_of_cells) + "_";
 

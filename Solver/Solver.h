@@ -115,7 +115,7 @@ bool Solver<global_solution_vector_type, matrix_type>::solve(marching_type march
     current_time += frame_time;
     plot<global_solution_vector_type>(filename + std::to_string(static_cast<int>(lambda)) + "_" + std::to_string(static_cast<int>(current_frame)+1), global_solution_vector, march.get_dx());
     current_frame++;
-    // serialize_to_file(*this, filename);
+    serialize_to_file(*this, filename);
     auto finish = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> elapsed = finish - start;
     std::cout << "Elapsed time: " << elapsed.count() << " s\n";
