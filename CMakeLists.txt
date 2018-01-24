@@ -67,17 +67,18 @@ else()
 endif()
 
 # Add an executable
-add_executable (RNS_Solver main.cpp)
+add_executable (RNS_Solver Setup.cpp)
 
 # Link Eigen librairies
 target_link_libraries (RNS_Solver Eigen3::Eigen)
 
 # Add an executable
-add_executable (RNS_Solver_restart main_load.cpp)
+add_executable (RNS_Solver_restart Load_Cerial.cpp)
 
 # Add an executable
-add_executable (RNS_Solver_test Block_Triagonal_Matrix_Inverse_Test.cpp)
-target_link_libraries (RNS_Solver_test Eigen3::Eigen)
 
 # Link Eigen librairies
 target_link_libraries (RNS_Solver_restart Eigen3::Eigen)
+
+# add_executable (RNS_Solver_test Block_Triagonal_Matrix_Inverse_Test.cpp)
+# target_link_libraries (RNS_Solver_test Eigen3::Eigen)

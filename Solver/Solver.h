@@ -6,7 +6,7 @@
 #include <chrono>
 #include <cereal/cereal.hpp>
 #include <cereal/types/vector.hpp>
-#include "../Usefull_Headers/Gnuplot_Primitive_Variables.h"
+#include "../Gnuplot_RNS/Gnuplot_Primitive_Variables.h"
 #include "../Serialization/Serialization_Eigen.h"
 #include "../Serialization/Serialize.h"
 #include "../Usefull_Headers/Variable_Vector_Isolator.h"
@@ -108,7 +108,6 @@ bool Solver<global_solution_vector_type, matrix_type>::solve(marching_type march
   double residual = 100000.0;
   // old_position = flame_position_algorithm(global_solution_vector, gamma);
   while (residual > target_residual){
-    plot<global_solution_vector_type>("me", global_solution_vector, march.get_dx());
     auto start = std::chrono::high_resolution_clock::now();
     std::cout << "Time = " <<  current_time << std::endl;
     residual = march.timemarch(frame_time, global_solution_vector, lambda);

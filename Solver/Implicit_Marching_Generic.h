@@ -7,7 +7,8 @@
 #include <vector>
 #include "Eigen/Core"
 #include "Eigen/Dense"
-#include "../Implicit_Flux_and_Sources/Implicit_Euler.h"
+// #include "../Implicit_Flux_and_Sources/Implicit_Euler.h"
+#include "../Implicit_Flux_and_Sources/Variable_Implicit_Scheme.h"
 // #include "../Usefull_Headers/Block_Triagonal_Matrix_Inverse.h"
 #include "../Matrix_Inverse/Gaussian_Block_Triagonal_Matrix_Inverse.h"
 #include "../Usefull_Headers/Variable_Vector_Isolator.h"
@@ -42,9 +43,11 @@ class Implicit_Marching {
   Implicit_Marching& operator=(Implicit_Marching&&) = default;
 
   Implicit_Marching(double Pr_in, double Le_in, double Q_in, double theta_in, double mf_in,
-           double gamma_in, double number_of_cells_in,  double CFL_in, double dx_in) :
+           double gamma_in, double number_of_cells_in,  double CFL_in, double dx_in,
+           double Theta_in, double zeta_in) :
            Pr(Pr_in), Le(Le_in), Q(Q_in), theta(theta_in), mf(mf_in), gamma(gamma_in),
-           CFL(CFL_in), number_of_cells(number_of_cells_in), dx(dx_in) {}
+           CFL(CFL_in), number_of_cells(number_of_cells_in), dx(dx_in), Theta(Theta_in),
+          zeta(zeta_in) {}
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief Execute step in time.
@@ -64,7 +67,7 @@ class Implicit_Marching {
   /// \param
   template<typename Archive>
   void serialize(Archive& archive) {
-    archive(Pr, Le, Q, theta, mf, gamma, CFL, number_of_cells, dx, dt);
+    archive(Pr, Le, Q, theta, mf, gamma, CFL, number_of_cells, dx, dt, zeta, Theta);
   }
 
  private:
@@ -76,10 +79,15 @@ class Implicit_Marching {
   double mf;
   double gamma;
   double CFL;
+  double Theta;
+  double zeta;
   int number_of_cells;
   double dx;
   double dt = 0.0;
   double residual;
+  global_solution_vector_type delta_global_solution_vector_past = global_solution_vector_type(number_of_cells - 2,
+  solution_vector_type::Zero());;
+
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief Calculates maximum stable timestep.
@@ -121,7 +129,8 @@ class Implicit_Marching {
 // TimeMarch
 ///////////////////////////////////////////////////////////////////////////////
 template <typename global_solution_vector_type, typename matrix_type>
-double Implicit_Marching<global_solution_vector_type, matrix_type>::timemarch(double time_frame, global_solution_vector_type &global_solution_vector, double Lambda) {
+double Implicit_Marching<global_solution_vector_type, matrix_type>::timemarch(double time_frame,
+                             global_solution_vector_type &global_solution_vector, double Lambda) {
   double current_time = 0.0;
   std::vector<matrix_type>    mid(global_solution_vector.size()-2);
   std::vector<matrix_type>    top(global_solution_vector.size()-2);
@@ -145,39 +154,39 @@ double Implicit_Marching<global_solution_vector_type, matrix_type>::timemarch(do
   mid[i-1] = create_mid_band_matrix<solution_vector_type, matrix_type>
                                  (global_solution_vector[i-1], global_solution_vector[i],
                                   global_solution_vector[i+1], gamma, Pr, Le, Q, Lambda,
-                                  theta, dx, dt);
+                                  theta, dx, dt, zeta, Theta);
   bot[i-1] = create_bot_band_matrix<solution_vector_type, matrix_type>
                                  (global_solution_vector[i-1], global_solution_vector[i],
                                   global_solution_vector[i+1], gamma, Pr, Le, Q, Lambda,
-                                  theta, dx, dt);
+                                  theta, dx, dt, zeta, Theta);
   top[i-1] = create_top_band_matrix<solution_vector_type, matrix_type>
                                  (global_solution_vector[i-1], global_solution_vector[i],
                                   global_solution_vector[i+1], gamma, Pr, Le, Q, Lambda,
-                                  theta, dx, dt);
+                                  theta, dx, dt, zeta, Theta);
   rhs[i-1] = create_rhs_vector<solution_vector_type, matrix_type>
-                                 (global_solution_vector[i-1],global_solution_vector[i-1], global_solution_vector[i],
-                                  global_solution_vector[i+1], global_solution_vector[i+2], gamma, Pr, Le, Q, Lambda,
-                                  theta, dx, dt);
+                                 (global_solution_vector[i-1], global_solution_vector[i],
+                                  global_solution_vector[i+1], gamma, Pr, Le, Q, Lambda,
+                                  theta, dx, dt, zeta, Theta, delta_global_solution_vector_past[i-1]);
 }
 #pragma omp for
   for(size_t i = 2; i < global_solution_vector.size()-2; ++i) {
     mid[i-1] = create_mid_band_matrix<solution_vector_type, matrix_type>
                                    (global_solution_vector[i-1], global_solution_vector[i],
                                     global_solution_vector[i+1], gamma, Pr, Le, Q, Lambda,
-                                    theta, dx, dt);
+                                    theta, dx, dt, zeta, Theta);
     bot[i-1] = create_bot_band_matrix<solution_vector_type, matrix_type>
                                    (global_solution_vector[i-1], global_solution_vector[i],
                                     global_solution_vector[i+1], gamma, Pr, Le, Q, Lambda,
-                                    theta, dx, dt);
+                                    theta, dx, dt, zeta, Theta);
     top[i-1] = create_top_band_matrix<solution_vector_type, matrix_type>
                                    (global_solution_vector[i-1], global_solution_vector[i],
                                     global_solution_vector[i+1], gamma, Pr, Le, Q, Lambda,
-                                    theta, dx, dt);
+                                    theta, dx, dt, zeta, Theta);
     rhs[i-1] = create_rhs_vector<solution_vector_type, matrix_type>
-                                   (global_solution_vector[i-2],global_solution_vector[i-1], global_solution_vector[i],
-                                    global_solution_vector[i+1], global_solution_vector[i+2], gamma, Pr, Le, Q, Lambda,
-                                    theta, dx, dt);
-    rhs[i-1] += numerical_dissipation(global_solution_vector, i);
+                                   (global_solution_vector[i-1], global_solution_vector[i],
+                                    global_solution_vector[i+1], gamma, Pr, Le, Q, Lambda,
+                                    theta, dx, dt, zeta, Theta, delta_global_solution_vector_past[i-1]);
+    // rhs[i-1] +=0.1* numerical_dissipation(global_solution_vector, i);
     // if (mid[i-1].determinant() < (bot[i-1].determinant() + top[i-1].determinant())) {
     //   std::cout << "Matrix inverse will not work." << std::endl;
     // }
@@ -188,19 +197,19 @@ double Implicit_Marching<global_solution_vector_type, matrix_type>::timemarch(do
   mid[i-1] = create_mid_band_matrix<solution_vector_type, matrix_type>
                                  (global_solution_vector[i-1], global_solution_vector[i],
                                   global_solution_vector[i+1], gamma, Pr, Le, Q, Lambda,
-                                  theta, dx, dt);
+                                  theta, dx, dt, zeta, Theta);
   bot[i-1] = create_bot_band_matrix<solution_vector_type, matrix_type>
                                  (global_solution_vector[i-1], global_solution_vector[i],
                                   global_solution_vector[i+1], gamma, Pr, Le, Q, Lambda,
-                                  theta, dx, dt);
+                                  theta, dx, dt, zeta, Theta);
   top[i-1] = create_top_band_matrix<solution_vector_type, matrix_type>
                                  (global_solution_vector[i-1], global_solution_vector[i],
                                   global_solution_vector[i+1], gamma, Pr, Le, Q, Lambda,
-                                  theta, dx, dt);
+                                  theta, dx, dt, zeta, Theta);
   rhs[i-1] = create_rhs_vector<solution_vector_type, matrix_type>
-                                 (global_solution_vector[i-1],global_solution_vector[i-1], global_solution_vector[i],
-                                  global_solution_vector[i+1], global_solution_vector[i+1], gamma, Pr, Le, Q, Lambda,
-                                  theta, dx, dt);
+                                 (global_solution_vector[i-1], global_solution_vector[i],
+                                  global_solution_vector[i+1], gamma, Pr, Le, Q, Lambda,
+                                  theta, dx, dt, zeta, Theta, delta_global_solution_vector_past[i-1]);
 }
 
 #pragma omp single
@@ -209,7 +218,7 @@ double Implicit_Marching<global_solution_vector_type, matrix_type>::timemarch(do
                         (global_solution_vector[global_solution_vector.size()-3],
                          global_solution_vector[global_solution_vector.size()-2],
                          global_solution_vector[global_solution_vector.size()-1],
-                         gamma, Pr, Le, Q, Lambda, theta, dx, dt);
+                         gamma, Pr, Le, Q, Lambda, theta, dx, dt, zeta, Theta);
 
 #pragma omp single
   delta_global_solution_vector = block_triagonal_matrix_inverse<matrix_type, solution_vector_type>(mid, top, bot, rhs);
@@ -279,7 +288,7 @@ double Implicit_Marching<global_solution_vector_type, matrix_type>::K_value(cons
 ///////////////////////////////////////////////////////////////////////////////
 template <typename global_solution_vector_type, typename matrix_type>
 typename global_solution_vector_type::value_type Implicit_Marching<global_solution_vector_type, matrix_type>::numerical_dissipation(const global_solution_vector_type &global_solution_vector, const int i) {
-            return -0.2/8.0*(global_solution_vector[i+2]-4.0*global_solution_vector[i+1] + 6.0*global_solution_vector[i] - 4.0*global_solution_vector[i-1]+global_solution_vector[i-2]);
+            return -0.2/(1.0+zeta)/8.0*(global_solution_vector[i+2]-4.0*global_solution_vector[i+1] + 6.0*global_solution_vector[i] - 4.0*global_solution_vector[i-1]+global_solution_vector[i-2]);
 }
 
 #endif //#ifndef IMPLICIT_MARCHING_H

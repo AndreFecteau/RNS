@@ -5,7 +5,7 @@
 #include <fstream>
 #include <cstdarg>
 #include <vector>
-#include "Variable_Vector_Isolator.h"
+#include "../Usefull_Headers/Variable_Vector_Isolator.h"
 
 template <typename global_solution_vector_type>
 void plot(std::string file_name, global_solution_vector_type solution_vector, double dx){

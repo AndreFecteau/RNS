@@ -10,7 +10,7 @@
 #include "../Explicit_Flux_and_Sources/HLLE_Euler.h"
 #include "../Serialization/Serialization_Eigen.h"
 #include "../Usefull_Headers/Variable_Vector_Isolator_Euler.h"
-#include "../Usefull_Headers/Gnuplot_Primitive_Variables0.h"
+#include "../Gnuplot_Euler/Gnuplot_Primitive_Variables.h"
 
 template <typename global_solution_vector_type>
 class Explicit_Marching_Euler {

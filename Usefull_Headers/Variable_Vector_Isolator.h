@@ -97,11 +97,6 @@ private:
     return solution_vector[3]/solution_vector[0];
   }
 
-  /////////////////////////////////////////////////////////////////////////
-  /// \brief Function to isolate T.
-  // double isolate_p(solution_vector_type solution_vector) {
-  //   return (solution_vector[2] - 0.5 * solution_vector[1] *solution_vector[1] / solution_vector[0])*(gamma-1.0);
-  // }
   double T_var;
   double u_var;
   double rho_var;
