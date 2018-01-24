@@ -3,10 +3,7 @@
 #include "Usefull_Headers/Variable_Vector_Isolator.h"
 #include "Gnuplot_RNS/Gnuplot_Primitive_Variables.h"
 #include "Solver/Implicit_Marching_Generic.h"
-// #include "Solver/Implicit_Marching.h"
-// #include "Solver/Implicit_Marching_3PointBackwards.h"
 #include "Solver/Explicit_Marching.h"
-#include "Solver/Explicit_Marching_Euler.h"
 #include "Eigen/Core"
 #include "Eigen/Dense"
 #include <cmath>
@@ -19,7 +16,6 @@ using solution_vector_type = typename global_solution_vector_type::value_type;
 
 using implicit_marching_type = Implicit_Marching<global_solution_vector_type, matrix_type>;
 using explicit_marching_type = Explicit_Marching<global_solution_vector_type, matrix_type>;
-using explicit_euler_marching_type = Explicit_Marching_Euler<global_solution_vector_type>;
 
 
 
@@ -61,7 +57,7 @@ int main(){
   double target_residual = 1e-16;
 
   double Theta = 1.0;
-  double zeta = 0.0;
+  double zeta = 0.5;
   double CFL =  2;
 
   // std::string filename = "Movie/Plot_Euler_" + tostring(frame_time) + "_" + tostring(number_of_cells) + "_";
@@ -82,10 +78,7 @@ int main(){
   // case_4(frame_time, number_of_cells, initial_solution, gamma, x_max, x_min);
   RK4_low_mach_initial_conditions(lambda, number_of_cells, initial_solution, Le, Q_low_mach,
                theta_low_mach, T_ignition, gamma, x_max, mf);
-  // frame_time *=0.001;
   auto explicit_march = explicit_marching_type(Pr, Le, Q, theta, mf, gamma,
-                        number_of_cells, CFL, (x_max - x_min)/number_of_cells);
-  auto explicit_euler_march = explicit_euler_marching_type(gamma,
                         number_of_cells, CFL, (x_max - x_min)/number_of_cells);
   auto implicit_march = implicit_marching_type(Pr, Le, Q, theta, mf, gamma,
                         number_of_cells, CFL, (x_max - x_min)/number_of_cells, Theta, zeta);

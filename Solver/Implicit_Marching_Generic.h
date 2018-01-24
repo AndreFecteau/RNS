@@ -186,7 +186,7 @@ double Implicit_Marching<global_solution_vector_type, matrix_type>::timemarch(do
                                    (global_solution_vector[i-1], global_solution_vector[i],
                                     global_solution_vector[i+1], gamma, Pr, Le, Q, Lambda,
                                     theta, dx, dt, zeta, Theta, delta_global_solution_vector_past[i-1]);
-    // rhs[i-1] +=0.1* numerical_dissipation(global_solution_vector, i);
+    // rhs[i-1] +=numerical_dissipation(global_solution_vector, i);
     // if (mid[i-1].determinant() < (bot[i-1].determinant() + top[i-1].determinant())) {
     //   std::cout << "Matrix inverse will not work." << std::endl;
     // }

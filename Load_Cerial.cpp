@@ -2,7 +2,7 @@
 #include "Low_Mach_Solver/RK4_Low_Mach_Solver.h"
 #include "Usefull_Headers/Variable_Vector_Isolator.h"
 #include "Gnuplot_RNS/Gnuplot_Primitive_Variables.h"
-#include "Solver/Implicit_Marching.h"
+#include "Solver/Implicit_Marching_Generic.h"
 #include "Solver/Explicit_Marching.h"
 #include "Eigen/Core"
 #include "Eigen/Dense"
@@ -32,13 +32,17 @@ int main(){
 
   double T_ignition = 1.0;
   double lambda = 0.0;
-  double CFL = 0.5;
   double x_min = 0.0;
   double x_max;
   double lambda_max;
   double lambda_min;
   double lambda_run;
   double target_residual = 1e-19;
+
+  double Theta = 1.0;
+  double zeta = 0.0;
+  double CFL =  2;
+
   std::string filename = "Movie/Plot_" + tostring(20) + "_" + tostring(1000) + "_";
     global_solution_vector_type initial_solution;
     initial_solution.resize(number_of_cells);
@@ -47,10 +51,10 @@ int main(){
   auto solver = Solver<global_solution_vector_type, matrix_type>();
   unserialize_to_file(solver, filename);
   std::cout << "x_max" << x_max << std::endl;
-  auto implicit_march = implicit_marching_type(Pr, Le, Q, theta, mf, gamma,
-                        number_of_cells, 2, (x_max - x_min)/number_of_cells);
   auto explicit_march = explicit_marching_type(Pr, Le, Q, theta, mf, gamma,
                         number_of_cells, CFL, (x_max - x_min)/number_of_cells);
+  auto implicit_march = implicit_marching_type(Pr, Le, Q, theta, mf, gamma,
+                        number_of_cells, CFL, (x_max - x_min)/number_of_cells, Theta, zeta);
   solver.expand_solution_vector<implicit_marching_type>(5,implicit_march);
   solver.solve<implicit_marching_type>(implicit_march, target_residual, frame_time, gamma);
   // solver.solve<explicit_marching_type>(explicit_march, target_residual, frame_time, gamma);
