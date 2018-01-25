@@ -39,37 +39,34 @@ Matrix_type create_mid_band_matrix(const solution_vector_type& solution_vector_m
         3*Pr*(Power(rhom - rhop,2)*u + 2*Power(rho,2)*(-2*u + um + up) - rho*(rhom*(2*u + um - up) + rhop*(2*u - um + up)))))/
     (8.*Power(dx,2)*Power(rho,3)*(1 + zeta)),1 + (dt*Theta*(-3*Pr*Power(rhom - rhop,2) + 6*Pr*rho*(rhom + rhop) +
          4*dx*(-3 + gamma)*Power(rho,3)*(um - up)))/(8.*Power(dx,2)*Power(rho,3)*(1 + zeta)),0,0,
-   (dt*Theta*((4*(em*gamma*rho*u - ep*gamma*rho*u - e*gamma*rhom*u + e*gamma*rhop*u + e*gamma*rho*um + 3*Power(rho,2)*Power(u,2)*um -
-             3*gamma*Power(rho,2)*Power(u,2)*um + rho*(-(e*gamma) + 3*(-1 + gamma)*rho*Power(u,2))*up))/(dx*Power(rho,2)) +
-        (-16*e*gamma*rho*rhom + 12*e*gamma*Power(rhom,2) + 8*ep*gamma*rho*(rho + rhom - rhop) - 16*e*gamma*rho*rhop - 24*e*gamma*rhom*rhop +
-           12*e*gamma*Power(rhop,2) + 8*em*gamma*rho*(rho - rhom + rhop) + 32*gamma*Power(rho,3)*Power(u,2) - 24*Pr*Power(rho,3)*Power(u,2) +
-           8*gamma*Power(rho,2)*rhom*Power(u,2) - 6*Pr*Power(rho,2)*rhom*Power(u,2) - 4*gamma*rho*Power(rhom,2)*Power(u,2) +
-           3*Pr*rho*Power(rhom,2)*Power(u,2) + 8*gamma*Power(rho,2)*rhop*Power(u,2) - 6*Pr*Power(rho,2)*rhop*Power(u,2) +
-           8*gamma*rho*rhom*rhop*Power(u,2) - 6*Pr*rho*rhom*rhop*Power(u,2) - 4*gamma*rho*Power(rhop,2)*Power(u,2) +
-           3*Pr*rho*Power(rhop,2)*Power(u,2) - 16*gamma*Power(rho,3)*u*um + 12*Pr*Power(rho,3)*u*um + 8*gamma*Power(rho,2)*rhom*u*um -
-           6*Pr*Power(rho,2)*rhom*u*um - 8*gamma*Power(rho,2)*rhop*u*um + 6*Pr*Power(rho,2)*rhop*u*um - 4*gamma*Power(rho,3)*Power(um,2) +
-           3*Pr*Power(rho,3)*Power(um,2) - 2*(4*gamma - 3*Pr)*Power(rho,2)*((2*rho + rhom - rhop)*u - rho*um)*up +
-           (-4*gamma + 3*Pr)*Power(rho,3)*Power(up,2))/(Power(dx,2)*Power(rho,4)) -
-        (8*exp((2*rho*theta)/((-1 + gamma)*(-2*e + rho*Power(u,2))))*lambda*Q*
-           (4*e*(e*(-1 + gamma) - rho*theta) + 4*rho*(e - e*gamma + rho*theta)*Power(u,2) + (-1 + gamma)*Power(rho,2)*Power(u,4))*Y)/
-         ((-1 + gamma)*Power(-2*e + rho*Power(u,2),2))))/(8.*(1 + zeta)),
+   (dt*Theta*((2*gamma*(2*rho*(ep*(rho + rhom - rhop) + em*(rho - rhom + rhop)) + e*(4*Power(rho,2) + 3*Power(rhom - rhop,2) - 4*rho*(rhom + rhop))))/
+         (Power(dx,2)*Power(rho,4)) - ((4*gamma - 3*Pr)*(4*Power(rho,2) + Power(rhom - rhop,2) - 2*rho*(rhom + rhop))*Power(u,2))/
+         (2.*Power(dx,2)*Power(rho,3)) + ((rhom - rhop)*u*(-2*e*gamma + 3*(-1 + gamma)*rho*Power(u,2)))/(dx*Power(rho,2)) +
+        (-8*e*gamma + 2*(4*gamma - 3*Pr)*rho*Power(u,2))/(Power(dx,2)*Power(rho,2)) +
+        ((4*gamma - 3*Pr)*(rhom - rhop)*u*(um - up))/(Power(dx,2)*Power(rho,2)) + (3*(-1 + gamma)*Power(u,2)*(um - up))/dx +
+        ((2*e*gamma - 3*(-1 + gamma)*rho*Power(u,2))*(um - up))/(dx*rho) +
+        ((4*gamma - 3*Pr)*(8*Power(u,2) - Power(um - up,2) - 4*u*(um + up)))/(2.*Power(dx,2)*rho) +
+        (u*(2*em*gamma - 2*ep*gamma + 3*(-1 + gamma)*u*(-(rhom*u) + rhop*u - 2*rho*um + 2*rho*up)))/(dx*rho) +
+        (16*e*exp((2*rho*theta)/((-1 + gamma)*(-2*e + rho*Power(u,2))))*lambda*Q*rho*theta*Y)/((-1 + gamma)*Power(-2*e + rho*Power(u,2),2)) -
+        (16*exp((2*rho*theta)/((-1 + gamma)*(-2*e + rho*Power(u,2))))*lambda*Q*Power(rho,2)*theta*Power(u,2)*Y)/
+         ((-1 + gamma)*Power(-2*e + rho*Power(u,2),2))))/(4.*(1 + zeta)),
    (dt*Theta*((4*rho*(-(em*gamma*rho) + ep*gamma*rho + e*gamma*rhom - e*gamma*rhop - 3*Power(rho,2)*u*um + 3*gamma*Power(rho,2)*u*um -
              3*(-1 + gamma)*Power(rho,2)*u*up))/dx + ((4*gamma - 3*Pr)*
            (Power(rhom - rhop,2)*u + 2*Power(rho,2)*(-2*u + um + up) - rho*(rhom*(2*u + um - up) + rhop*(2*u - um + up))))/Power(dx,2) +
-        (32*exp((2*rho*theta)/((-1 + gamma)*(-2*e + rho*Power(u,2))))*lambda*Q*Power(rho,5)*theta*u*Y)/((-1 + gamma)*Power(-2*e + rho*Power(u,2),2))
-        ))/(8.*Power(rho,3)*(1 + zeta)),1 + (dt*Theta*(-((gamma*(Power(rhom - rhop,2) - 2*rho*(rhom + rhop) + dx*Power(rho,3)*(um - up)))/
+        (32*exp((2*rho*theta)/((-1 + gamma)*(-2*e + rho*Power(u,2))))*lambda*Q*Power(rho,5)*theta*u*Y)/((-1 + gamma)*Power(-2*e + rho*Power(u,2),2)))
+      )/(8.*Power(rho,3)*(1 + zeta)),1 + (dt*Theta*(-((gamma*(Power(rhom - rhop,2) - 2*rho*(rhom + rhop) + dx*Power(rho,3)*(um - up)))/
             (Power(dx,2)*Power(rho,3))) - (8*exp((2*rho*theta)/((-1 + gamma)*(-2*e + rho*Power(u,2))))*lambda*Q*Power(rho,2)*theta*Y)/
           ((-1 + gamma)*Power(-2*e + rho*Power(u,2),2))))/(2.*(1 + zeta)),
-   -((dt*exp((2*rho*theta)/((-1 + gamma)*(-2*e + rho*Power(u,2))))*lambda*Q*rho*Theta)/(1 + zeta)),
-   (dt*exp((2*rho*theta)/((-1 + gamma)*(-2*e + rho*Power(u,2))))*lambda*Theta*
-      (4*e*(e*(-1 + gamma) - rho*theta) + 4*rho*(e - e*gamma + rho*theta)*Power(u,2) + (-1 + gamma)*Power(rho,2)*Power(u,4))*Y)/
-    ((-1 + gamma)*Power(-2*e + rho*Power(u,2),2)*(1 + zeta)),
-   (dt*Theta*((-4*exp((2*rho*theta)/((-1 + gamma)*(-2*e + rho*Power(u,2))))*lambda*Power(rho,2)*theta*u*Y)/
+   -((dt*exp((2*rho*theta)/((-1 + gamma)*(-2*e + rho*Power(u,2))))*lambda*Q*Theta)/(1 + zeta)),
+   (dt*Theta*((8*exp((2*rho*theta)/((-1 + gamma)*(-2*e + rho*Power(u,2))))*lambda*rho*theta*(-e + rho*Power(u,2))*Y)/
+         ((-1 + gamma)*Power(-2*e + rho*Power(u,2),2)) + (um*Y - up*Y + u*Ym - u*Yp)/dx +
+        (Power(rhom - rhop,2)*Y + 2*Power(rho,2)*(-2*Y + Ym + Yp) - rho*(rhom*(2*Y + Ym - Yp) + rhop*(2*Y - Ym + Yp)))/(Power(dx,2)*Le*Power(rho,3))))/
+    (2.*(1 + zeta)),(dt*Theta*((-4*exp((2*rho*theta)/((-1 + gamma)*(-2*e + rho*Power(u,2))))*lambda*Power(rho,2)*theta*u*Y)/
          ((-1 + gamma)*Power(-2*e + rho*Power(u,2),2)) + (-Ym + Yp)/(2.*dx)))/(1 + zeta),
    (4*dt*exp((2*rho*theta)/((-1 + gamma)*(-2*e + rho*Power(u,2))))*lambda*Power(rho,2)*theta*Theta*Y)/
-    ((-1 + gamma)*Power(-2*e + rho*Power(u,2),2)*(1 + zeta)),
-   1 + (dt*Theta*(4 + dx*Le*((-rhom + rhop)*u + rho*(2*dx*exp((2*rho*theta)/((-1 + gamma)*(-2*e + rho*Power(u,2))))*lambda - um + up))))/
-     (2.*Power(dx,2)*Le*(1 + zeta));
+    ((-1 + gamma)*Power(-2*e + rho*Power(u,2),2)*(1 + zeta)),1 +
+    (dt*Theta*(2*Power(dx,2)*exp((2*rho*theta)/((-1 + gamma)*(-2*e + rho*Power(u,2))))*lambda*Le*Power(rho,3) - Power(rhom - rhop,2) +
+         2*rho*(rhom + rhop) + dx*Le*Power(rho,3)*(-um + up)))/(2.*Power(dx,2)*Le*Power(rho,3)*(1 + zeta));
 
   return b;
 }
@@ -104,8 +101,9 @@ Matrix_type create_top_band_matrix(const solution_vector_type solution_vector_m,
         rho*(-4*em*gamma + 4*ep*gamma + u*(3*Pr*(rhom - rhop)*u - 4*dx*Power(rho,2)*Power(u,2) + 6*Pr*rho*(u - um + up) +
               4*gamma*((-rhom + rhop)*u + dx*Power(rho,2)*Power(u,2) - 2*rho*(u - um + up))))))/(8.*Power(dx,2)*Power(rho,3)*(1 + zeta)),
    (dt*Theta*(2*dx*rho*(2*e*gamma - 3*(-1 + gamma)*rho*Power(u,2)) + (4*gamma - 3*Pr)*((rhom - rhop)*u + rho*(2*u - um + up))))/
-    (8.*Power(dx,2)*Power(rho,2)*(1 + zeta)),(dt*gamma*Theta*(-rhom + rhop + rho*(-2 + dx*rho*u)))/(2.*Power(dx,2)*Power(rho,2)*(1 + zeta)),0,0,
-   (dt*Theta*Y)/(2*dx + 2*dx*zeta),0,(dt*Theta*(-2 + dx*Le*rho*u))/(2.*Power(dx,2)*Le*(1 + zeta));
+    (8.*Power(dx,2)*Power(rho,2)*(1 + zeta)),(dt*gamma*Theta*(-rhom + rhop + rho*(-2 + dx*rho*u)))/(2.*Power(dx,2)*Power(rho,2)*(1 + zeta)),0,
+   (dt*Theta*((rhom - rhop)*Y - dx*Le*Power(rho,2)*u*Y + rho*(2*Y - Ym + Yp)))/(2.*Power(dx,2)*Le*Power(rho,2)*(1 + zeta)),
+   (dt*Theta*Y)/(2*dx + 2*dx*zeta),0,(dt*Theta*(-rhom + rhop + rho*(-2 + dx*Le*rho*u)))/(2.*Power(dx,2)*Le*Power(rho,2)*(1 + zeta));
 
   return c;
 }
@@ -141,8 +139,9 @@ Matrix_type create_bot_band_matrix(const solution_vector_type solution_vector_m,
               4*gamma*((-rhom + rhop)*u + dx*Power(rho,2)*Power(u,2) + 2*rho*(u + um - up)) + 6*Pr*rho*(u + um - up)))))/
     (8.*Power(dx,2)*Power(rho,3)*(1 + zeta)),(dt*Theta*(2*dx*rho*(-2*e*gamma + 3*(-1 + gamma)*rho*Power(u,2)) +
         (4*gamma - 3*Pr)*((-rhom + rhop)*u + rho*(2*u + um - up))))/(8.*Power(dx,2)*Power(rho,2)*(1 + zeta)),
-   -(dt*gamma*Theta*(-rhom + rhop + rho*(2 + dx*rho*u)))/(2.*Power(dx,2)*Power(rho,2)*(1 + zeta)),0,0,-((dt*Theta*Y)/(2*dx + 2*dx*zeta)),0,
-   -(dt*Theta*(2 + dx*Le*rho*u))/(2.*Power(dx,2)*Le*(1 + zeta));
+   -(dt*gamma*Theta*(-rhom + rhop + rho*(2 + dx*rho*u)))/(2.*Power(dx,2)*Power(rho,2)*(1 + zeta)),0,
+   (dt*Theta*((-rhom + rhop)*Y + dx*Le*Power(rho,2)*u*Y + rho*(2*Y + Ym - Yp)))/(2.*Power(dx,2)*Le*Power(rho,2)*(1 + zeta)),
+   -((dt*Theta*Y)/(2*dx + 2*dx*zeta)),0,-(dt*Theta*(-rhom + rhop + rho*(2 + dx*Le*rho*u)))/(2.*Power(dx,2)*Le*Power(rho,2)*(1 + zeta));
 
   return a;
 }
@@ -178,25 +177,20 @@ solution_vector_type create_rhs_vector(const solution_vector_type solution_vecto
 
   solution_vector_type rhs;
 
-  rhs << (dt*(0. - (-rhom/(2.*dx) + rhop/(2.*dx))*u - rho*(-um/(2.*dx) + up/(2.*dx))))/(1 + zeta) + (dUm1*zeta)/(1 + zeta),
-   (dt*(0. - (-rhom/(2.*dx) + rhop/(2.*dx))*Power(u,2) + (3*Pr*((-2*u)/Power(dx,2) + um/Power(dx,2) + up/Power(dx,2)))/4. -
-         2*rho*u*(-um/(2.*dx) + up/(2.*dx)) - (-1 + gamma)*(-em/(2.*dx) + ep/(2.*dx) - ((-rhom/(2.*dx) + rhop/(2.*dx))*Power(u,2))/2. -
-            rho*u*(-um/(2.*dx) + up/(2.*dx)))))/(1 + zeta) + (dUm2*zeta)/(1 + zeta),
-   (dt*((3*Pr*u*((-2*u)/Power(dx,2) + um/Power(dx,2) + up/Power(dx,2)))/4. - (e + (-1 + gamma)*(e - (rho*Power(u,2))/2.))*(-um/(2.*dx) + up/(2.*dx)) +
-         (3*Pr*Power(-um/(2.*dx) + up/(2.*dx),2))/4. - u*(-em/(2.*dx) + ep/(2.*dx) +
-            (-1 + gamma)*(-em/(2.*dx) + ep/(2.*dx) - ((-rhom/(2.*dx) + rhop/(2.*dx))*Power(u,2))/2. - rho*u*(-um/(2.*dx) + up/(2.*dx)))) +
-         (gamma*(-(((-1 + gamma)*((-2*rho)/Power(dx,2) + rhom/Power(dx,2) + rhop/Power(dx,2))*(e - (rho*Power(u,2))/2.))/Power(rho,2)) +
-              (2*(-1 + gamma)*Power(-rhom/(2.*dx) + rhop/(2.*dx),2)*(e - (rho*Power(u,2))/2.))/Power(rho,3) -
-              (2*(-1 + gamma)*(-rhom/(2.*dx) + rhop/(2.*dx))*
-                 (-em/(2.*dx) + ep/(2.*dx) - ((-rhom/(2.*dx) + rhop/(2.*dx))*Power(u,2))/2. - rho*u*(-um/(2.*dx) + up/(2.*dx))))/Power(rho,2) +
-              ((-1 + gamma)*((-2*e)/Power(dx,2) + em/Power(dx,2) + ep/Power(dx,2) -
-                   (((-2*rho)/Power(dx,2) + rhom/Power(dx,2) + rhop/Power(dx,2))*Power(u,2))/2. -
-                   rho*u*((-2*u)/Power(dx,2) + um/Power(dx,2) + up/Power(dx,2)) - 2*(-rhom/(2.*dx) + rhop/(2.*dx))*u*(-um/(2.*dx) + up/(2.*dx)) -
-                   rho*Power(-um/(2.*dx) + up/(2.*dx),2)))/rho))/(-1 + gamma) +
-         (lambda*Q*rho*Y)/exp((rho*theta)/((-1 + gamma)*(e - (rho*Power(u,2))/2.)))))/(1 + zeta) + (dUm3*zeta)/(1 + zeta),
-   (dt*(-((lambda*rho*Y)/exp((rho*theta)/((-1 + gamma)*(e - (rho*Power(u,2))/2.)))) - (-rhom/(2.*dx) + rhop/(2.*dx))*u*Y -
-         rho*(-um/(2.*dx) + up/(2.*dx))*Y + ((-2*Y)/Power(dx,2) + Ym/Power(dx,2) + Yp/Power(dx,2))/Le - rho*u*(-Ym/(2.*dx) + Yp/(2.*dx))))/(1 + zeta) +
-    (dUm4*zeta)/(1 + zeta);
+  rhs << (dt*(0. - ((-rhom + rhop)*u)/(2.*dx) - (rho*(-um + up))/(2.*dx)))/(1 + zeta) + (dUm1*zeta)/(1 + zeta),
+   (dt*(0. - ((-rhom + rhop)*Power(u,2))/(2.*dx) - (rho*u*(-um + up))/dx + (3*Pr*(-2*u + um + up))/(4.*Power(dx,2)) -
+         (-1 + gamma)*((-em + ep)/(2.*dx) - ((-rhom + rhop)*Power(u,2))/(4.*dx) - (rho*u*(-um + up))/(2.*dx))))/(1 + zeta) + (dUm2*zeta)/(1 + zeta),
+   (dt*(-((e + (-1 + gamma)*(e - (rho*Power(u,2))/2.))*(-um + up))/(2.*dx) + (3*Pr*Power(-um + up,2))/(16.*Power(dx,2)) +
+         (3*Pr*u*(-2*u + um + up))/(4.*Power(dx,2)) - u*((-em + ep)/(2.*dx) +
+            (-1 + gamma)*((-em + ep)/(2.*dx) - ((-rhom + rhop)*Power(u,2))/(4.*dx) - (rho*u*(-um + up))/(2.*dx))) +
+         (gamma*(((-1 + gamma)*Power(-rhom + rhop,2)*(e - (rho*Power(u,2))/2.))/(2.*Power(dx,2)*Power(rho,3)) -
+              ((-1 + gamma)*(-2*rho + rhom + rhop)*(e - (rho*Power(u,2))/2.))/(Power(dx,2)*Power(rho,2)) -
+              ((-1 + gamma)*(-rhom + rhop)*((-em + ep)/(2.*dx) - ((-rhom + rhop)*Power(u,2))/(4.*dx) - (rho*u*(-um + up))/(2.*dx)))/(dx*Power(rho,2)) +
+              ((-1 + gamma)*((-2*e + em + ep)/Power(dx,2) - ((-2*rho + rhom + rhop)*Power(u,2))/(2.*Power(dx,2)) -
+                   ((-rhom + rhop)*u*(-um + up))/(2.*Power(dx,2)) - (rho*Power(-um + up,2))/(4.*Power(dx,2)) - (rho*u*(-2*u + um + up))/Power(dx,2)))/rho
+              ))/(-1 + gamma) + (lambda*Q*rho*Y)/exp((rho*theta)/((-1 + gamma)*(e - (rho*Power(u,2))/2.)))))/(1 + zeta) + (dUm3*zeta)/(1 + zeta),
+   (dt*(-((lambda*rho*Y)/exp((rho*theta)/((-1 + gamma)*(e - (rho*Power(u,2))/2.)))) - ((-rhom + rhop)*u*Y)/(2.*dx) - (rho*(-um + up)*Y)/(2.*dx) -
+         (rho*u*(-Ym + Yp))/(2.*dx) + (-2*Y + Ym + Yp)/(Power(dx,2)*Le)))/(1 + zeta) + (dUm4*zeta)/(1 + zeta);
 
   return rhs;
 }

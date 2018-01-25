@@ -140,6 +140,9 @@ class Explicit_Marching {
                 solution_vector[2]*solution_vector[2] +
                 solution_vector[3]*solution_vector[3]);
   }
+
+  solution_vector_type manufactured_residual(const double lambda, const int i);
+
 };
 
 
@@ -196,6 +199,7 @@ double Explicit_Marching<global_solution_vector_type, matrix_type>::timemarch(do
       global_flux_vector[i] += (hyperbolic_flux_vector[i] - hyperbolic_flux_vector[i+1]) / dx * dt ;
       global_flux_vector[i] += parabolic_flux.flux(global_solution_vector[i-1], global_solution_vector[i], global_solution_vector[i+1], gamma, Le, Pr, dx) * dt;
       global_flux_vector[i] += sources.flux(global_solution_vector[i], gamma, Q, lambda, theta) * dt;
+      global_flux_vector[i] += manufactured_residual(lambda, i)*dt;
     }
 
 #pragma omp single
@@ -222,6 +226,7 @@ double Explicit_Marching<global_solution_vector_type, matrix_type>::timemarch(do
       global_flux_future_vector[i] += (hyperbolic_flux_future_vector[i] - hyperbolic_flux_future_vector[i+1]) / dx * dt ;
       global_flux_future_vector[i] += parabolic_flux.flux(global_solution_vector_future[i-1], global_solution_vector_future[i], global_solution_vector_future[i+1], gamma, Le, Pr, dx) * dt;
       global_flux_future_vector[i] += sources.flux(global_solution_vector_future[i], gamma, Q, lambda, theta) * dt;
+      global_flux_future_vector[i] += manufactured_residual(lambda, i)*dt;
     }
 
 #pragma omp for reduction (+:residual)
@@ -233,8 +238,8 @@ double Explicit_Marching<global_solution_vector_type, matrix_type>::timemarch(do
 
 
 
-#pragma omp single
-    boundary_conditions(global_solution_vector);
+// #pragma omp single
+    // boundary_conditions(global_solution_vector);
 
 #pragma omp single
     current_time += dt;
@@ -331,6 +336,25 @@ double Explicit_Marching<global_solution_vector_type, matrix_type>::K_value(cons
   }
   return 4.0 * std::max(std::max(Pr,Le), gamma / (gamma - 1.0)) / min_rho;
 }
-
+///////////////////////////////////////////////////////////////////////////////
+// Manufactured Solution
+///////////////////////////////////////////////////////////////////////////////
+template <typename global_solution_vector_type, typename matrix_type>
+typename global_solution_vector_type::value_type Explicit_Marching<global_solution_vector_type, matrix_type>::manufactured_residual(const double lambda, const int i) {
+    solution_vector_type temp;
+    double x = dx*(i+0.5);
+    // std::cout << "x: " << x << std::endl;
+    temp << cos(2*x) - 10*sin(x),(-15*(-3 + gamma)*cos(3*x) - 4*(-1 + gamma)*sin(x) + 5*cos(x)*(3 - gamma + 6*Pr + 80*(-3 + gamma)*sin(x)))/40.,
+   (-10*(-1 + gamma)*Power(cos(x),4) - (4*gamma*Power(cos(x),3))/Power(10 + sin(x),3) -
+      (20*lambda*Q*(3 + sin(x))*(10 + sin(x)))/
+       (3.*exp((10*theta*(10 + sin(x)))/((-1 + gamma)*(10000 + cos(x) - 5*Power(cos(x),2)*(10 + sin(x)))))) +
+      2*gamma*cos(x)*(-2*sin(x) + 1/(10 + sin(x))) + 5*Power(cos(x),2)*
+       (3*Pr + 60*(-1 + gamma)*sin(x) + 6*(-1 + gamma)*Power(sin(x),2) + gamma*(-4 - 8000/Power(10 + sin(x),3))) +
+      (5*sin(x)*(-404000*gamma + sin(x)*(-100*(796*gamma + 3*Pr) + sin(x)*(-3920*gamma - 60*Pr + 4*gamma*sin(x) - 3*Pr*sin(x)))) - 3*gamma*sin(2*x))/
+       Power(10 + sin(x),2))/20.,((lambda*(3 + sin(x))*(10 + sin(x)))/
+       exp((10*theta*(10 + sin(x)))/((-1 + gamma)*(10000 + cos(x) - 5*Power(cos(x),2)*(10 + sin(x))))) + Power(cos(x),2)*(13 + 2*sin(x)) -
+      (sin(x)*(-1 + 30*Le + Le*sin(x)*(13 + sin(x))))/Le)/3.;
+   return temp;
+}
 
 #endif //#ifndef EXPLICIT_MARCHING_H

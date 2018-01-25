@@ -45,7 +45,7 @@ int main(){
   double Q = Q_low_mach/(mf*mf*(gamma-1));
   double theta =theta_low_mach/(gamma*mf*mf);
 
-  int    number_of_cells = 500;
+  int    number_of_cells = 1000;
   double frame_time = 1;
 
   double lambda = 0.0;
@@ -54,14 +54,14 @@ int main(){
   double lambda_max;
   double lambda_min;
   double lambda_run;
-  double target_residual = 1e-16;
+  double target_residual = 1e1;
 
   double Theta = 1.0;
-  double zeta = 0.5;
-  double CFL =  2;
+  double zeta = 0.0;
+  double CFL =  0.5;
 
   // std::string filename = "Movie/Plot_Euler_" + tostring(frame_time) + "_" + tostring(number_of_cells) + "_";
-  std::string filename = "Movie/Test2_" + tostring(number_of_cells) + "_";
+  std::string filename = "Movie/Test_" + tostring(number_of_cells) + "_";
 
   global_solution_vector_type initial_solution;
   initial_solution.resize(number_of_cells);
@@ -72,12 +72,13 @@ int main(){
 
   lambda_max = 100000;
   lambda_min = 90000;
-  lambda_run = 95290;
+  lambda_run = 95654;
 
   // while(1>0) {
-  // case_4(frame_time, number_of_cells, initial_solution, gamma, x_max, x_min);
-  RK4_low_mach_initial_conditions(lambda, number_of_cells, initial_solution, Le, Q_low_mach,
-               theta_low_mach, T_ignition, gamma, x_max, mf);
+  // manufactured_solution(number_of_cells, initial_solution, x_max, x_min);
+  case_4(frame_time, number_of_cells, initial_solution, gamma, x_max, x_min);
+  // RK4_low_mach_initial_conditions(lambda, number_of_cells, initial_solution, Le, Q_low_mach,
+  //              theta_low_mach, T_ignition, gamma, x_max, mf);
   auto explicit_march = explicit_marching_type(Pr, Le, Q, theta, mf, gamma,
                         number_of_cells, CFL, (x_max - x_min)/number_of_cells);
   auto implicit_march = implicit_marching_type(Pr, Le, Q, theta, mf, gamma,
@@ -90,8 +91,8 @@ int main(){
                                                                  filename);
   // bool check = solver.solve<implicit_marching_type>(implicit_march, target_residual,
   //                                                           frame_time, gamma);
-  solver.solve<implicit_marching_type>(implicit_march, target_residual, frame_time, gamma);
-  // solver.solve<explicit_marching_type>(explicit_march, target_residual, frame_time, gamma);
+  // solver.solve<implicit_marching_type>(implicit_march, target_residual, frame_time, gamma);
+  solver.solve<explicit_marching_type>(explicit_march, target_residual, frame_time, gamma);
   // solver.solve<explicit_euler_marching_type>(explicit_euler_march, target_residual, frame_time, gamma);
 
   // bisection_lambda(lambda_min, lambda_max, lambda_run, check);
