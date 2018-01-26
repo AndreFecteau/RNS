@@ -24,7 +24,7 @@ void RK4_low_mach_initial_conditions(double &lambda, int number_of_cells,
                                      double gamma, double &x_max, double mf) {
   RK4_Low_Mach_Solver initial_low_mach = RK4_Low_Mach_Solver(Le, Q, theta, T_ignition);
   lambda = initial_low_mach.get_lambda();
-  double domaine_length = 3.0;
+  double domaine_length = 5.0;
   double space_in_front = 1.45;
   double space_in_back  = domaine_length - space_in_front - 1.0;
   x_max = initial_low_mach.length() * domaine_length;
@@ -54,7 +54,7 @@ void RK4_low_mach_initial_conditions(double &lambda, int number_of_cells,
 
 void manufactured_solution(int number_of_cells, global_solution_vector_type &initial_solution, double &x_max, double &x_min){
 x_min = 0.0;
-x_max = 10.0;
+x_max = 2*atan(1)*4;
 double dx = x_max / number_of_cells;
   for (int i = 0; i < number_of_cells; ++i) {
     double x = (i+0.5)*dx;

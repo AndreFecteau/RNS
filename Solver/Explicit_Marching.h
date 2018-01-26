@@ -209,6 +209,9 @@ double Explicit_Marching<global_solution_vector_type, matrix_type>::timemarch(do
       global_solution_vector_future[i] += global_flux_vector[i];
     }
 
+#pragma omp single
+    boundary_conditions(global_solution_vector_future);
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 #pragma omp for private (hyperbolic_flux)
     for (int i = 1; i < number_of_cells-1; ++i) {
@@ -235,11 +238,8 @@ double Explicit_Marching<global_solution_vector_type, matrix_type>::timemarch(do
       residual += squaredNorm(global_flux_vector[i]) * dx / dt;
     }
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-// #pragma omp single
-    // boundary_conditions(global_solution_vector);
+#pragma omp single
+    boundary_conditions(global_solution_vector);
 
 #pragma omp single
     current_time += dt;
@@ -302,9 +302,9 @@ typename global_solution_vector_type::value_type Explicit_Marching<global_soluti
 ///////////////////////////////////////////////////////////////////////////////
 template <typename global_solution_vector_type, typename matrix_type>
 void Explicit_Marching<global_solution_vector_type, matrix_type>::boundary_conditions(global_solution_vector_type &global_solution_vector) {
-  for(int i = 0; i < 2; ++i) {
-    global_solution_vector[number_of_cells - 2 + i] << global_solution_vector[number_of_cells - 3];
-  }
+    // global_solution_vector[number_of_cells - 1] << global_solution_vector[number_of_cells - 3];
+    // global_solution_vector[number_of_cells - 2] << global_solution_vector[number_of_cells - 3];
+    // global_solution_vector[0] << global_solution_vector[1];
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -344,16 +344,14 @@ typename global_solution_vector_type::value_type Explicit_Marching<global_soluti
     solution_vector_type temp;
     double x = dx*(i+0.5);
     // std::cout << "x: " << x << std::endl;
-    temp << cos(2*x) - 10*sin(x),(-15*(-3 + gamma)*cos(3*x) - 4*(-1 + gamma)*sin(x) + 5*cos(x)*(3 - gamma + 6*Pr + 80*(-3 + gamma)*sin(x)))/40.,
-   (-10*(-1 + gamma)*Power(cos(x),4) - (4*gamma*Power(cos(x),3))/Power(10 + sin(x),3) -
-      (20*lambda*Q*(3 + sin(x))*(10 + sin(x)))/
-       (3.*exp((10*theta*(10 + sin(x)))/((-1 + gamma)*(10000 + cos(x) - 5*Power(cos(x),2)*(10 + sin(x)))))) +
-      2*gamma*cos(x)*(-2*sin(x) + 1/(10 + sin(x))) + 5*Power(cos(x),2)*
-       (3*Pr + 60*(-1 + gamma)*sin(x) + 6*(-1 + gamma)*Power(sin(x),2) + gamma*(-4 - 8000/Power(10 + sin(x),3))) +
-      (5*sin(x)*(-404000*gamma + sin(x)*(-100*(796*gamma + 3*Pr) + sin(x)*(-3920*gamma - 60*Pr + 4*gamma*sin(x) - 3*Pr*sin(x)))) - 3*gamma*sin(2*x))/
-       Power(10 + sin(x),2))/20.,((lambda*(3 + sin(x))*(10 + sin(x)))/
-       exp((10*theta*(10 + sin(x)))/((-1 + gamma)*(10000 + cos(x) - 5*Power(cos(x),2)*(10 + sin(x))))) + Power(cos(x),2)*(13 + 2*sin(x)) -
-      (sin(x)*(-1 + 30*Le + Le*sin(x)*(13 + sin(x))))/Le)/3.;
+    temp << cos(2*x) - 10*sin(x),(4*Pr*cos(x))/3. - ((-3 + gamma)*Power(cos(x),3))/2. - ((-1 + gamma)*sin(x))/10. + (-3 + gamma)*cos(x)*sin(x)*(10 + sin(x)),
+   (-15*(-1 + gamma)*Power(cos(x),4) - (6*gamma*Power(cos(x),3))/Power(10 + sin(x),3) -
+      (10*lambda*Q*(3 + sin(x))*(10 + sin(x)))/exp((10*theta*(10 + sin(x)))/((-1 + gamma)*(10000 + cos(x) - 5*Power(cos(x),2)*(10 + sin(x))))) +
+      5*Power(cos(x),2)*(8*Pr + 90*(-1 + gamma)*sin(x) + 9*(-1 + gamma)*Power(sin(x),2) + gamma*(-6 - 12000/Power(10 + sin(x),3))) +
+      10*sin(x)*((3*gamma - 4*Pr)*sin(x) + 3000*gamma*(-1 - Power(10 + sin(x),-2))) -
+      (6*gamma*cos(x)*(-5 + sin(x)*(101 + sin(x)*(20 + sin(x)))))/Power(10 + sin(x),2))/30.,
+   ((lambda*(3 + sin(x))*(10 + sin(x)))/exp((10*theta*(10 + sin(x)))/((-1 + gamma)*(10000 + cos(x) - 5*Power(cos(x),2)*(10 + sin(x))))) +
+      Power(cos(x),2)*(13 + 2*sin(x)) - (sin(x)*(-1 + 30*Le + Le*sin(x)*(13 + sin(x))))/Le)/3.;
    return temp;
 }
 

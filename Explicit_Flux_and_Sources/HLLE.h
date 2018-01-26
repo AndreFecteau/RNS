@@ -70,14 +70,14 @@ class HLLE {
   /////////////////////////////////////////////////////////////////////////
   /// \brief Function to calculate the enthalpy for the right state.
   solution_vector_type solution_vector_right() {
-    solution_vector_type temp; temp << rho_right, rho_right*u_right, p_right / (gamma-1) + 0.5*rho_right*u_right*u_right, rho_right*Y_right;
+    solution_vector_type temp; temp << rho_right, rho_right*u_right, p_right / (gamma-1.0) + 0.5*rho_right*u_right*u_right, rho_right*Y_right;
     return temp;
   }
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief Function to calculate the enthalpy for the right state.
   solution_vector_type solution_vector_left() {
-    solution_vector_type temp; temp << rho_left, rho_left*u_left, p_left / (gamma-1) + 0.5*rho_left*u_left*u_left, rho_left*Y_left;
+    solution_vector_type temp; temp << rho_left, rho_left*u_left, p_left / (gamma-1.0) + 0.5*rho_left*u_left*u_left, rho_left*Y_left;
     return temp;
   }
 

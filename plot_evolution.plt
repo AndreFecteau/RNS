@@ -5,8 +5,12 @@ set key title "CFL"
 #set yrange [-0.1:1]
 #set xrange [0:1]
 plot \
-"./Movie/Test_1000_95654_0.dat"            using 1:4 title " " with lines,\
-"./Movie/Test_1000_95654_1.dat"            using 1:4 title " " with lines,\
+"./Movie/Test_Implicit_Residual_6000_0.dat"          using 1:4 title "Exact Solution " with lines,\
+"./Movie/Test_Implicit_Residual_6000_1.dat"           using 1:4 title "500 Cells 10's " with lines,\
+"./Movie/Test_Implicit_Residual_6000_2.dat"           using 1:4 title "500 Cells 20's " with lines,\
+"./Movie/Test_Implicit_Residual_6000_3.dat"           using 1:4 title "500 Cells 20's " with lines,\
+"./Movie/Test_Implicit_Residual_6000_4.dat"           using 1:4 title "500 Cells 20's " with lines,\
+"./Movie/Test_Implicit_Residual_6000_5.dat"           using 1:4 title "500 Cells 20's " with lines,\
 
 
 
