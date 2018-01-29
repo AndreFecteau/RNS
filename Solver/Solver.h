@@ -106,21 +106,21 @@ bool Solver<global_solution_vector_type, matrix_type>::solve(marching_type march
                                                              double gamma) {
   // plot<global_solution_vector_type>(filename + std::to_string(static_cast<int>(lambda)) + "_0" ), global_solution_vector, march.get_dx());
   double residual = 100000.0;
-  old_position = flame_position_algorithm(global_solution_vector, gamma);
-  // int i = 0;
-  while (residual > target_residual){
-  // while (i < 3){
+  int i = 0;
+  // while (residual > target_residual){
+  while (i < 100){
+    old_position = flame_position_algorithm(global_solution_vector, gamma);
     auto start = std::chrono::high_resolution_clock::now();
     std::cout << "Time = " <<  current_time << std::endl;
     residual = march.timemarch(frame_time, global_solution_vector, lambda);
     current_time += frame_time;
     plot<global_solution_vector_type>(filename + std::to_string(static_cast<int>(current_frame)+1), global_solution_vector, march.get_dx());
     current_frame++;
-    serialize_to_file(*this, filename);
+    // serialize_to_file(*this, filename);
     auto finish = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> elapsed = finish - start;
     std::cout << "Elapsed time: " << elapsed.count() << " s\n";
-    // ++i;
+    ++i;
   }
 
   int position = 0;

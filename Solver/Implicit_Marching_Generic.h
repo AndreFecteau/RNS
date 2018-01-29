@@ -150,9 +150,9 @@ double Implicit_Marching<global_solution_vector_type, matrix_type>::timemarch(do
   if(current_time + dt > time_frame) {
     dt = time_frame - current_time;
   }
-  if(CFL < 1e6){
-  CFL *= 1.01;
-  }
+  // if(CFL < 1e5){
+  // CFL *= 1.01;
+  // }
 }
 #pragma omp for
   for(size_t i = 1; i < global_solution_vector.size()-1; ++i) {

@@ -63,7 +63,7 @@ class Explicit_Marching {
   /// \param
   template<typename Archive>
   void serialize(Archive& archive) {
-    archive(Pr, Le, Q, theta, mf, gamma, CFL, number_of_cells, dx, dt);
+    archive(Pr, Le, Q, theta, mf, gamma, CFL, number_of_cells, dx, dt, zeta, Theta);
   }
 
  private:
@@ -77,6 +77,8 @@ class Explicit_Marching {
   double mf;
   double gamma;
   double CFL;
+  double Theta;
+  double zeta;
   int number_of_cells;
   double dx;
   double dt =0.0;
@@ -161,13 +163,9 @@ double Explicit_Marching<global_solution_vector_type, matrix_type>::timemarch(do
   auto global_solution_vector_future = global_solution_vector_type(global_solution_vector.size(),
   solution_vector_type::Zero());
   double residual = 0.0;
-  std::cout << "dx: " << dx << std::endl;
-  std::cout << "num_cell: " << number_of_cells << std::endl;
 
 #pragma omp parallel
   {
-  #pragma omp single
-  std::cout << "Number of threads being used: " << omp_get_num_threads() << std::endl;
 
   while (current_time < time_frame){
   residual = 0.0;
@@ -199,7 +197,7 @@ double Explicit_Marching<global_solution_vector_type, matrix_type>::timemarch(do
       global_flux_vector[i] += (hyperbolic_flux_vector[i] - hyperbolic_flux_vector[i+1]) / dx * dt ;
       global_flux_vector[i] += parabolic_flux.flux(global_solution_vector[i-1], global_solution_vector[i], global_solution_vector[i+1], gamma, Le, Pr, dx) * dt;
       global_flux_vector[i] += sources.flux(global_solution_vector[i], gamma, Q, lambda, theta) * dt;
-      global_flux_vector[i] += manufactured_residual(lambda, i)*dt;
+      // global_flux_vector[i] += manufactured_residual(lambda, i)*dt;
     }
 
 #pragma omp single
@@ -229,7 +227,7 @@ double Explicit_Marching<global_solution_vector_type, matrix_type>::timemarch(do
       global_flux_future_vector[i] += (hyperbolic_flux_future_vector[i] - hyperbolic_flux_future_vector[i+1]) / dx * dt ;
       global_flux_future_vector[i] += parabolic_flux.flux(global_solution_vector_future[i-1], global_solution_vector_future[i], global_solution_vector_future[i+1], gamma, Le, Pr, dx) * dt;
       global_flux_future_vector[i] += sources.flux(global_solution_vector_future[i], gamma, Q, lambda, theta) * dt;
-      global_flux_future_vector[i] += manufactured_residual(lambda, i)*dt;
+      // global_flux_future_vector[i] += manufactured_residual(lambda, i)*dt;
     }
 
 #pragma omp for reduction (+:residual)
@@ -257,7 +255,6 @@ template <typename global_solution_vector_type, typename matrix_type>
 void Explicit_Marching<global_solution_vector_type, matrix_type>::calculate_dt(const global_solution_vector_type &global_solution_vector) {
   double dt1 = CFL * dx / lambda_eigenvalue(global_solution_vector);
   double dt2 = CFL * dx*dx / (K_value(global_solution_vector));
-  // std::cout << "Hyperbolic: " << dt1 << " Viscous: " << dt2 << std::endl;
   dt = std::min(dt1, dt2);
 }
 
@@ -343,7 +340,6 @@ template <typename global_solution_vector_type, typename matrix_type>
 typename global_solution_vector_type::value_type Explicit_Marching<global_solution_vector_type, matrix_type>::manufactured_residual(const double lambda, const int i) {
     solution_vector_type temp;
     double x = dx*(i+0.5);
-    // std::cout << "x: " << x << std::endl;
     temp << cos(2*x) - 10*sin(x),(4*Pr*cos(x))/3. - ((-3 + gamma)*Power(cos(x),3))/2. - ((-1 + gamma)*sin(x))/10. + (-3 + gamma)*cos(x)*sin(x)*(10 + sin(x)),
    (-15*(-1 + gamma)*Power(cos(x),4) - (6*gamma*Power(cos(x),3))/Power(10 + sin(x),3) -
       (10*lambda*Q*(3 + sin(x))*(10 + sin(x)))/exp((10*theta*(10 + sin(x)))/((-1 + gamma)*(10000 + cos(x) - 5*Power(cos(x),2)*(10 + sin(x))))) +
