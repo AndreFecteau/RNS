@@ -108,7 +108,7 @@ bool Solver<global_solution_vector_type, matrix_type>::solve(marching_type march
   double residual = 100000.0;
   int i = 0;
   // while (residual > target_residual){
-  while (i < 100){
+  while (i < 10){
     old_position = flame_position_algorithm(global_solution_vector, gamma);
     auto start = std::chrono::high_resolution_clock::now();
     std::cout << "Time = " <<  current_time << std::endl;

@@ -85,6 +85,7 @@ class Implicit_Marching {
   double dx;
   double dt = 0.0;
   double residual;
+  int count = 0;
   global_solution_vector_type delta_global_solution_vector_past = global_solution_vector_type(number_of_cells - 2,
   solution_vector_type::Zero());;
 
@@ -120,7 +121,7 @@ class Implicit_Marching {
                 solution_vector[3]*solution_vector[3]);
   }
 
-  solution_vector_type numerical_dissipation(const global_solution_vector_type &global_solution_vector, const int i);
+  solution_vector_type numerical_dissipation(const global_solution_vector_type &global_solution_vector, const int i, const double omega);
 
   solution_vector_type manufactured_residual(const double lambda, const int i);
 
@@ -173,12 +174,20 @@ double Implicit_Marching<global_solution_vector_type, matrix_type>::timemarch(do
                                     global_solution_vector[i+1], gamma, Pr, Le, Q, Lambda,
                                     theta, dx, dt, zeta, Theta, delta_global_solution_vector_past[i-1]);
     // rhs[i-1] += manufactured_residual(Lambda, i)*dt;
-    rhs[i-1] += numerical_dissipation(global_solution_vector, i);
+    rhs[i-1] += numerical_dissipation(global_solution_vector, i, 0.7);
+    rhs[i-1] += numerical_dissipation(global_solution_vector, i, 0.1);
+    rhs[i-1] += numerical_dissipation(global_solution_vector, i, 0.01);
     // if (mid[i-1].determinant() < (bot[i-1].determinant() + top[i-1].determinant())) {
     //   std::cout << "Matrix inverse will not work." << std::endl;
     // }
   }
-
+// #pragma omp single
+//   mid[0] += 0.1 *
+//   create_bot_band_matrix<solution_vector_type, matrix_type>
+//                         (global_solution_vector[0],
+//                          global_solution_vector[1],
+//                          global_solution_vector[2],
+//                          gamma, Pr, Le, Q, Lambda, theta, dx, dt, zeta, Theta);
 #pragma omp single
   mid[global_solution_vector.size()-3] +=
   create_top_band_matrix<solution_vector_type, matrix_type>
@@ -195,8 +204,70 @@ double Implicit_Marching<global_solution_vector_type, matrix_type>::timemarch(do
     global_solution_vector[i] += delta_global_solution_vector[i-1];
   }
   #pragma omp single
-  global_solution_vector[global_solution_vector.size()-1] = global_solution_vector[global_solution_vector.size()-2];
+  {
+    global_solution_vector[global_solution_vector.size()-1] = global_solution_vector[global_solution_vector.size()-2];
+    // solution_vector_type initial_solution;
+    // initial_solution << 1.0, 1.0 * 1.0,
+    //                     1.0 / (gamma * mf * mf) /
+    //                     (gamma - 1.0) + 1.0 * 1.0 * 1.0 * 0.5,
+    //                     1.0 * 1.0;
+    // // global_solution_vector[0] += 0.5 * delta_global_solution_vector[0];
+    // global_solution_vector[0] = 0.1*global_solution_vector[1] + 0.9*initial_solution;
+  }
+// #pragma omp single
+// {
+//     double rho_diff = 0.0;
+//     double u_diff = 0.0;
+//     double T_diff = 0.0;
+//     double Y_diff = 0.0;
+//     for (int i = 1; i < number_of_cells / 5; ++i) {
+//       Variable_Vector_Isolator<solution_vector_type> var_vec = Variable_Vector_Isolator<solution_vector_type>(global_solution_vector[i], gamma);
+//       rho_diff += var_vec.rho();
+//       u_diff += var_vec.u();
+//       T_diff += var_vec.T();
+//       Y_diff += var_vec.Y();
+//     }
+//     rho_diff /= number_of_cells/5 - 1;
+//     u_diff /= number_of_cells/5 - 1;
+//     T_diff /= number_of_cells/5 - 1;
+//     Y_diff /= number_of_cells/5 - 1;
+//     rho_diff -= 1.0;
+//     u_diff -= 1.0;
+//     T_diff -= 1.0/mf/mf/gamma;
+//     Y_diff -= 1.0;
+//     // std::cout << rho_diff << std::endl;
+//     for (int i = 1; i < number_of_cells - 2; ++i) {
+//       Variable_Vector_Isolator<solution_vector_type> var_vec = Variable_Vector_Isolator<solution_vector_type>(global_solution_vector[i], gamma);
+//
+//       double rho_local = var_vec.rho();// - rho_diff;
+//       double u_local = var_vec.u();// - u_diff;
+//       double T_local = var_vec.T();// - T_diff;
+//       double Y_local = var_vec.Y();// - Y_diff;
+//       global_solution_vector[i] <<  rho_local,
+//       rho_local * u_local,
+//       rho_local*T_local/(gamma - 1.0) + rho_local * u_local * u_local * 0.5,
+//       rho_local*Y_local;
+//     }
+// }
 
+// if(count < 9){
+// #pragma omp for
+//     for (int i = 1; i < number_of_cells - 2; ++i) {
+//       Variable_Vector_Isolator<solution_vector_type> var_vec = Variable_Vector_Isolator<solution_vector_type>(global_solution_vector[i], gamma);
+//       double rho_local = var_vec.rho();
+//       double u_local = var_vec.u();
+//       double T_local = var_vec.T();
+//       double Y_local = var_vec.Y();
+//       rho_local = std::min(rho_local, 1.0);
+//       // u_local = std::max(u_local,1.0);
+//       u_local = std::min(u_local, 10.0);
+//       // T_local = std::max(T_local, 1.0 / (gamma*mf*mf));
+//       global_solution_vector[i] <<  rho_local,
+//                                     rho_local * u_local,
+//                                     rho_local*T_local/(gamma - 1.0) + rho_local * u_local * u_local * 0.5,
+//                                     rho_local*Y_local;
+//     }
+  // }
 #pragma omp single
   current_time += dt;
   }
@@ -207,6 +278,7 @@ double Implicit_Marching<global_solution_vector_type, matrix_type>::timemarch(do
   }
   }
   std::cout << "residual: " << residual << std::endl;
+  ++count;
   return residual;
 }
 
@@ -254,8 +326,9 @@ double Implicit_Marching<global_solution_vector_type, matrix_type>::K_value(cons
 // Add Numerical Dissipation
 ///////////////////////////////////////////////////////////////////////////////
 template <typename global_solution_vector_type, typename matrix_type>
-typename global_solution_vector_type::value_type Implicit_Marching<global_solution_vector_type, matrix_type>::numerical_dissipation(const global_solution_vector_type &global_solution_vector, const int i) {
-            return -0.00001/(1.0+zeta)/8.0*(global_solution_vector[std::min(i+2,number_of_cells-1)] -
+typename global_solution_vector_type::value_type Implicit_Marching<global_solution_vector_type, matrix_type>::
+numerical_dissipation(const global_solution_vector_type &global_solution_vector, const int i, const double omega) {
+            return -omega/(1.0+zeta)/8.0*(global_solution_vector[std::min(i+2,number_of_cells-1)] -
                                         4.0*global_solution_vector[std::min(i+1,number_of_cells-1)] +
                                         6.0*global_solution_vector[i] -
                                         4.0*global_solution_vector[std::max(i-1,0)] +

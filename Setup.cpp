@@ -45,8 +45,8 @@ int main(){
   double Q = Q_low_mach/(mf*mf*(gamma-1));
   double theta =theta_low_mach/(gamma*mf*mf);
 
-  int    number_of_cells = 750;
-  double frame_time = 1;
+  int    number_of_cells = 12000;
+  double frame_time = 1e3;
 
   double lambda = 0.0;
   double x_min = 0.0;
@@ -57,9 +57,9 @@ int main(){
   double target_residual = 1e-16;
 
   double Theta = 1.0;
-  double zeta = 0.5;
-  // double CFL =  2e4;
-  double CFL =  0.5;
+  double zeta = 0.0;
+  double CFL =  1e5;
+  // double CFL =  0.5;
 
   // std::string filename = "Movie/Plot_Euler_" + tostring(frame_time) + "_" + tostring(number_of_cells) + "_";
   // std::string filename = "Movie/Test_Implicit_Residual_" + tostring(number_of_cells) + "_";
@@ -74,7 +74,7 @@ int main(){
 
   lambda_max = 95700;
   lambda_min = 95000;
-  lambda_run = 95400;
+  lambda_run = 96000;
 
   while(1>0) {
   // manufactured_solution(number_of_cells, initial_solution, x_max, x_min);

@@ -175,7 +175,23 @@ solution_vector_type create_rhs_vector(const solution_vector_type solution_vecto
   double dUm4 = DeltaUm[3];
 
 
+  // HLLE<std::vector<solution_vector_type>> hyperbolic_flux;
   solution_vector_type rhs;
+
+  //   rhs << 0. + (dUm1*zeta)/(1 + zeta),(dt*(0. - (4*Pr*(-2*u + um + up))/(3.*Power(dx,2))))/(1 + zeta) + (dUm2*zeta)/(1 + zeta),
+  //  (dt*(-(Pr*Power(-um + up,2))/(3.*Power(dx,2)) - (4*Pr*u*(-2*u + um + up))/(3.*Power(dx,2)) -
+  //        (gamma*(((-1 + gamma)*Power(-rhom + rhop,2)*(e - (rho*Power(u,2))/2.))/(2.*Power(dx,2)*Power(rho,3)) - ((-1 + gamma)*(-2*rho + rhom + rhop)*(e - (rho*Power(u,2))/2.))/(Power(dx,2)*Power(rho,2)) -
+  //             ((-1 + gamma)*(-rhom + rhop)*((-em + ep)/(2.*dx) - ((-rhom + rhop)*Power(u,2))/(4.*dx) - (rho*u*(-um + up))/(2.*dx)))/(dx*Power(rho,2)) +
+  //             ((-1 + gamma)*((-2*e + em + ep)/Power(dx,2) - ((-2*rho + rhom + rhop)*Power(u,2))/(2.*Power(dx,2)) - ((-rhom + rhop)*u*(-um + up))/(2.*Power(dx,2)) - (rho*Power(-um + up,2))/(4.*Power(dx,2)) -
+  //                  (rho*u*(-2*u + um + up))/Power(dx,2)))/rho))/(-1 + gamma) + (lambda*Q*rho*Y)/exp((rho*theta)/((-1 + gamma)*(e - (rho*Power(u,2))/2.)))))/(1 + zeta) + (dUm3*zeta)/(1 + zeta),
+  //  (dt*(-((lambda*rho*Y)/exp((rho*theta)/((-1 + gamma)*(e - (rho*Power(u,2))/2.)))) - (-2*Y + Ym + Yp)/(Power(dx,2)*Le)))/(1 + zeta) + (dUm4*zeta)/(1 + zeta);
+  //
+  //
+  // auto var_vec_l = Variable_Vector_Isolator<solution_vector_type>(solution_vector_m, gamma);
+  // auto var_vec = Variable_Vector_Isolator<solution_vector_type>(solution_vector, gamma);
+  // auto var_vec_r = Variable_Vector_Isolator<solution_vector_type>(solution_vector_p, gamma);
+  //
+  //  rhs += (hyperbolic_flux.flux(var_vec_l.w(), var_vec.w(), gamma) - hyperbolic_flux.flux(var_vec.w(), var_vec_r.w(), gamma)) /dx*dt;
 
   rhs << (dt*(0. - ((-rhom + rhop)*u)/(2.*dx) - (rho*(-um + up))/(2.*dx)))/(1 + zeta) + (dUm1*zeta)/(1 + zeta),
    (dt*(0. - ((-rhom + rhop)*Power(u,2))/(2.*dx) - (rho*u*(-um + up))/dx + (4*Pr*(-2*u + um + up))/(3.*Power(dx,2)) -
