@@ -45,7 +45,7 @@ int main(){
   double Q = Q_low_mach/(mf*mf*(gamma-1));
   double theta =theta_low_mach/(gamma*mf*mf);
 
-  int    number_of_cells = 12000;
+  int    number_of_cells = 15000;
   double frame_time = 1e3;
 
   double lambda = 0.0;
@@ -57,13 +57,14 @@ int main(){
   double target_residual = 1e-16;
 
   double Theta = 1.0;
-  double zeta = 0.0;
-  double CFL =  1e5;
+  double zeta = 0.5;
+  double CFL =  1e6;
   // double CFL =  0.5;
 
   // std::string filename = "Movie/Plot_Euler_" + tostring(frame_time) + "_" + tostring(number_of_cells) + "_";
   // std::string filename = "Movie/Test_Implicit_Residual_" + tostring(number_of_cells) + "_";
   std::string filename = "Movie/Test_Explicit_Residual_" + tostring(number_of_cells) + "_";
+  // std::string filename = "Movie/Exact_" + tostring(number_of_cells) + "_";
 
   global_solution_vector_type initial_solution;
   initial_solution.resize(number_of_cells);
@@ -73,10 +74,10 @@ int main(){
   std::cout << "//////////////////////" << std::endl;
 
   lambda_max = 95700;
-  lambda_min = 95000;
-  lambda_run = 96000;
+  lambda_min = 94000;
+  lambda_run = 95600;
 
-  while(1>0) {
+  // while(1>0) {
   // manufactured_solution(number_of_cells, initial_solution, x_max, x_min);
   // case_4(frame_time, number_of_cells, initial_solution, gamma, x_max, x_min);
   RK4_low_mach_initial_conditions(lambda, number_of_cells, initial_solution, Le, Q_low_mach,
@@ -98,6 +99,6 @@ int main(){
   // solver.solve<explicit_euler_marching_type>(explicit_euler_march, target_residual, frame_time, gamma);
 
   bisection_lambda(lambda_min, lambda_max, lambda_run, check);
-}
+// }
 
 };

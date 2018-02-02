@@ -28,18 +28,26 @@ Matrix_type create_mid_band_matrix(const solution_vector_type& solution_vector_m
                                        const double& Le, const double& Q, const double& lambda,
                                        const double& theta, const double& dx, const double& dt,
                                        const double& zeta, const double& Theta) {
-  double rho = solution_vector[0];
+  double rhomm = solution_vector_mm[0];
   double rhom = solution_vector_m[0];
+  double rho = solution_vector[0];
   double rhop = solution_vector_p[0];
-  double u = solution_vector[1]/solution_vector[0];
+  double rhopp = solution_vector_pp[0];
+  double umm = solution_vector_mm[1]/solution_vector_mm[0];
   double um = solution_vector_m[1]/solution_vector_m[0];
+  double u = solution_vector[1]/solution_vector[0];
   double up = solution_vector_p[1]/solution_vector_p[0];
-  double e = solution_vector[2];
+  double upp = solution_vector_pp[1]/solution_vector_pp[0];
+  double emm = solution_vector_mm[2];
   double em = solution_vector_m[2];
+  double e = solution_vector[2];
   double ep = solution_vector_p[2];
-  double Y = solution_vector[3]/solution_vector[0];
+  double epp = solution_vector_pp[2];
+  double Ymm = solution_vector_mm[3]/solution_vector_mm[0];
   double Ym = solution_vector_m[3]/solution_vector_m[0];
+  double Y = solution_vector[3]/solution_vector[0];
   double Yp = solution_vector_p[3]/solution_vector_p[0];
+  double Ypp = solution_vector_pp[3]/solution_vector_pp[0];
   int E = 0;
 
   Matrix_type b;
@@ -53,12 +61,7 @@ Matrix_type create_mid_band_matrix(const solution_vector_type& solution_vector_m
 ///////////////////////////////////////////////////////////////////////////////
 #if defined(HYPERBOLIC)
 
-  temp << 0,0,0,0,-(dt*(-3 + gamma)*Theta*u*(um - up))/(2.*dx*(1 + zeta)),(dt*(-3 + gamma)*Theta*(um - up))/(2.*dx*(1 + zeta)),0,0,
-   (dt*Theta*(em*gamma*rho*u - ep*gamma*rho*u - e*gamma*rhom*u + e*gamma*rhop*u + e*gamma*rho*um + 3*Power(rho,2)*Power(u,2)*um -
-        3*gamma*Power(rho,2)*Power(u,2)*um + rho*(-(e*gamma) + 3*(-1 + gamma)*rho*Power(u,2))*up))/(2.*dx*Power(rho,2)*(1 + zeta)),
-   (dt*Theta*(-(em*gamma*rho) + ep*gamma*rho + e*gamma*rhom - e*gamma*rhop - 3*Power(rho,2)*u*um + 3*gamma*Power(rho,2)*u*um -
-        3*(-1 + gamma)*Power(rho,2)*u*up))/(2.*dx*Power(rho,2)*(1 + zeta)),(dt*gamma*Theta*(-um + up))/(2.*dx*(1 + zeta)),0,
-   (dt*Theta*(um*Y - up*Y + u*(Ym - Yp)))/(2.*dx*(1 + zeta)),(dt*Theta*(-Ym + Yp))/(2.*dx*(1 + zeta)),0,(dt*Theta*(-um + up))/(2.*dx*(1 + zeta));
+  temp << 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0;
   b += temp;
 
 #endif
@@ -67,21 +70,10 @@ Matrix_type create_mid_band_matrix(const solution_vector_type& solution_vector_m
 ///////////////////////////////////////////////////////////////////////////////
 #if defined(VISCOUS)
 
-  temp << 0,0,0,0,(2*dt*Pr*Theta*(Power(rhom - rhop,2)*u + 2*Power(rho,2)*(-2*u + um + up) - rho*(rhom*(2*u + um - up) + rhop*(2*u - um + up))))/
-    (3.*Power(dx,2)*Power(rho,3)*(1 + zeta)),(2*dt*Pr*(-Power(rhom - rhop,2) + 2*rho*(rhom + rhop))*Theta)/(3.*Power(dx,2)*Power(rho,3)*(1 + zeta)),0,0,
-   (dt*Theta*(-12*e*gamma*rho*rhom + 9*e*gamma*Power(rhom,2) + 6*ep*gamma*rho*(rho + rhom - rhop) - 12*e*gamma*rho*rhop - 18*e*gamma*rhom*rhop +
-        9*e*gamma*Power(rhop,2) + 6*em*gamma*rho*(rho - rhom + rhop) + 24*gamma*Power(rho,3)*Power(u,2) - 32*Pr*Power(rho,3)*Power(u,2) +
-        6*gamma*Power(rho,2)*rhom*Power(u,2) - 8*Pr*Power(rho,2)*rhom*Power(u,2) - 3*gamma*rho*Power(rhom,2)*Power(u,2) +
-        4*Pr*rho*Power(rhom,2)*Power(u,2) + 6*gamma*Power(rho,2)*rhop*Power(u,2) - 8*Pr*Power(rho,2)*rhop*Power(u,2) +
-        6*gamma*rho*rhom*rhop*Power(u,2) - 8*Pr*rho*rhom*rhop*Power(u,2) - 3*gamma*rho*Power(rhop,2)*Power(u,2) + 4*Pr*rho*Power(rhop,2)*Power(u,2) -
-        12*gamma*Power(rho,3)*u*um + 16*Pr*Power(rho,3)*u*um + 6*gamma*Power(rho,2)*rhom*u*um - 8*Pr*Power(rho,2)*rhom*u*um -
-        6*gamma*Power(rho,2)*rhop*u*um + 8*Pr*Power(rho,2)*rhop*u*um - 3*gamma*Power(rho,3)*Power(um,2) + 4*Pr*Power(rho,3)*Power(um,2) -
-        2*(3*gamma - 4*Pr)*Power(rho,2)*((2*rho + rhom - rhop)*u - rho*um)*up + (-3*gamma + 4*Pr)*Power(rho,3)*Power(up,2)))/
-    (6.*Power(dx,2)*Power(rho,4)*(1 + zeta)),-(dt*(3*gamma - 4*Pr)*Theta*
-       (-(Power(rhom - rhop,2)*u) + rho*(rhom*(2*u + um - up) + rhop*(2*u - um + up)) + Power(rho,2)*(4*u - 2*(um + up))))/
-    (6.*Power(dx,2)*Power(rho,3)*(1 + zeta)),(dt*gamma*(-Power(rhom - rhop,2) + 2*rho*(rhom + rhop))*Theta)/(2.*Power(dx,2)*Power(rho,3)*(1 + zeta)),0,
-   (dt*Theta*(Power(rhom - rhop,2)*Y + 2*Power(rho,2)*(-2*Y + Ym + Yp) - rho*(rhom*(2*Y + Ym - Yp) + rhop*(2*Y - Ym + Yp))))/
-    (2.*Power(dx,2)*Le*Power(rho,3)*(1 + zeta)),0,0,(dt*(-Power(rhom - rhop,2) + 2*rho*(rhom + rhop))*Theta)/(2.*Power(dx,2)*Le*Power(rho,3)*(1 + zeta));
+  temp << 0,0,0,0,(-8*dt*Pr*Theta*u)/(3.*Power(dx,2)*rho*(1 + zeta)),(8*dt*Pr*Theta)/(3.*Power(dx,2)*rho*(1 + zeta)),0,0,
+   (-2*dt*Theta*(3*e*gamma + (-3*gamma + 4*Pr)*rho*Power(u,2)))/(3.*Power(dx,2)*Power(rho,2)*(1 + zeta)),
+   (2*dt*(-3*gamma + 4*Pr)*Theta*u)/(3.*Power(dx,2)*rho*(1 + zeta)),(2*dt*gamma*Theta)/(Power(dx,2)*rho*(1 + zeta)),0,
+   (-2*dt*Theta*Y)/(Power(dx,2)*Le*rho + Power(dx,2)*Le*rho*zeta),0,0,(2*dt*Theta)/(Power(dx,2)*Le*rho + Power(dx,2)*Le*rho*zeta);
   b += temp;
 
 #endif
@@ -117,18 +109,26 @@ Matrix_type create_top_band_matrix(const solution_vector_type& solution_vector_m
                                        const double& Le, const double& Q, const double& lambda,
                                        const double& theta, const double& dx, const double& dt,
                                        const double& zeta, const double& Theta) {
-  double rho = solution_vector[0];
+  double rhomm = solution_vector_mm[0];
   double rhom = solution_vector_m[0];
+  double rho = solution_vector[0];
   double rhop = solution_vector_p[0];
-  double u = solution_vector[1]/solution_vector[0];
+  double rhopp = solution_vector_pp[0];
+  double umm = solution_vector_mm[1]/solution_vector_mm[0];
   double um = solution_vector_m[1]/solution_vector_m[0];
+  double u = solution_vector[1]/solution_vector[0];
   double up = solution_vector_p[1]/solution_vector_p[0];
-  double e = solution_vector[2];
+  double upp = solution_vector_pp[1]/solution_vector_pp[0];
+  double emm = solution_vector_mm[2];
   double em = solution_vector_m[2];
+  double e = solution_vector[2];
   double ep = solution_vector_p[2];
-  double Y = solution_vector[3]/solution_vector[0];
+  double epp = solution_vector_pp[2];
+  double Ymm = solution_vector_mm[3]/solution_vector_mm[0];
   double Ym = solution_vector_m[3]/solution_vector_m[0];
+  double Y = solution_vector[3]/solution_vector[0];
   double Yp = solution_vector_p[3]/solution_vector_p[0];
+  double Ypp = solution_vector_pp[3]/solution_vector_pp[0];
   int E = 0;
 
   Matrix_type c;
@@ -142,10 +142,10 @@ Matrix_type create_top_band_matrix(const solution_vector_type& solution_vector_m
 ///////////////////////////////////////////////////////////////////////////////
 #if defined(HYPERBOLIC)
 
-  temp << 0,(dt*Theta)/(2*dx + 2*dx*zeta),0,0,(dt*(-3 + gamma)*Theta*Power(u,2))/(4.*dx*(1 + zeta)),-(dt*(-3 + gamma)*Theta*u)/(2.*dx*(1 + zeta)),
-   (dt*(-1 + gamma)*Theta)/(2.*dx*(1 + zeta)),0,(dt*Theta*u*(-(e*gamma) + (-1 + gamma)*rho*Power(u,2)))/(2.*dx*rho*(1 + zeta)),
-   (dt*Theta*(2*e*gamma - 3*(-1 + gamma)*rho*Power(u,2)))/(4.*dx*rho*(1 + zeta)),(dt*gamma*Theta*u)/(2*dx + 2*dx*zeta),0,
-   -((dt*Theta*u*Y)/(2*dx + 2*dx*zeta)),(dt*Theta*Y)/(2*dx + 2*dx*zeta),0,(dt*Theta*u)/(2*dx + 2*dx*zeta);
+  temp << 0,(dt*Theta)/(2*dx + 2*dx*zeta),0,0,(dt*(-3 + gamma)*Theta*Power(up,2))/(4.*dx*(1 + zeta)),-(dt*(-3 + gamma)*Theta*up)/(2.*dx*(1 + zeta)),
+   (dt*(-1 + gamma)*Theta)/(2.*dx*(1 + zeta)),0,(dt*Theta*up*(-(ep*gamma) + (-1 + gamma)*rho*Power(up,2)))/(2.*dx*rho*(1 + zeta)),
+   (dt*Theta*(2*ep*gamma - 3*(-1 + gamma)*rho*Power(up,2)))/(4.*dx*rho*(1 + zeta)),(dt*gamma*Theta*up)/(2*dx + 2*dx*zeta),0,
+   -((dt*Theta*up*Yp)/(2*dx + 2*dx*zeta)),(dt*Theta*Yp)/(2*dx + 2*dx*zeta),0,(dt*Theta*up)/(2*dx + 2*dx*zeta);
   c += temp;
 
 #endif
@@ -154,13 +154,14 @@ Matrix_type create_top_band_matrix(const solution_vector_type& solution_vector_m
 ///////////////////////////////////////////////////////////////////////////////
 #if defined(VISCOUS)
 
-  temp << 0,0,0,0,(2*dt*Pr*Theta*((rhom - rhop)*u + rho*(2*u - um + up)))/(3.*Power(dx,2)*Power(rho,2)*(1 + zeta)),
-   (-2*dt*Pr*(2*rho + rhom - rhop)*Theta)/(3.*Power(dx,2)*Power(rho,2)*(1 + zeta)),0,0,
-   (dt*Theta*(6*e*gamma*(rho + rhom - rhop) + rho*(-3*em*gamma + 3*ep*gamma + (3*gamma - 4*Pr)*u*((-rhom + rhop)*u - 2*rho*(u - um + up)))))/
-    (6.*Power(dx,2)*Power(rho,3)*(1 + zeta)),(dt*(3*gamma - 4*Pr)*Theta*((rhom - rhop)*u + rho*(2*u - um + up)))/
-    (6.*Power(dx,2)*Power(rho,2)*(1 + zeta)),-(dt*gamma*(2*rho + rhom - rhop)*Theta)/(2.*Power(dx,2)*Power(rho,2)*(1 + zeta)),0,
-   (dt*Theta*((rhom - rhop)*Y + rho*(2*Y - Ym + Yp)))/(2.*Power(dx,2)*Le*Power(rho,2)*(1 + zeta)),0,0,
-   -(dt*(2*rho + rhom - rhop)*Theta)/(2.*Power(dx,2)*Le*Power(rho,2)*(1 + zeta));
+  temp << 0,0,0,0,(dt*Pr*Theta*(-(rho*um) + rhom*(4*u + up)))/(3.*Power(dx,2)*rho*rhom*(1 + zeta)),
+   (dt*Pr*(rho - 5*rhom)*Theta)/(3.*Power(dx,2)*rho*rhom*(1 + zeta)),0,0,
+   (dt*Theta*(-3*em*gamma*Power(rho,3) + rhom*(9*e*gamma*rho*rhom + 3*ep*gamma*rhom*(3*rho - 2*rhopp) +
+           rho*(3*epp*gamma*rhom + (3*gamma - 4*Pr)*rho*(-4*rhom*Power(u,2) + rho*Power(um,2) + rhom*u*up - rhom*up*(up + upp))))))/
+    (12.*Power(dx,2)*Power(rho,3)*Power(rhom,2)*(1 + zeta)),(dt*(3*gamma - 4*Pr)*Theta*(-(rho*um) + rhom*(3*u + up + upp)))/
+    (12.*Power(dx,2)*rho*rhom*(1 + zeta)),(dt*gamma*(Power(rho,2) - 6*rho*rhom + rhom*rhopp)*Theta)/(4.*Power(dx,2)*Power(rho,2)*rhom*(1 + zeta)),0,
+   (4*dt*rhom*Theta*Y - dt*rho*Theta*Ym + dt*rhom*Theta*Yp)/(4*Power(dx,2)*Le*rho*rhom + 4*Power(dx,2)*Le*rho*rhom*zeta),0,0,
+   (dt*rho*Theta - 5*dt*rhom*Theta)/(4*Power(dx,2)*Le*rho*rhom + 4*Power(dx,2)*Le*rho*rhom*zeta);
   c += temp;
 
 #endif
@@ -187,18 +188,26 @@ Matrix_type create_bot_band_matrix(const solution_vector_type& solution_vector_m
                                        const double& Le, const double& Q, const double& lambda,
                                        const double& theta, const double& dx, const double& dt,
                                        const double& zeta, const double& Theta) {
-  double rho = solution_vector[0];
+  double rhomm = solution_vector_mm[0];
   double rhom = solution_vector_m[0];
+  double rho = solution_vector[0];
   double rhop = solution_vector_p[0];
-  double u = solution_vector[1]/solution_vector[0];
+  double rhopp = solution_vector_pp[0];
+  double umm = solution_vector_mm[1]/solution_vector_mm[0];
   double um = solution_vector_m[1]/solution_vector_m[0];
+  double u = solution_vector[1]/solution_vector[0];
   double up = solution_vector_p[1]/solution_vector_p[0];
-  double e = solution_vector[2];
+  double upp = solution_vector_pp[1]/solution_vector_pp[0];
+  double emm = solution_vector_mm[2];
   double em = solution_vector_m[2];
+  double e = solution_vector[2];
   double ep = solution_vector_p[2];
-  double Y = solution_vector[3]/solution_vector[0];
+  double epp = solution_vector_pp[2];
+  double Ymm = solution_vector_mm[3]/solution_vector_mm[0];
   double Ym = solution_vector_m[3]/solution_vector_m[0];
+  double Y = solution_vector[3]/solution_vector[0];
   double Yp = solution_vector_p[3]/solution_vector_p[0];
+  double Ypp = solution_vector_pp[3]/solution_vector_pp[0];
   int E = 0;
 
   Matrix_type a;
@@ -212,10 +221,10 @@ Matrix_type create_bot_band_matrix(const solution_vector_type& solution_vector_m
 ///////////////////////////////////////////////////////////////////////////////
 #if defined(HYPERBOLIC)
 
-  temp << 0,-((dt*Theta)/(2*dx + 2*dx*zeta)),0,0,-(dt*(-3 + gamma)*Theta*Power(u,2))/(4.*dx*(1 + zeta)),(dt*(-3 + gamma)*Theta*u)/(2.*dx*(1 + zeta)),
-   -(dt*(-1 + gamma)*Theta)/(2.*dx*(1 + zeta)),0,(dt*Theta*(e*gamma*u - (-1 + gamma)*rho*Power(u,3)))/(2.*dx*rho*(1 + zeta)),
-   (dt*Theta*(-2*e*gamma + 3*(-1 + gamma)*rho*Power(u,2)))/(4.*dx*rho*(1 + zeta)),-((dt*gamma*Theta*u)/(2*dx + 2*dx*zeta)),0,
-   (dt*Theta*u*Y)/(2*dx + 2*dx*zeta),-((dt*Theta*Y)/(2*dx + 2*dx*zeta)),0,-((dt*Theta*u)/(2*dx + 2*dx*zeta));
+  temp << 0,-((dt*Theta)/(2*dx + 2*dx*zeta)),0,0,-(dt*(-3 + gamma)*Theta*Power(um,2))/(4.*dx*(1 + zeta)),(dt*(-3 + gamma)*Theta*um)/(2.*dx*(1 + zeta)),
+   -(dt*(-1 + gamma)*Theta)/(2.*dx*(1 + zeta)),0,(dt*Theta*(em*gamma*um - (-1 + gamma)*rhom*Power(um,3)))/(2.*dx*rhom*(1 + zeta)),
+   (dt*Theta*(-2*em*gamma + 3*(-1 + gamma)*rhom*Power(um,2)))/(4.*dx*rhom*(1 + zeta)),-((dt*gamma*Theta*um)/(2*dx + 2*dx*zeta)),0,
+   (dt*Theta*um*Ym)/(2*dx + 2*dx*zeta),-((dt*Theta*Ym)/(2*dx + 2*dx*zeta)),0,-((dt*Theta*um)/(2*dx + 2*dx*zeta));
   a += temp;
 
 #endif
@@ -224,13 +233,14 @@ Matrix_type create_bot_band_matrix(const solution_vector_type& solution_vector_m
 ///////////////////////////////////////////////////////////////////////////////
 #if defined(VISCOUS)
 
-  temp << 0,0,0,0,(2*dt*Pr*Theta*((-rhom + rhop)*u + rho*(2*u + um - up)))/(3.*Power(dx,2)*Power(rho,2)*(1 + zeta)),
-   (-2*dt*Pr*(2*rho - rhom + rhop)*Theta)/(3.*Power(dx,2)*Power(rho,2)*(1 + zeta)),0,0,
-   (dt*Theta*(6*e*gamma*(rho - rhom + rhop) + rho*(3*em*gamma - 3*ep*gamma + (3*gamma - 4*Pr)*u*((rhom - rhop)*u - 2*rho*(u + um - up)))))/
-    (6.*Power(dx,2)*Power(rho,3)*(1 + zeta)),(dt*(3*gamma - 4*Pr)*Theta*((-rhom + rhop)*u + rho*(2*u + um - up)))/
-    (6.*Power(dx,2)*Power(rho,2)*(1 + zeta)),-(dt*gamma*(2*rho - rhom + rhop)*Theta)/(2.*Power(dx,2)*Power(rho,2)*(1 + zeta)),0,
-   (dt*Theta*((-rhom + rhop)*Y + rho*(2*Y + Ym - Yp)))/(2.*Power(dx,2)*Le*Power(rho,2)*(1 + zeta)),0,0,
-   -(dt*(2*rho - rhom + rhop)*Theta)/(2.*Power(dx,2)*Le*Power(rho,2)*(1 + zeta));
+  temp << 0,0,0,0,(dt*Pr*Theta*(4*rhom*u + rho*um - rhom*up))/(3.*Power(dx,2)*rho*rhom*(1 + zeta)),
+   -(dt*Pr*(rho + 3*rhom)*Theta)/(3.*Power(dx,2)*rho*rhom*(1 + zeta)),0,0,
+   (dt*Theta*(3*em*gamma*Power(rho,3) + rhom*(15*e*gamma*rho*rhom + ep*gamma*(-9*rho*rhom + 6*rhom*rhopp) +
+           rho*(-3*epp*gamma*rhom - (3*gamma - 4*Pr)*rho*(rho*Power(um,2) + rhom*(4*Power(u,2) + u*up - up*(up + upp)))))))/
+    (12.*Power(dx,2)*Power(rho,3)*Power(rhom,2)*(1 + zeta)),(dt*(3*gamma - 4*Pr)*Theta*(rho*um + rhom*(5*u - up - upp)))/
+    (12.*Power(dx,2)*rho*rhom*(1 + zeta)),-(dt*gamma*(Power(rho,2) + 2*rho*rhom + rhom*rhopp)*Theta)/(4.*Power(dx,2)*Power(rho,2)*rhom*(1 + zeta)),0,
+   (4*dt*rhom*Theta*Y + dt*rho*Theta*Ym - dt*rhom*Theta*Yp)/(4*Power(dx,2)*Le*rho*rhom + 4*Power(dx,2)*Le*rho*rhom*zeta),0,0,
+   -((dt*rho*Theta + 3*dt*rhom*Theta)/(4*Power(dx,2)*Le*rho*rhom + 4*Power(dx,2)*Le*rho*rhom*zeta));
   a += temp;
 
 #endif
@@ -258,25 +268,31 @@ solution_vector_type create_rhs_vector(const solution_vector_type& solution_vect
                                        const double& zeta, const double& Theta,
                                        const solution_vector_type& DeltaUm) {
 
-
-  double rho = solution_vector[0];
+  double rhomm = solution_vector_mm[0];
   double rhom = solution_vector_m[0];
+  double rho = solution_vector[0];
   double rhop = solution_vector_p[0];
-  double u = solution_vector[1]/solution_vector[0];
+  double rhopp = solution_vector_pp[0];
+  double umm = solution_vector_mm[1]/solution_vector_mm[0];
   double um = solution_vector_m[1]/solution_vector_m[0];
+  double u = solution_vector[1]/solution_vector[0];
   double up = solution_vector_p[1]/solution_vector_p[0];
-  double e = solution_vector[2];
+  double upp = solution_vector_pp[1]/solution_vector_pp[0];
+  double emm = solution_vector_mm[2];
   double em = solution_vector_m[2];
+  double e = solution_vector[2];
   double ep = solution_vector_p[2];
-  double Y = solution_vector[3]/solution_vector[0];
+  double epp = solution_vector_pp[2];
+  double Ymm = solution_vector_mm[3]/solution_vector_mm[0];
   double Ym = solution_vector_m[3]/solution_vector_m[0];
+  double Y = solution_vector[3]/solution_vector[0];
   double Yp = solution_vector_p[3]/solution_vector_p[0];
+  double Ypp = solution_vector_pp[3]/solution_vector_pp[0];
+  int E = 0;
   double dUm1 = DeltaUm[0];
   double dUm2 = DeltaUm[1];
   double dUm3 = DeltaUm[2];
   double dUm4 = DeltaUm[3];
-  int E = 0;
-
   // HLLE<std::vector<solution_vector_type>> hyperbolic_flux;
   solution_vector_type rhs;
   solution_vector_type temp;

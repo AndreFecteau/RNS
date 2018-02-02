@@ -26,8 +26,8 @@ int main(){
   double Q = Q_low_mach/(mf*mf*(gamma-1));
   double theta_low_mach =500.0/9.0;
   double theta =theta_low_mach/(gamma*mf*mf);
-  int    number_of_cells = 750;
-  double frame_time = 100;
+  int    number_of_cells = 1500;
+  double frame_time = 4e2;
   // int    frames = 100;
 
   double T_ignition = 1.0;
@@ -40,11 +40,11 @@ int main(){
   double target_residual = 1e-19;
 
   double Theta = 1.0;
-  double zeta = 0.0;
+  double zeta = 0.5;
   // double CFL =  0.5;
-  double CFL =  1e3;
+  double CFL =  1e1;
 
-  std::string filename = "Movie/Test_Implicit_Residual_" + tostring(750) + "_";
+  std::string filename = "Movie/Test_Explicit_Residual_" + tostring(1500) + "_";
     global_solution_vector_type initial_solution;
     initial_solution.resize(number_of_cells);
   RK4_low_mach_initial_conditions(lambda, number_of_cells, initial_solution, Le, Q_low_mach,
@@ -55,7 +55,7 @@ int main(){
                         number_of_cells, CFL, (x_max - x_min)/number_of_cells);
   auto implicit_march = implicit_marching_type(Pr, Le, Q, theta, mf, gamma,
                         number_of_cells, CFL, (x_max - x_min)/number_of_cells, Theta, zeta);
-  solver.expand_solution_vector<implicit_marching_type>(1,implicit_march);
+  // solver.expand_solution_vector<implicit_marching_type>(1,implicit_march);
   solver.solve<implicit_marching_type>(implicit_march, target_residual, frame_time, gamma);
   // solver.solve<explicit_marching_type>(explicit_march, target_residual, frame_time, gamma);
 
