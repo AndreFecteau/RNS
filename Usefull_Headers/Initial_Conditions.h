@@ -54,12 +54,15 @@ void RK4_low_mach_initial_conditions(double &lambda, int number_of_cells,
 
 void manufactured_solution(int number_of_cells, global_solution_vector_type &initial_solution, double &x_max, double &x_min){
 x_min = 0.0;
-x_max = 2*atan(1);
+x_max = 2*atan(1)*4;
 double dx = (x_max-x_min) / number_of_cells;
   for (int i = 0; i < number_of_cells; ++i) {
     double x = x_min + (i+0.5)*dx;
-    initial_solution[i] << sin(x)+10, (cos(x)+10)*(sin(x)+10), cos(x)+10000, (cos(x)+10)*(sin(x)+10);
-    // initial_solution[i] << 0.5*sin(x)+10, 0.5*cos(x)+10, 0.5*cos(x)+10, 0.5*cos(x)+10;
+    initial_solution[i] << cos(x)+10, (cos(x)+10)*(cos(x)+10), cos(x)+10000, (cos(x)+10)*(cos(x)+10);
+  }
+  for (int i = 1; i < number_of_cells-1; ++i) {
+    double x = x_min + (i+0.5)*dx;
+    initial_solution[i] << 0.5*cos(x)+10, 0.5*(cos(x)+10)*(cos(x)+10), 0.5*cos(x)+10000, 0.5*(cos(x)+10)*(cos(x)+10);
   }
 }
 

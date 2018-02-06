@@ -40,7 +40,7 @@ using solution_vector_type = typename global_solution_vector_type::value_type;
   /// \brief Constructor setting up required inputs.
   Solver(global_solution_vector_type initial_solution_in, double Lambda_in,
          std::string filename_in) : global_solution_vector(initial_solution_in),
-         lambda(Lambda_in), filename(filename_in) {
+         lambda(Lambda_in), filename(filename_in), initial_solution((initial_solution_in)) {
     std::cout << "//////////////////////" << std::endl;
     std::cout << "Solver, Lambda = " << lambda << std::endl;
     std::cout << "//////////////////////" << std::endl;
@@ -82,6 +82,7 @@ template <typename marching_type>
   }
  private:
    global_solution_vector_type global_solution_vector;
+   global_solution_vector_type initial_solution;
    std::string filename;
    double lambda;
    double current_time = 0.0;
@@ -107,8 +108,8 @@ bool Solver<global_solution_vector_type, matrix_type>::solve(marching_type march
   // plot<global_solution_vector_type>(filename + std::to_string(static_cast<int>(lambda)) + "_0" ), global_solution_vector, march.get_dx());
   double residual = 100000.0;
   int i = 0;
-  // while (residual > target_residual){
-  while (i < 10){
+  // while (i < 10){
+  while (residual > target_residual){
     old_position = flame_position_algorithm(global_solution_vector, gamma);
     auto start = std::chrono::high_resolution_clock::now();
     std::cout << "Time = " <<  current_time << std::endl;
@@ -122,6 +123,22 @@ bool Solver<global_solution_vector_type, matrix_type>::solve(marching_type march
     std::cout << "Elapsed time: " << elapsed.count() << " s\n";
     ++i;
   }
+
+  for (size_t i = 0; i < initial_solution.size(); ++i) {
+    double dx = march.get_dx();
+    double x = (i+0.5)*dx;
+    initial_solution[i] << cos(x)+10, (cos(x)+10)*(cos(x)+10), cos(x)+10000, (cos(x)+10)*(cos(x)+10);
+  }
+  double convergence = 0.0;
+  for(size_t i = 0; i < initial_solution.size(); ++i) {
+    for(int j = 0; j < 4; ++j){
+      convergence += std::fabs(initial_solution[i][j]-global_solution_vector[i][j]);
+    }
+  }
+
+  std::ofstream gnu_input_file;
+  gnu_input_file.open("Convergence_Plot.dat", std::ios_base::app);
+  gnu_input_file << global_solution_vector.size() << " " <<  convergence << " " << current_time << std::endl;
 
   int position = 0;
   auto var_vec = Variable_Vector_Isolator<solution_vector_type>(global_solution_vector[position], 1.4);

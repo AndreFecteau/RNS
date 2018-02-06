@@ -197,7 +197,7 @@ double Explicit_Marching<global_solution_vector_type, matrix_type>::timemarch(do
       global_flux_vector[i] += (hyperbolic_flux_vector[i] - hyperbolic_flux_vector[i+1]) / dx * dt ;
       global_flux_vector[i] += parabolic_flux.flux(global_solution_vector[i-1], global_solution_vector[i], global_solution_vector[i+1], gamma, Le, Pr, dx) * dt;
       global_flux_vector[i] += sources.flux(global_solution_vector[i], gamma, Q, lambda, theta) * dt;
-      // global_flux_vector[i] += manufactured_residual(lambda, i)*dt;
+      global_flux_vector[i] += manufactured_residual(lambda, i)*dt;
     }
 
 #pragma omp single
@@ -227,7 +227,7 @@ double Explicit_Marching<global_solution_vector_type, matrix_type>::timemarch(do
       global_flux_future_vector[i] += (hyperbolic_flux_future_vector[i] - hyperbolic_flux_future_vector[i+1]) / dx * dt ;
       global_flux_future_vector[i] += parabolic_flux.flux(global_solution_vector_future[i-1], global_solution_vector_future[i], global_solution_vector_future[i+1], gamma, Le, Pr, dx) * dt;
       global_flux_future_vector[i] += sources.flux(global_solution_vector_future[i], gamma, Q, lambda, theta) * dt;
-      // global_flux_future_vector[i] += manufactured_residual(lambda, i)*dt;
+      global_flux_future_vector[i] += manufactured_residual(lambda, i)*dt;
     }
 
 #pragma omp for reduction (+:residual)
@@ -242,8 +242,8 @@ double Explicit_Marching<global_solution_vector_type, matrix_type>::timemarch(do
 #pragma omp single
     current_time += dt;
   }
-#pragma omp single
-  std::cout << "residual: " << residual << std::endl;
+// #pragma omp single
+//   std::cout << "residual: " << residual << std::endl;
   }
   return residual;
 }
@@ -340,14 +340,15 @@ template <typename global_solution_vector_type, typename matrix_type>
 typename global_solution_vector_type::value_type Explicit_Marching<global_solution_vector_type, matrix_type>::manufactured_residual(const double lambda, const int i) {
     solution_vector_type temp;
     double x = dx*(i+0.5);
-    temp << cos(2*x) - 10*sin(x),(4*Pr*cos(x))/3. - ((-3 + gamma)*Power(cos(x),3))/2. - ((-1 + gamma)*sin(x))/10. + (-3 + gamma)*cos(x)*sin(x)*(10 + sin(x)),
-   (-15*(-1 + gamma)*Power(cos(x),4) - (6*gamma*Power(cos(x),3))/Power(10 + sin(x),3) -
-      (10*lambda*Q*(3 + sin(x))*(10 + sin(x)))/exp((10*theta*(10 + sin(x)))/((-1 + gamma)*(10000 + cos(x) - 5*Power(cos(x),2)*(10 + sin(x))))) +
-      5*Power(cos(x),2)*(8*Pr + 90*(-1 + gamma)*sin(x) + 9*(-1 + gamma)*Power(sin(x),2) + gamma*(-6 - 12000/Power(10 + sin(x),3))) +
-      10*sin(x)*((3*gamma - 4*Pr)*sin(x) + 3000*gamma*(-1 - Power(10 + sin(x),-2))) -
-      (6*gamma*cos(x)*(-5 + sin(x)*(101 + sin(x)*(20 + sin(x)))))/Power(10 + sin(x),2))/30.,
-   ((lambda*(3 + sin(x))*(10 + sin(x)))/exp((10*theta*(10 + sin(x)))/((-1 + gamma)*(10000 + cos(x) - 5*Power(cos(x),2)*(10 + sin(x))))) +
-      Power(cos(x),2)*(13 + 2*sin(x)) - (sin(x)*(-1 + 30*Le + Le*sin(x)*(13 + sin(x))))/Le)/3.;
+    // std::cout << "x: " << x << std::endl;
+    temp << -2*(10 + cos(x))*sin(x),(-449 + 149*gamma)*sin(x) + (cos(x)*(8*Pr + 9*(-3 + gamma)*(20 + cos(x))*sin(x)))/6.,
+   (4*Pr*cos(x)*(10 + cos(x)))/3. - (lambda*Q*Power(10 + cos(x),2))/
+     exp((theta*(10 + cos(x)))/((-1 + gamma)*(10000 + cos(x) - Power(10 + cos(x),3)/2.))) -
+    (gamma*(131970 + 882204*cos(x) - 19800*cos(2*x) + 1803*cos(3*x) + 70*cos(4*x) + cos(5*x)))/(8.*Power(10 + cos(x),3)) +
+    ((10 + cos(x))*(-2 + (-1 + gamma)*(-2 + 3*Power(10 + cos(x),2)))*sin(x))/2. -
+    (10000 + cos(x) + (-1 + gamma)*(10000 + cos(x) - Power(10 + cos(x),3)/2.))*sin(x) - (4*Pr*Power(sin(x),2))/3.,
+   cos(x)/Le + (lambda*Power(10 + cos(x),2))/exp((theta*(10 + cos(x)))/((-1 + gamma)*(10000 + cos(x) - Power(10 + cos(x),3)/2.))) -
+    3*Power(10 + cos(x),2)*sin(x);
    return temp;
 }
 
