@@ -45,8 +45,8 @@ int main(){
   double Q = Q_low_mach/(mf*mf*(gamma-1));
   double theta =theta_low_mach/(gamma*mf*mf);
 
-  int    number_of_cells = 15000;
-  double frame_time = 1e3;
+  int    number_of_cells = 1500;
+  double frame_time = 1e0;
 
   double lambda = 0.0;
   double x_min = 0.0;
@@ -57,8 +57,8 @@ int main(){
   double target_residual = 1e-16;
 
   double Theta = 1.0;
-  double zeta = 0.5;
-  double CFL =  1e6;
+  double zeta = 0.0;
+  double CFL =  1e0;
   // double CFL =  0.5;
 
   // std::string filename = "Movie/Plot_Euler_" + tostring(frame_time) + "_" + tostring(number_of_cells) + "_";
@@ -92,10 +92,9 @@ int main(){
 
   auto solver = Solver<global_solution_vector_type, matrix_type>(initial_solution, lambda_run,
                                                                  filename);
-  // bool check = solver.solve<implicit_marching_type>(implicit_march, target_residual,
-  //                                                           frame_time, gamma);
+
   bool check = solver.solve<implicit_marching_type>(implicit_march, target_residual, frame_time, gamma);
-  // solver.solve<explicit_marching_type>(explicit_march, target_residual, frame_time, gamma);
+  // bool check = solver.solve<explicit_marching_type>(explicit_march, target_residual, frame_time, gamma);
   // solver.solve<explicit_euler_marching_type>(explicit_euler_march, target_residual, frame_time, gamma);
 
   bisection_lambda(lambda_min, lambda_max, lambda_run, check);

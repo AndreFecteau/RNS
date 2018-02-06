@@ -7,7 +7,7 @@
 
 #define HYPERBOLIC
 #define VISCOUS
-#define SOURCE
+// #define SOURCE
 
 template <typename T>
 T Power(T num, int expo) {

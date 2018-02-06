@@ -8,7 +8,8 @@
 #include "Eigen/Core"
 #include "Eigen/Dense"
 // #include "../Implicit_Flux_and_Sources/Implicit_Euler.h"
-#include "../Implicit_Flux_and_Sources/Variable_Implicit_Scheme1.h"
+// #include "../Implicit_Flux_and_Sources/Variable_Implicit_Scheme.h"
+#include "../Implicit_Flux_and_Sources/Variable_Implicit_Scheme_HLLE.h"
 // #include "../Usefull_Headers/Block_Triagonal_Matrix_Inverse.h"
 #include "../Matrix_Inverse/Gaussian_Block_Triagonal_Matrix_Inverse.h"
 #include "../Usefull_Headers/Variable_Vector_Isolator.h"
@@ -174,7 +175,7 @@ double Implicit_Marching<global_solution_vector_type, matrix_type>::timemarch(do
                                     gamma, Pr, Le, Q, Lambda,
                                     theta, dx, dt, zeta, Theta, delta_global_solution_vector[i-1]);
     // rhs[i-1] += manufactured_residual(Lambda, i)*dt;
-    rhs[i-1] += numerical_dissipation(global_solution_vector, i, 0.5);
+    // rhs[i-1] += numerical_dissipation(global_solution_vector, i, 0.5);
     // rhs[i-2] += numerical_dissipation(global_solution_vector, i, 0.1);
     // rhs[i-1] += numerical_dissipation(global_solution_vector, i, 0.01);
     // if (mid[i-1].determinant() < (bot[i-1].determinant() + top[i-1].determinant())) {
@@ -188,15 +189,15 @@ double Implicit_Marching<global_solution_vector_type, matrix_type>::timemarch(do
 //                          global_solution_vector[1],
 //                          global_solution_vector[2],
 // //                          gamma, Pr, Le, Q, Lambda, theta, dx, dt, zeta, Theta);
-// #pragma omp single
-//   mid[global_solution_vector.size()-3] -=
-//   create_top_band_matrix<solution_vector_type, matrix_type>
-//                         (global_solution_vector[global_solution_vector.size()-4],
-//                          global_solution_vector[global_solution_vector.size()-3],
-//                          global_solution_vector[global_solution_vector.size()-2],
-//                          global_solution_vector[global_solution_vector.size()-1],
-//                          global_solution_vector[global_solution_vector.size()-1],
-//                          gamma, Pr, Le, Q, Lambda, theta, dx, dt, zeta, Theta);
+#pragma omp single
+  mid[global_solution_vector.size()-3] +=
+  create_top_band_matrix<solution_vector_type, matrix_type>
+                        (global_solution_vector[global_solution_vector.size()-4],
+                         global_solution_vector[global_solution_vector.size()-3],
+                         global_solution_vector[global_solution_vector.size()-2],
+                         global_solution_vector[global_solution_vector.size()-1],
+                         global_solution_vector[global_solution_vector.size()-1],
+                         gamma, Pr, Le, Q, Lambda, theta, dx, dt, zeta, Theta);
 
 #pragma omp single
   delta_global_solution_vector = block_triagonal_matrix_inverse<matrix_type, solution_vector_type>(mid, top, bot, rhs);

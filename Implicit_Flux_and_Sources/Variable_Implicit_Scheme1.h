@@ -5,9 +5,9 @@
 #include "../Explicit_Flux_and_Sources/Centered_Difference.h"
 #include "../Explicit_Flux_and_Sources/Sources.h"
 
-#define HYPERBOLIC
+// #define HYPERBOLIC
 #define VISCOUS
-#define SOURCE
+// #define SOURCE
 
 template <typename T>
 T Power(T num, int expo) {
