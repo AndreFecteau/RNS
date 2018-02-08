@@ -16,6 +16,7 @@ void plot(std::string file_name, global_solution_vector_type solution_vector, do
   for (size_t i = 0; i < solution_vector.size(); i++) {
     Variable_Vector_Isolator<solution_vector_type> temp = Variable_Vector_Isolator<solution_vector_type>(solution_vector[i], 1.4);
     gnu_input_file << i * dx << " " << temp.rho() << " " << temp.u()  << " " << temp.p() << " " << temp.T() << " " << temp.Y() << std::endl;
+    // gnu_input_file << i * dx << " " << temp.u()/sqrt((1.4*temp.p())/temp.rho()) << " " << temp.u()  << " " << temp.p() << " " << temp.T() << " " << temp.Y() << std::endl;
   }
   gnu_input_file.close();
 }

@@ -195,8 +195,8 @@ double Explicit_Marching<global_solution_vector_type, matrix_type>::timemarch(do
 #pragma omp for private (parabolic_flux, sources)
     for (int i = 1; i < number_of_cells-2; ++i) {
       global_flux_vector[i] += (hyperbolic_flux_vector[i] - hyperbolic_flux_vector[i+1]) / dx * dt ;
-      global_flux_vector[i] += parabolic_flux.flux(global_solution_vector[i-1], global_solution_vector[i], global_solution_vector[i+1], gamma, Le, Pr, dx) * dt;
-      global_flux_vector[i] += sources.flux(global_solution_vector[i], gamma, Q, lambda, theta) * dt;
+      // global_flux_vector[i] += parabolic_flux.flux(global_solution_vector[i-1], global_solution_vector[i], global_solution_vector[i+1], gamma, Le, Pr, dx) * dt;
+      // global_flux_vector[i] += sources.flux(global_solution_vector[i], gamma, Q, lambda, theta) * dt;
       global_flux_vector[i] += manufactured_residual(lambda, i)*dt;
     }
 
@@ -225,8 +225,8 @@ double Explicit_Marching<global_solution_vector_type, matrix_type>::timemarch(do
 #pragma omp for private (parabolic_flux, sources)
     for (int i = 1; i < number_of_cells-2; ++i) {
       global_flux_future_vector[i] += (hyperbolic_flux_future_vector[i] - hyperbolic_flux_future_vector[i+1]) / dx * dt ;
-      global_flux_future_vector[i] += parabolic_flux.flux(global_solution_vector_future[i-1], global_solution_vector_future[i], global_solution_vector_future[i+1], gamma, Le, Pr, dx) * dt;
-      global_flux_future_vector[i] += sources.flux(global_solution_vector_future[i], gamma, Q, lambda, theta) * dt;
+      // global_flux_future_vector[i] += parabolic_flux.flux(global_solution_vector_future[i-1], global_solution_vector_future[i], global_solution_vector_future[i+1], gamma, Le, Pr, dx) * dt;
+      // global_flux_future_vector[i] += sources.flux(global_solution_vector_future[i], gamma, Q, lambda, theta) * dt;
       global_flux_future_vector[i] += manufactured_residual(lambda, i)*dt;
     }
 
@@ -242,8 +242,8 @@ double Explicit_Marching<global_solution_vector_type, matrix_type>::timemarch(do
 #pragma omp single
     current_time += dt;
   }
-// #pragma omp single
-//   std::cout << "residual: " << residual << std::endl;
+#pragma omp single
+  std::cout << "residual: " << residual << std::endl;
   }
   return residual;
 }
@@ -338,18 +338,49 @@ double Explicit_Marching<global_solution_vector_type, matrix_type>::K_value(cons
 ///////////////////////////////////////////////////////////////////////////////
 template <typename global_solution_vector_type, typename matrix_type>
 typename global_solution_vector_type::value_type Explicit_Marching<global_solution_vector_type, matrix_type>::manufactured_residual(const double lambda, const int i) {
-    solution_vector_type temp;
-    double x = dx*(i+0.5);
-    // std::cout << "x: " << x << std::endl;
-    temp << -2*(10 + cos(x))*sin(x),(-449 + 149*gamma)*sin(x) + (cos(x)*(8*Pr + 9*(-3 + gamma)*(20 + cos(x))*sin(x)))/6.,
-   (4*Pr*cos(x)*(10 + cos(x)))/3. - (lambda*Q*Power(10 + cos(x),2))/
-     exp((theta*(10 + cos(x)))/((-1 + gamma)*(10000 + cos(x) - Power(10 + cos(x),3)/2.))) -
-    (gamma*(131970 + 882204*cos(x) - 19800*cos(2*x) + 1803*cos(3*x) + 70*cos(4*x) + cos(5*x)))/(8.*Power(10 + cos(x),3)) +
-    ((10 + cos(x))*(-2 + (-1 + gamma)*(-2 + 3*Power(10 + cos(x),2)))*sin(x))/2. -
-    (10000 + cos(x) + (-1 + gamma)*(10000 + cos(x) - Power(10 + cos(x),3)/2.))*sin(x) - (4*Pr*Power(sin(x),2))/3.,
-   cos(x)/Le + (lambda*Power(10 + cos(x),2))/exp((theta*(10 + cos(x)))/((-1 + gamma)*(10000 + cos(x) - Power(10 + cos(x),3)/2.))) -
-    3*Power(10 + cos(x),2)*sin(x);
-   return temp;
-}
+      solution_vector_type temp;
+      solution_vector_type man_sol;
+      man_sol << 0,0,0,0;
+      double x = dx*(i+0.5);
+      // std::cout << "x: " << x << std::endl;
+      ///////////////////////////////////////////////////////////////////////////////
+      // Full
+      ///////////////////////////////////////////////////////////////////////////////
+    //   temp << -2*(10 + cos(x))*sin(x),(-449 + 149*gamma)*sin(x) + (cos(x)*(8*Pr + 9*(-3 + gamma)*(20 + cos(x))*sin(x)))/6.,
+    //  (4*Pr*cos(x)*(10 + cos(x)))/3. - (lambda*Q*Power(10 + cos(x),2))/
+    //    exp((theta*(10 + cos(x)))/((-1 + gamma)*(10000 + cos(x) - Power(10 + cos(x),3)/2.))) -
+    //   (gamma*(131970 + 882204*cos(x) - 19800*cos(2*x) + 1803*cos(3*x) + 70*cos(4*x) + cos(5*x)))/(8.*Power(10 + cos(x),3)) +
+    //   ((10 + cos(x))*(-2 + (-1 + gamma)*(-2 + 3*Power(10 + cos(x),2)))*sin(x))/2. -
+    //   (10000 + cos(x) + (-1 + gamma)*(10000 + cos(x) - Power(10 + cos(x),3)/2.))*sin(x) - (4*Pr*Power(sin(x),2))/3.,
+    //  cos(x)/Le + (lambda*Power(10 + cos(x),2))/exp((theta*(10 + cos(x)))/((-1 + gamma)*(10000 + cos(x) - Power(10 + cos(x),3)/2.))) -
+    //   3*Power(10 + cos(x),2)*sin(x);
+
+      // man_sol += temp;
+      ///////////////////////////////////////////////////////////////////////////////
+      // Hyperbolic
+      ///////////////////////////////////////////////////////////////////////////////
+      temp << -2*(10 + cos(x))*sin(x),((-898 + 298*gamma + 3*(-3 + gamma)*cos(x)*(20 + cos(x)))*sin(x))/2.,
+     2*(-5*(200 + 801*gamma) + cos(x)*(-300 + 299*gamma + (-1 + gamma)*cos(x)*(30 + cos(x))))*sin(x),-3*Power(10 + cos(x),2)*sin(x);
+
+      man_sol += temp;
+      ///////////////////////////////////////////////////////////////////////////////
+      // Viscous
+      ///////////////////////////////////////////////////////////////////////////////
+      temp << 0,(4*Pr*cos(x))/3.,(-10*gamma + (40*Pr)/3.)*cos(x) + ((-3*gamma + 4*Pr)*cos(2*x))/3. +
+      (4995*gamma*(-3 - 20*cos(x) + cos(2*x)))/Power(10 + cos(x),3),cos(x)/Le;
+
+      // man_sol += temp;
+      ///////////////////////////////////////////////////////////////////////////////
+      // Source
+      ///////////////////////////////////////////////////////////////////////////////
+      temp << 0.,0.,-((lambda*Q*Power(10 + cos(x),2))/
+        exp((theta*(10 + cos(x)))/((-1 + gamma)*(10000 + cos(x) - Power(10 + cos(x),3)/2.)))),
+     (lambda*Power(10 + cos(x),2))/
+      exp((theta*(10 + cos(x)))/((-1 + gamma)*(10000 + cos(x) - Power(10 + cos(x),3)/2.)));
+
+      // man_sol += temp;
+
+     return man_sol;
+  }
 
 #endif //#ifndef EXPLICIT_MARCHING_H

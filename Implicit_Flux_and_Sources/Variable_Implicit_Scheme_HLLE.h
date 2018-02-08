@@ -9,6 +9,7 @@
 #define HYPERBOLIC
 #define VISCOUS
 #define SOURCE
+typedef Eigen::Matrix<double, 4, 1> Vector_type;
 
 template <typename T>
 T Power(T num, int expo) {
@@ -44,6 +45,22 @@ double p_rhoavg(double rho_left, double rho_right, double u_left, double u_right
   return (h_ravg - u_ravg*u_ravg * 0.5) * (gamma - 1.0) / gamma * rho_ravg;
 }
 
+Vector_type limiter(const Vector_type &Ul,
+                    const Vector_type &U,
+                    const Vector_type &Ur,
+                    double dx) {
+  Vector_type a = (U - Ul) / dx;
+  Vector_type b = (Ur - U) / dx;
+  double epsilon = 1.0e-6;
+  Vector_type phi =  a.array() * b.array() * (a.array() + b.array()) / (a.array() * a.array() + b.array() * b.array() + epsilon);
+  for (int i = 0; i < 3; ++i) {
+    if (a[i] / b[i] <= 0.0 || b[i] == 0) {
+      phi[i] = 0.0;
+    }
+  }
+  return phi;
+
+}
 
 template <typename solution_vector_type, typename Matrix_type>
 Matrix_type create_mid_band_matrix(const solution_vector_type& solution_vector_mm,
@@ -119,18 +136,22 @@ Matrix_type create_mid_band_matrix(const solution_vector_type& solution_vector_m
 ///////////////////////////////////////////////////////////////////////////////
 #if defined(HYPERBOLIC)
 
-  temp << 0,(dt*(LlambdaL/(-LlambdaL + LlambdaR) + RlambdaR/(-RlambdaL + RlambdaR))*Theta)/(dx*(1 + zeta)),0,0,
+  temp << (dt*((LlambdaL*LlambdaR)/(-LlambdaL + LlambdaR) + (RlambdaL*RlambdaR)/(RlambdaL - RlambdaR))*Theta)/(dx*(1 + zeta)),
+   (dt*(LlambdaL/(-LlambdaL + LlambdaR) + RlambdaR/(-RlambdaL + RlambdaR))*Theta)/(dx*(1 + zeta)),0,0,
    -(dt*(-3 + gamma)*(LlambdaL*RlambdaL - LlambdaR*RlambdaR)*Theta*Power(u,2))/(2.*dx*(LlambdaL - LlambdaR)*(RlambdaL - RlambdaR)*(1 + zeta)),
-   (dt*(-3 + gamma)*(LlambdaL*RlambdaL - LlambdaR*RlambdaR)*Theta*u)/(dx*(LlambdaL - LlambdaR)*(RlambdaL - RlambdaR)*(1 + zeta)),
+   (dt*Theta*(-(LlambdaR*RlambdaR*(RlambdaL + (-3 + gamma)*u)) + LlambdaL*(LlambdaR*(-RlambdaL + RlambdaR) + RlambdaL*(RlambdaR + (-3 + gamma)*u))))/
+    (dx*(LlambdaL - LlambdaR)*(RlambdaL - RlambdaR)*(1 + zeta)),
    (dt*(-1 + gamma)*(LlambdaL/(-LlambdaL + LlambdaR) + RlambdaR/(-RlambdaL + RlambdaR))*Theta)/(dx*(1 + zeta)),0,
    (dt*(LlambdaL*RlambdaL - LlambdaR*RlambdaR)*Theta*(e*gamma*u - (-1 + gamma)*rho*Power(u,3)))/
     (dx*(LlambdaL - LlambdaR)*rho*(RlambdaL - RlambdaR)*(1 + zeta)),
    (dt*(LlambdaL*RlambdaL - LlambdaR*RlambdaR)*Theta*(-2*e*gamma + 3*(-1 + gamma)*rho*Power(u,2)))/
     (2.*dx*(LlambdaL - LlambdaR)*rho*(RlambdaL - RlambdaR)*(1 + zeta)),
-   (dt*gamma*(LlambdaL/(-LlambdaL + LlambdaR) + RlambdaR/(-RlambdaL + RlambdaR))*Theta*u)/(dx*(1 + zeta)),0,
+   (dt*Theta*(LlambdaL*LlambdaR*(-RlambdaL + RlambdaR) + LlambdaL*RlambdaL*(RlambdaR - gamma*u) + LlambdaR*RlambdaR*(-RlambdaL + gamma*u)))/
+    (dx*(LlambdaL - LlambdaR)*(RlambdaL - RlambdaR)*(1 + zeta)),0,
    (dt*(LlambdaL*RlambdaL - LlambdaR*RlambdaR)*Theta*u*Y)/(dx*(LlambdaL - LlambdaR)*(RlambdaL - RlambdaR)*(1 + zeta)),
    (dt*Theta*((LlambdaL*Y)/(-LlambdaL + LlambdaR) + (RlambdaR*Y)/(-RlambdaL + RlambdaR)))/(dx*(1 + zeta)),0,
-   (dt*Theta*((LlambdaL*u)/(-LlambdaL + LlambdaR) + (RlambdaR*u)/(-RlambdaL + RlambdaR)))/(dx*(1 + zeta));
+   (dt*Theta*(LlambdaL*LlambdaR*(-RlambdaL + RlambdaR) + LlambdaL*RlambdaL*(RlambdaR - u) + LlambdaR*RlambdaR*(-RlambdaL + u)))/
+    (dx*(LlambdaL - LlambdaR)*(RlambdaL - RlambdaR)*(1 + zeta));
   b += temp;
 
 #endif
@@ -245,13 +266,14 @@ Matrix_type create_top_band_matrix(const solution_vector_type& solution_vector_m
 ///////////////////////////////////////////////////////////////////////////////
 #if defined(HYPERBOLIC)
 
-  temp <<0,(dt*RlambdaL*Theta)/(dx*(RlambdaL - RlambdaR)*(1 + zeta)),0,0,
+  temp << (dt*RlambdaL*RlambdaR*Theta)/(dx*(RlambdaL - RlambdaR)*(1 + zeta)),(dt*RlambdaL*Theta)/(dx*(RlambdaL - RlambdaR)*(1 + zeta)),0,0,
    (dt*(-3 + gamma)*RlambdaL*Theta*Power(up,2))/(2.*dx*(RlambdaL - RlambdaR)*(1 + zeta)),
-   -((dt*(-3 + gamma)*RlambdaL*Theta*up)/(dx*(RlambdaL - RlambdaR)*(1 + zeta))),(dt*(-1 + gamma)*RlambdaL*Theta)/(dx*(RlambdaL - RlambdaR)*(1 + zeta)),
-   0,(dt*RlambdaL*Theta*up*(-(ep*gamma) + (-1 + gamma)*rhop*Power(up,2)))/(dx*rhop*(RlambdaL - RlambdaR)*(1 + zeta)),
+   (dt*RlambdaL*Theta*(RlambdaR - (-3 + gamma)*up))/(dx*(RlambdaL - RlambdaR)*(1 + zeta)),
+   (dt*(-1 + gamma)*RlambdaL*Theta)/(dx*(RlambdaL - RlambdaR)*(1 + zeta)),0,
+   (dt*RlambdaL*Theta*up*(-(ep*gamma) + (-1 + gamma)*rhop*Power(up,2)))/(dx*rhop*(RlambdaL - RlambdaR)*(1 + zeta)),
    (dt*RlambdaL*Theta*(2*ep*gamma - 3*(-1 + gamma)*rhop*Power(up,2)))/(2.*dx*rhop*(RlambdaL - RlambdaR)*(1 + zeta)),
-   (dt*gamma*RlambdaL*Theta*up)/(dx*(RlambdaL - RlambdaR)*(1 + zeta)),0,(dt*RlambdaL*Theta*up*Yp)/(dx*(-RlambdaL + RlambdaR)*(1 + zeta)),
-   (dt*RlambdaL*Theta*Yp)/(dx*(RlambdaL - RlambdaR)*(1 + zeta)),0,(dt*RlambdaL*Theta*up)/(dx*(RlambdaL - RlambdaR)*(1 + zeta));
+   (dt*RlambdaL*Theta*(RlambdaR + gamma*up))/(dx*(RlambdaL - RlambdaR)*(1 + zeta)),0,(dt*RlambdaL*Theta*up*Yp)/(dx*(-RlambdaL + RlambdaR)*(1 + zeta)),
+   (dt*RlambdaL*Theta*Yp)/(dx*(RlambdaL - RlambdaR)*(1 + zeta)),0,(dt*RlambdaL*Theta*(RlambdaR + up))/(dx*(RlambdaL - RlambdaR)*(1 + zeta));
   c += temp;
 
 #endif
@@ -357,13 +379,14 @@ Matrix_type create_bot_band_matrix(const solution_vector_type& solution_vector_m
 ///////////////////////////////////////////////////////////////////////////////
 #if defined(HYPERBOLIC)
 
-  temp << 0,(dt*LlambdaR*Theta)/(dx*(LlambdaL - LlambdaR)*(1 + zeta)),0,0,
+  temp << (dt*LlambdaL*LlambdaR*Theta)/(dx*(-LlambdaL + LlambdaR)*(1 + zeta)),(dt*LlambdaR*Theta)/(dx*(LlambdaL - LlambdaR)*(1 + zeta)),0,0,
    (dt*(-3 + gamma)*LlambdaR*Theta*Power(um,2))/(2.*dx*(LlambdaL - LlambdaR)*(1 + zeta)),
-   -((dt*(-3 + gamma)*LlambdaR*Theta*um)/(dx*(LlambdaL - LlambdaR)*(1 + zeta))),(dt*(-1 + gamma)*LlambdaR*Theta)/(dx*(LlambdaL - LlambdaR)*(1 + zeta)),
-   0,(dt*LlambdaR*Theta*um*(-(em*gamma) + (-1 + gamma)*rhom*Power(um,2)))/(dx*(LlambdaL - LlambdaR)*rhom*(1 + zeta)),
+   -((dt*LlambdaR*Theta*(LlambdaL + (-3 + gamma)*um))/(dx*(LlambdaL - LlambdaR)*(1 + zeta))),
+   (dt*(-1 + gamma)*LlambdaR*Theta)/(dx*(LlambdaL - LlambdaR)*(1 + zeta)),0,
+   (dt*LlambdaR*Theta*um*(-(em*gamma) + (-1 + gamma)*rhom*Power(um,2)))/(dx*(LlambdaL - LlambdaR)*rhom*(1 + zeta)),
    (dt*LlambdaR*Theta*(2*em*gamma - 3*(-1 + gamma)*rhom*Power(um,2)))/(2.*dx*(LlambdaL - LlambdaR)*rhom*(1 + zeta)),
-   (dt*gamma*LlambdaR*Theta*um)/(dx*(LlambdaL - LlambdaR)*(1 + zeta)),0,(dt*LlambdaR*Theta*um*Ym)/(dx*(-LlambdaL + LlambdaR)*(1 + zeta)),
-   (dt*LlambdaR*Theta*Ym)/(dx*(LlambdaL - LlambdaR)*(1 + zeta)),0,(dt*LlambdaR*Theta*um)/(dx*(LlambdaL - LlambdaR)*(1 + zeta));
+   (dt*LlambdaR*Theta*(-LlambdaL + gamma*um))/(dx*(LlambdaL - LlambdaR)*(1 + zeta)),0,(dt*LlambdaR*Theta*um*Ym)/(dx*(-LlambdaL + LlambdaR)*(1 + zeta)),
+   (dt*LlambdaR*Theta*Ym)/(dx*(LlambdaL - LlambdaR)*(1 + zeta)),0,(dt*LlambdaR*Theta*(-LlambdaL + um))/(dx*(LlambdaL - LlambdaR)*(1 + zeta));
   a += temp;
 
 #endif
@@ -479,27 +502,41 @@ solution_vector_type create_rhs_vector(const solution_vector_type& solution_vect
 ///////////////////////////////////////////////////////////////////////////////
 #if defined(HYPERBOLIC)
 
-  temp << (dt*((LlambdaL*LlambdaR*(rho - rhom))/(-LlambdaL + LlambdaR) - ((-rho + rhop)*RlambdaL*RlambdaR)/(-RlambdaL + RlambdaR) +
-        (-(LlambdaL*rho*u) + LlambdaR*rhom*um)/(-LlambdaL + LlambdaR) - (rho*RlambdaR*u - rhop*RlambdaL*up)/(-RlambdaL + RlambdaR)))/(dx*(1 + zeta)),
-   (dt*((LlambdaL*LlambdaR*(rho*u - rhom*um))/(-LlambdaL + LlambdaR) +
-        (-(LlambdaL*(rho*Power(u,2) + (-1 + gamma)*(e - (rho*Power(u,2))/2.))) +
-           LlambdaR*(rhom*Power(um,2) + (-1 + gamma)*(em - (rhom*Power(um,2))/2.)))/(-LlambdaL + LlambdaR) -
-        (RlambdaL*RlambdaR*(-(rho*u) + rhop*up))/(-RlambdaL + RlambdaR) -
-        (RlambdaR*(rho*Power(u,2) + (-1 + gamma)*(e - (rho*Power(u,2))/2.)) - RlambdaL*(rhop*Power(up,2) + (-1 + gamma)*(ep - (rhop*Power(up,2))/2.)))/
-         (-RlambdaL + RlambdaR)))/(dx*(1 + zeta)),(dt*(((e - em)*LlambdaL*LlambdaR)/(-LlambdaL + LlambdaR) -
-        ((-e + ep)*RlambdaL*RlambdaR)/(-RlambdaL + RlambdaR) +
-        (-(LlambdaL*u*(e + (-1 + gamma)*(e - (rho*Power(u,2))/2.))) + LlambdaR*um*(em + (-1 + gamma)*(em - (rhom*Power(um,2))/2.)))/
-         (-LlambdaL + LlambdaR) - (RlambdaR*u*(e + (-1 + gamma)*(e - (rho*Power(u,2))/2.)) -
-           RlambdaL*up*(ep + (-1 + gamma)*(ep - (rhop*Power(up,2))/2.)))/(-RlambdaL + RlambdaR)))/(dx*(1 + zeta)),
-   (dt*((LlambdaL*LlambdaR*(rho*Y - rhom*Ym))/(-LlambdaL + LlambdaR) + (-(LlambdaL*rho*u*Y) + LlambdaR*rhom*um*Ym)/(-LlambdaL + LlambdaR) -
-        (RlambdaL*RlambdaR*(-(rho*Y) + rhop*Yp))/(-RlambdaL + RlambdaR) - (rho*RlambdaR*u*Y - rhop*RlambdaL*up*Yp)/(-RlambdaL + RlambdaR)))/
-    (dx*(1 + zeta));
-  rhs += temp;
+  // temp << (dt*((LlambdaL*LlambdaR*(rho - rhom))/(-LlambdaL + LlambdaR) - ((-rho + rhop)*RlambdaL*RlambdaR)/(-RlambdaL + RlambdaR) +
+  //       (-(LlambdaL*rho*u) + LlambdaR*rhom*um)/(-LlambdaL + LlambdaR) - (rho*RlambdaR*u - rhop*RlambdaL*up)/(-RlambdaL + RlambdaR)))/(dx*(1 + zeta)),
+  //  (dt*((LlambdaL*LlambdaR*(rho*u - rhom*um))/(-LlambdaL + LlambdaR) +
+  //       (-(LlambdaL*(rho*Power(u,2) + (-1 + gamma)*(e - (rho*Power(u,2))/2.))) +
+  //          LlambdaR*(rhom*Power(um,2) + (-1 + gamma)*(em - (rhom*Power(um,2))/2.)))/(-LlambdaL + LlambdaR) -
+  //       (RlambdaL*RlambdaR*(-(rho*u) + rhop*up))/(-RlambdaL + RlambdaR) -
+  //       (RlambdaR*(rho*Power(u,2) + (-1 + gamma)*(e - (rho*Power(u,2))/2.)) - RlambdaL*(rhop*Power(up,2) + (-1 + gamma)*(ep - (rhop*Power(up,2))/2.)))/
+  //        (-RlambdaL + RlambdaR)))/(dx*(1 + zeta)),(dt*(((e - em)*LlambdaL*LlambdaR)/(-LlambdaL + LlambdaR) -
+  //       ((-e + ep)*RlambdaL*RlambdaR)/(-RlambdaL + RlambdaR) +
+  //       (-(LlambdaL*u*(e + (-1 + gamma)*(e - (rho*Power(u,2))/2.))) + LlambdaR*um*(em + (-1 + gamma)*(em - (rhom*Power(um,2))/2.)))/
+  //        (-LlambdaL + LlambdaR) - (RlambdaR*u*(e + (-1 + gamma)*(e - (rho*Power(u,2))/2.)) -
+  //          RlambdaL*up*(ep + (-1 + gamma)*(ep - (rhop*Power(up,2))/2.)))/(-RlambdaL + RlambdaR)))/(dx*(1 + zeta)),
+  //  (dt*((LlambdaL*LlambdaR*(rho*Y - rhom*Ym))/(-LlambdaL + LlambdaR) + (-(LlambdaL*rho*u*Y) + LlambdaR*rhom*um*Ym)/(-LlambdaL + LlambdaR) -
+  //       (RlambdaL*RlambdaR*(-(rho*Y) + rhop*Yp))/(-RlambdaL + RlambdaR) - (rho*RlambdaR*u*Y - rhop*RlambdaL*up*Yp)/(-RlambdaL + RlambdaR)))/
+  //   (dx*(1 + zeta));
+  // rhs += temp;
+
+
+  auto var_vec_mm = Variable_Vector_Isolator<solution_vector_type>(solution_vector_mm, gamma);
+  auto var_vec_m = Variable_Vector_Isolator<solution_vector_type>(solution_vector_m, gamma);
+  auto var_vec = Variable_Vector_Isolator<solution_vector_type>(solution_vector, gamma);
+  auto var_vec_p = Variable_Vector_Isolator<solution_vector_type>(solution_vector_p, gamma);
+  auto var_vec_pp = Variable_Vector_Isolator<solution_vector_type>(solution_vector_pp, gamma);
+  solution_vector_type phi_m = limiter(var_vec_mm.w(),var_vec_m.w(), var_vec.w(), dx);
+  solution_vector_type phi = limiter(var_vec_m.w(),var_vec.w(), var_vec_p.w(), dx);
+  solution_vector_type phi_p = limiter(var_vec.w(),var_vec_p.w(), var_vec_pp.w(), dx);
+  solution_vector_type LUl = var_vec_m.w().array() + phi_m.array() *dx / 2.0;
+  solution_vector_type LUr =   var_vec.w().array() - phi.array() * dx / 2.0;
+  solution_vector_type RUl =   var_vec.w().array() + phi.array() *dx / 2.0;
+  solution_vector_type RUr = var_vec_p.w().array() - phi_p.array() * dx / 2.0;
   // auto var_vec_l = Variable_Vector_Isolator<solution_vector_type>(solution_vector_m, gamma);
   // auto var_vec = Variable_Vector_Isolator<solution_vector_type>(solution_vector, gamma);
   // auto var_vec_r = Variable_Vector_Isolator<solution_vector_type>(solution_vector_p, gamma);
 
-  //  rhs += (hyperbolic_flux.flux(var_vec_l.w(), var_vec.w(), gamma) - hyperbolic_flux.flux(var_vec.w(), var_vec_r.w(), gamma)) /dx*dt;
+   rhs += (hyperbolic_flux.flux(LUl, LUr, gamma) - hyperbolic_flux.flux(RUl, RUr, gamma)) /dx*dt;
 
 #endif
 ///////////////////////////////////////////////////////////////////////////////
@@ -525,6 +562,7 @@ solution_vector_type create_rhs_vector(const solution_vector_type& solution_vect
 
   temp << 0.,0.,(dt*Lambda*Q*rho*Y)/(Power(E,(rho*theta)/((-1 + gamma)*(e - (rho*Power(u,2))/2.)))*(1 + zeta)),
    -((dt*Lambda*rho*Y)/(Power(E,(rho*theta)/((-1 + gamma)*(e - (rho*Power(u,2))/2.)))*(1 + zeta)));
+
   rhs += temp;
 
 #endif

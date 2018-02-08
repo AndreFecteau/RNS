@@ -7,7 +7,7 @@
 
 #define HYPERBOLIC
 #define VISCOUS
-// #define SOURCE
+#define SOURCE
 
 template <typename T>
 T Power(T num, int expo) {
@@ -100,8 +100,10 @@ Matrix_type create_mid_band_matrix(const solution_vector_type& solution_vector_m
       theta*Theta*u*Y)/((-1 + gamma)*Power(-2*e + rho*Power(u,2),2)*(1 + zeta)),
    (4*dt*Power(E,(2*rho*theta)/((-1 + gamma)*(-2*e + rho*Power(u,2))))*lambda*Power(rho,2)*theta*Theta*Y)/
     ((-1 + gamma)*Power(-2*e + rho*Power(u,2),2)*(1 + zeta)),(dt*Power(E,(2*rho*theta)/((-1 + gamma)*(-2*e + rho*Power(u,2))))*lambda*Theta)/(1 + zeta);
-  b += temp;
 
+   if((gamma-1.0)/ rho * (e-0.5*rho*u*u) > 1.2/(gamma*0.005*0.005)){
+    b += temp;
+  }
 #endif
 
   return b;
@@ -321,7 +323,10 @@ solution_vector_type create_rhs_vector(const solution_vector_type& solution_vect
 
   temp << 0.,0.,(dt*lambda*Q*rho*Y)/(Power(E,(rho*theta)/((-1 + gamma)*(e - (rho*Power(u,2))/2.)))*(1 + zeta)),
    -((dt*lambda*rho*Y)/(Power(E,(rho*theta)/((-1 + gamma)*(e - (rho*Power(u,2))/2.)))*(1 + zeta)));
-  rhs += temp;
+
+   if((gamma-1.0)/ rho * (e-0.5*rho*u*u) > 1.2/(gamma*0.005*0.005)){
+     rhs += temp;
+   }
 
 #endif
   // auto var_vec_l = Variable_Vector_Isolator<solution_vector_type>(solution_vector_m, gamma);
