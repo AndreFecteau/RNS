@@ -45,8 +45,8 @@ int main(){
   double Q = Q_low_mach/(mf*mf*(gamma-1));
   double theta =theta_low_mach/(gamma*mf*mf);
 
-  int    number_of_cells = 1000000;
-  double frame_time = 1e2;
+  int    number_of_cells = 50000;
+  double frame_time = 1e1;
 
   double lambda = 0.0;
   double x_min = 0.0;
@@ -58,7 +58,7 @@ int main(){
 
   double Theta = 1.0;
   double zeta = 0.0;
-  double CFL =  1e8;
+  double CFL =  1e5;
   std::ofstream gnu_input_file;
   gnu_input_file.open("Convergence_Plot.dat", std::ios_base::app);
   gnu_input_file << "#number_of_cells residual time" << std::endl;
