@@ -135,9 +135,11 @@ bool Solver<global_solution_vector_type, matrix_type>::solve(marching_type march
   double convergence = 0.0;
   for(size_t i = 0; i < initial_solution.size(); ++i) {
     for(int j = 0; j < 4; ++j){
-      convergence += std::fabs(initial_solution[i][j]-global_solution_vector[i][j]);
+      convergence += std::pow(std::fabs(initial_solution[i][j]-global_solution_vector[i][j]),2)*march.get_dx();
     }
   }
+
+  convergence = std::sqrt(convergence);
 
   std::ofstream gnu_input_file;
   gnu_input_file.open("Convergence_Plot.dat", std::ios_base::app);
