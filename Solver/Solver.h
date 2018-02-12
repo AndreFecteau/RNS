@@ -131,7 +131,6 @@ bool Solver<global_solution_vector_type, matrix_type>::solve(marching_type march
                           (-0.45*tanh(4.0 * x - 10.0) + 0.55)*(4.5*tanh(4.0 * x - 10.0) + 5.5),
                           2.0*tanh(4.0*x - 10.0) + 70000,
                           (-0.45*tanh(4.0 * x - 10.0) + 0.55)*(-0.5*tanh(x - 8.0/4.0) + 0.5);
-    // initial_solution[i] << cos(x)+10, (cos(x)+10)*(cos(x)+10), cos(x)+10000, (cos(x)+10)*(cos(x)+10);
   }
   double convergence = 0.0;
   for(size_t i = 0; i < initial_solution.size(); ++i) {
