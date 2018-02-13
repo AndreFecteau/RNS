@@ -169,7 +169,7 @@ double Implicit_Marching<global_solution_vector_type, matrix_type>::timemarch(do
     bot[i-1] = matrix_entries.bot_matrix();
     top[i-1] = matrix_entries.top_matrix();
     rhs[i-1] = matrix_entries.rhs_matrix();
-    rhs[i-1] += manufactured_residual(Lambda, i)*dt;
+    // rhs[i-1] += manufactured_residual(Lambda, i)*dt;
 
     // rhs[i-1] += numerical_dissipation(global_solution_vector, i, 0.9);
     // rhs[i-1] += numerical_dissipation(global_solution_vector, i, 0.1);
@@ -179,6 +179,7 @@ double Implicit_Marching<global_solution_vector_type, matrix_type>::timemarch(do
 // Implicit Boundary Conditions
 #pragma omp single
   mid[global_solution_vector.size()-3] += top[global_solution_vector.size()-3];
+  mid[0] += bot[0];
 
 #pragma omp single
   delta_global_solution_vector = block_triagonal_matrix_inverse<matrix_type, solution_vector_type>(mid, top, bot, rhs);
@@ -186,17 +187,18 @@ double Implicit_Marching<global_solution_vector_type, matrix_type>::timemarch(do
 #pragma omp for
   for (int i = 1; i < number_of_cells-1; ++i) {
     if(current_time == 0.0) {
-      global_solution_vector[i] += delta_global_solution_vector[i-1]*(1);
+      global_solution_vector[i] += delta_global_solution_vector[i-1]*(1+zeta);
     } else {
       global_solution_vector[i] += delta_global_solution_vector[i-1];
     }
   }
 
-//Explicit Boundary Conditions
-// #pragma omp single
-//   {
-//     global_solution_vector[global_solution_vector.size()-1] = global_solution_vector[global_solution_vector.size()-2];
-//   }
+// Explicit Boundary Conditions
+#pragma omp single
+  {
+    global_solution_vector[global_solution_vector.size()-1] = global_solution_vector[global_solution_vector.size()-2];
+    global_solution_vector[0] = global_solution_vector[1];
+  }
 
 #pragma omp single
   current_time += dt;

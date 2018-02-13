@@ -42,15 +42,9 @@ int main(){
   double Q = Q_low_mach/(mf*mf*(gamma-1));
   double theta =theta_low_mach/(gamma*mf*mf);
 
-  int    number_of_cells = 2000;
-  double frame_time = 1e1;
-  double T_ignition = 1.0;
-  double theta_low_mach =5.0*(1.0+Q_low_mach)*(1.0+Q_low_mach) / Q_low_mach;
-  double Q = Q_low_mach/(mf*mf*(gamma-1));
-  double theta =theta_low_mach/(gamma*mf*mf);
-
-  int    number_of_cells =100000;
-  double frame_time = 1e3;
+  // int    number_of_cells =400000;
+  int    number_of_cells;
+  double frame_time = 1e-2;
 
   double lambda = 0.0;
   double x_min = 0.0;
@@ -63,7 +57,10 @@ int main(){
 
   double Theta = 1.0;
   double zeta = 0.0;
-  double CFL =  1e6;
+  double CFL =  0.5e0;
+  double per_FL = 16.0;
+  double dx = 1.0/per_FL;
+  double domaine_length = 2000;
   std::ofstream gnu_input_file;
   gnu_input_file.open("Convergence_Plot.dat", std::ios_base::app);
   gnu_input_file << "#number_of_cells residual time" << std::endl;
@@ -71,17 +68,17 @@ int main(){
   global_solution_vector_type initial_solution;
   initial_solution.resize(number_of_cells);
   RK4_low_mach_initial_conditions(lambda, number_of_cells, initial_solution, Le, Q_low_mach,
-    theta_low_mach, T_ignition, gamma, x_max, mf);
-  while(CFL > 100) {
+    theta_low_mach, T_ignition, gamma, x_max, mf, dx, domaine_length);
+  // while(CFL > 100) {
     // double CFL =  number_of_cells/1000;
   // std::string filename = "Movie/Plot_Euler_" + tostring(frame_time) + "_" + tostring(number_of_cells) + "_";
   // std::string filename = "Movie/Test_Implicit_Residual_" + tostring(number_of_cells) + "_";
-  std::string filename = "Movie/Test_Explicit_Residual_" + tostring(number_of_cells) + "_" + tostring(CFL) + "_";
+  std::string filename = "Movie/Test_Explicit_Residual_" + tostring(per_FL) + "_" + tostring(CFL) + "_";
   // std::string filename = "Movie/Exact_" + tostring(number_of_cells) + "_";
 
 
   std::cout << "//////////////////////" << std::endl;
-  std::cout << "Initial Conditions"  << std::endl;
+  std::cout << "Initial Conditions "  << number_of_cells << std::endl;
   std::cout << "//////////////////////" << std::endl;
 
   lambda_max = 95700;
@@ -104,11 +101,11 @@ int main(){
   auto solver = Solver<global_solution_vector_type, matrix_type>(initial_solution, lambda,
                                                                  filename);
 
-  bool check = solver.solve<implicit_marching_type>(implicit_march, target_residual, frame_time, gamma);
-  // bool check = solver.solve<explicit_marching_type>(explicit_march, target_residual, frame_time, gamma);
+  // bool check = solver.solve<implicit_marching_type>(implicit_march, target_residual, frame_time, gamma);
+  bool check = solver.solve<explicit_marching_type>(explicit_march, target_residual, frame_time, gamma);
   // solver.solve<explicit_euler_marching_type>(explicit_euler_march, target_residual, frame_time, gamma);
-  CFL /= 10;
+  // CFL /= 10;
   // bisection_lambda(lambda_min, lambda_max, lambda_run, check);
-}
+// }
 
 };

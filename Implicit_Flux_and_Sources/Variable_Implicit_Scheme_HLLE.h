@@ -33,17 +33,22 @@ using solution_vector_type = typename global_solution_vector_type::value_type;
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief Constructor setting up required inputs.
-  Implicit_Matrix_Entries(const solution_vector_type& solution_vector_mm,
-                             const solution_vector_type& solution_vector_m,
-                             const solution_vector_type& solution_vector,
-                             const solution_vector_type& solution_vector_p,
-                             const solution_vector_type& solution_vector_pp,
+  Implicit_Matrix_Entries(const solution_vector_type& solution_vector_mm_in,
+                             const solution_vector_type& solution_vector_m_in,
+                             const solution_vector_type& solution_vector_in,
+                             const solution_vector_type& solution_vector_p_in,
+                             const solution_vector_type& solution_vector_pp_in,
                              const solution_vector_type& DeltaUm,
                              const double& gamma_in, const double& Pr_in,
                              const double& Le_in, const double& Q_in, const double& lambda_in,
                              const double& theta_in, const double& dx_in, const double& dt_in,
                              const double& zeta_in, const double& Theta_in) :
-                             gamma(gamma_in), Pr(Pr_in), Le(Le_in), Q(Q_in), lambda(lambda_in),
+                             solution_vector_mm(solution_vector_mm_in),
+                             solution_vector_m(solution_vector_m_in),
+                             solution_vector(solution_vector_in),
+                             solution_vector_p(solution_vector_p_in),
+                             solution_vector_pp(solution_vector_pp_in),
+                             gamma(gamma_in), Pr(Pr_in), Le(Le_in), Q(Q_in), Lambda(lambda_in),
                              theta(theta_in), dx(dx_in), dt(dt_in), zeta(zeta_in),
                              Theta(Theta_in) {
   rhomm = solution_vector_mm[0];
@@ -105,6 +110,11 @@ using solution_vector_type = typename global_solution_vector_type::value_type;
   solution_vector_type rhs_matrix();
 
  private:
+  solution_vector_type solution_vector_mm;
+  solution_vector_type solution_vector_m;
+  solution_vector_type solution_vector;
+  solution_vector_type solution_vector_p;
+  solution_vector_type solution_vector_pp;
   double rhomm, rhom, rho, rhop, rhopp;
   double pmm, pm, p, pp, ppp;
   double umm, um, u, up, upp;
@@ -112,7 +122,7 @@ using solution_vector_type = typename global_solution_vector_type::value_type;
   double Ymm, Ym, Y, Yp, Ypp;
   char E;
   double gamma, Pr, Le, Q;
-  double lambda, theta;
+  double Lambda, theta;
   double dx, dt;
   double zeta, Theta;
   double dUm1, dUm2, dUm3, dUm4;
@@ -121,12 +131,13 @@ using solution_vector_type = typename global_solution_vector_type::value_type;
   double RlambdaL;
   double RlambdaR;
 
+
   template <typename T>
   double Power(const T& num, const int& expo) {
     return pow(num, expo);
   }
 
-  double Power(const char& num, const double& expo) {
+  double Power(const char&, const double& expo) {
     return exp(expo);
   }
 
