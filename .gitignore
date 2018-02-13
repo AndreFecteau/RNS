@@ -9,7 +9,7 @@ CMakeCache.txt
 /CMakeFiles/
 /Movie/
 /Movie_Test/
-
+/dat_saves/
 # ignore a file type
 #*.json
 *.log

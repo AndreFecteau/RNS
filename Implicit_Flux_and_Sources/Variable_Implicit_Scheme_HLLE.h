@@ -1,108 +1,81 @@
-#ifndef CREATE_IMPLICIT_MATRIX_VECTOR_HLLE_H
-#define CREATE_IMPLICIT_MATRIX_VECTOR_HLLE_H
-//
+#ifndef IMPLICIT_MATRIX_ENTRIES
+#define IMPLICIT_MATRIX_ENTRIES
+
 #include "../Explicit_Flux_and_Sources/HLLE.h"
-#include "../Explicit_Flux_and_Sources/Centered_Difference.h"
-#include "../Explicit_Flux_and_Sources/Sources.h"
-// #include "Solver/Explicit_Marching.h"
 
 #define HYPERBOLIC
 #define VISCOUS
 #define SOURCE
-typedef Eigen::Matrix<double, 4, 1> Vector_type;
 
-template <typename T>
-T Power(T num, int expo) {
-  return pow(num, expo);
-}
+template <typename global_solution_vector_type, typename matrix_type>
+class Implicit_Matrix_Entries {
+using solution_vector_type = typename global_solution_vector_type::value_type;
+ public:
+  /////////////////////////////////////////////////////////////////////////
+  /// \brief Default constructor.
+  Implicit_Matrix_Entries() = default;
 
-double Power(int num, double expo) {
-  return exp(expo);
-}
+  /////////////////////////////////////////////////////////////////////////
+  /// \brief Copy constructor.
+  Implicit_Matrix_Entries(const Implicit_Matrix_Entries&) = default;
 
-double u_rhoavg(double rho_left, double rho_right, double u_left, double u_right) {
-  return (sqrt(rho_left) * u_left + sqrt(rho_right) * u_right) /
-         (sqrt(rho_left) + sqrt(rho_right));
-}
+  /////////////////////////////////////////////////////////////////////////
+  /// \brief Move constructor.
+  Implicit_Matrix_Entries(Implicit_Matrix_Entries&&) = default;
 
-double rho_rhoavg(double rho_left, double rho_right) {
-  return sqrt(rho_left * rho_right);
-}
+  /////////////////////////////////////////////////////////////////////////
+  /// \brief Copy assignment operator.
+  Implicit_Matrix_Entries& operator=(const Implicit_Matrix_Entries&) = default;
 
-double p_rhoavg(double rho_left, double rho_right, double u_left, double u_right,
-                double p_left, double p_right, double gamma) {
+  /////////////////////////////////////////////////////////////////////////
+  /// \brief Move assignment operator.
+  Implicit_Matrix_Entries& operator=(Implicit_Matrix_Entries&&) = default;
 
-  double h_left = gamma * p_left / (rho_left * (gamma - 1.0)) + u_left * u_left * 0.5;
-  double h_right = gamma * p_right / (rho_right * (gamma - 1.0)) + u_right * u_right * 0.5;
-
-  double h_ravg = (sqrt(rho_left) * h_left + sqrt(rho_right) * h_right) /
-                  (sqrt(rho_left) + sqrt(rho_right));
-
-  double u_ravg = u_rhoavg(rho_left, rho_right, u_left, u_right);
-
-  double rho_ravg = rho_rhoavg(rho_left, rho_right);
-
-  return (h_ravg - u_ravg*u_ravg * 0.5) * (gamma - 1.0) / gamma * rho_ravg;
-}
-
-Vector_type limiter(const Vector_type &Ul,
-                    const Vector_type &U,
-                    const Vector_type &Ur,
-                    double dx) {
-  Vector_type a = (U - Ul) / dx;
-  Vector_type b = (Ur - U) / dx;
-  double epsilon = 1.0e-6;
-  Vector_type phi =  a.array() * b.array() * (a.array() + b.array()) / (a.array() * a.array() + b.array() * b.array() + epsilon);
-  for (int i = 0; i < 3; ++i) {
-    if (a[i] / b[i] <= 0.0 || b[i] == 0) {
-      phi[i] = 0.0;
-    }
-  }
-  return phi;
-
-}
-
-template <typename solution_vector_type, typename Matrix_type>
-Matrix_type create_mid_band_matrix(const solution_vector_type& solution_vector_mm,
-                                       const solution_vector_type solution_vector_m,
-                                       const solution_vector_type solution_vector,
-                                       const solution_vector_type solution_vector_p,
-                                       const solution_vector_type solution_vector_pp,
-                                       const double& gamma, const double& Pr,
-                                       const double& Le, const double& Q, const double& Lambda,
-                                       const double& theta, const double& dx, const double& dt,
-                                       const double& zeta, const double& Theta) {
-  double rhomm = solution_vector_mm[0];
-  double rhom = solution_vector_m[0];
-  double rho = solution_vector[0];
-  double rhop = solution_vector_p[0];
-  double rhopp = solution_vector_pp[0];
-  double umm = solution_vector_mm[1]/solution_vector_mm[0];
-  double um = solution_vector_m[1]/solution_vector_m[0];
-  double u = solution_vector[1]/solution_vector[0];
-  double up = solution_vector_p[1]/solution_vector_p[0];
-  double upp = solution_vector_pp[1]/solution_vector_pp[0];
-  double emm = solution_vector_mm[2];
-  double em = solution_vector_m[2];
-  double e = solution_vector[2];
-  double ep = solution_vector_p[2];
-  double epp = solution_vector_pp[2];
-  double Ymm = solution_vector_mm[3]/solution_vector_mm[0];
-  double Ym = solution_vector_m[3]/solution_vector_m[0];
-  double Y = solution_vector[3]/solution_vector[0];
-  double Yp = solution_vector_p[3]/solution_vector_p[0];
-  double Ypp = solution_vector_pp[3]/solution_vector_pp[0];
-  double pm = (solution_vector_m[2] - solution_vector_m[1]* solution_vector_m[1] /
-             (2.0 * solution_vector_m[0])) * (gamma - 1);
-  double p = (solution_vector[2] - solution_vector[1]* solution_vector[1] /
-             (2.0 * solution_vector[0])) * (gamma - 1);
-  double pp = (solution_vector_p[2] - solution_vector_p[1]* solution_vector_p[1] /
-             (2.0 * solution_vector_p[0])) * (gamma - 1);
-  double LlambdaR;
-  double LlambdaL;
-  double RlambdaL;
-  double RlambdaR;
-  int E = 0;
+  /////////////////////////////////////////////////////////////////////////
+  /// \brief Constructor setting up required inputs.
+  Implicit_Matrix_Entries(const solution_vector_type& solution_vector_mm,
+                             const solution_vector_type& solution_vector_m,
+                             const solution_vector_type& solution_vector,
+                             const solution_vector_type& solution_vector_p,
+                             const solution_vector_type& solution_vector_pp,
+                             const solution_vector_type& DeltaUm,
+                             const double& gamma_in, const double& Pr_in,
+                             const double& Le_in, const double& Q_in, const double& lambda_in,
+                             const double& theta_in, const double& dx_in, const double& dt_in,
+                             const double& zeta_in, const double& Theta_in) :
+                             gamma(gamma_in), Pr(Pr_in), Le(Le_in), Q(Q_in), lambda(lambda_in),
+                             theta(theta_in), dx(dx_in), dt(dt_in), zeta(zeta_in),
+                             Theta(Theta_in) {
+  rhomm = solution_vector_mm[0];
+  rhom = solution_vector_m[0];
+  rho = solution_vector[0];
+  rhop = solution_vector_p[0];
+  rhopp = solution_vector_pp[0];
+  umm = solution_vector_mm[1]/solution_vector_mm[0];
+  um = solution_vector_m[1]/solution_vector_m[0];
+  u = solution_vector[1]/solution_vector[0];
+  up = solution_vector_p[1]/solution_vector_p[0];
+  upp = solution_vector_pp[1]/solution_vector_pp[0];
+  emm = solution_vector_mm[2];
+  em = solution_vector_m[2];
+  e = solution_vector[2];
+  ep = solution_vector_p[2];
+  epp = solution_vector_pp[2];
+  Ymm = solution_vector_mm[3]/solution_vector_mm[0];
+  Ym = solution_vector_m[3]/solution_vector_m[0];
+  Y = solution_vector[3]/solution_vector[0];
+  Yp = solution_vector_p[3]/solution_vector_p[0];
+  Ypp = solution_vector_pp[3]/solution_vector_pp[0];
+  pm = (solution_vector_m[2] - solution_vector_m[1]* solution_vector_m[1] /
+       (2.0 * solution_vector_m[0])) * (gamma - 1);
+  p =  (solution_vector[2] - solution_vector[1]* solution_vector[1] /
+       (2.0 * solution_vector[0])) * (gamma - 1);
+  pp = (solution_vector_p[2] - solution_vector_p[1]* solution_vector_p[1] /
+       (2.0 * solution_vector_p[0])) * (gamma - 1);
+  dUm1 = DeltaUm[0];
+  dUm2 = DeltaUm[1];
+  dUm3 = DeltaUm[2];
+  dUm4 = DeltaUm[3];
 
   {
   double lambda_1 = u + sqrt(gamma*p/rho);
@@ -124,9 +97,87 @@ Matrix_type create_mid_band_matrix(const solution_vector_type& solution_vector_m
   double lambda_2 = u_rhoavg(rho, rhop, u, up) - sqrt(gamma*p_rhoavg(rho, rhop, u, up, p, pp, gamma)/rho_rhoavg(rho, rhop));
   RlambdaL = std::min(lambda_1,lambda_2);
   }
+  }
 
-  Matrix_type b;
-  Matrix_type temp;
+  matrix_type top_matrix();
+  matrix_type mid_matrix();
+  matrix_type bot_matrix();
+  solution_vector_type rhs_matrix();
+
+ private:
+  double rhomm, rhom, rho, rhop, rhopp;
+  double pmm, pm, p, pp, ppp;
+  double umm, um, u, up, upp;
+  double emm, em, e, ep, epp;
+  double Ymm, Ym, Y, Yp, Ypp;
+  char E;
+  double gamma, Pr, Le, Q;
+  double lambda, theta;
+  double dx, dt;
+  double zeta, Theta;
+  double dUm1, dUm2, dUm3, dUm4;
+  double LlambdaR;
+  double LlambdaL;
+  double RlambdaL;
+  double RlambdaR;
+
+  template <typename T>
+  double Power(const T& num, const int& expo) {
+    return pow(num, expo);
+  }
+
+  double Power(const char& num, const double& expo) {
+    return exp(expo);
+  }
+
+  double u_rhoavg(double rho_left, double rho_right, double u_left, double u_right) {
+    return (sqrt(rho_left) * u_left + sqrt(rho_right) * u_right) /
+    (sqrt(rho_left) + sqrt(rho_right));
+  }
+
+  double rho_rhoavg(double rho_left, double rho_right) {
+    return sqrt(rho_left * rho_right);
+  }
+
+  double p_rhoavg(double rho_left, double rho_right, double u_left, double u_right,
+                  double p_left, double p_right, double gamma) {
+
+    double h_left = gamma * p_left / (rho_left * (gamma - 1.0)) + u_left * u_left * 0.5;
+    double h_right = gamma * p_right / (rho_right * (gamma - 1.0)) + u_right * u_right * 0.5;
+
+    double h_ravg = (sqrt(rho_left) * h_left + sqrt(rho_right) * h_right) /
+    (sqrt(rho_left) + sqrt(rho_right));
+
+    double u_ravg = u_rhoavg(rho_left, rho_right, u_left, u_right);
+
+    double rho_ravg = rho_rhoavg(rho_left, rho_right);
+
+    return (h_ravg - u_ravg*u_ravg * 0.5) * (gamma - 1.0) / gamma * rho_ravg;
+  }
+
+  solution_vector_type limiter(const solution_vector_type &Ul,
+                               const solution_vector_type &U,
+                               const solution_vector_type &Ur,
+                               double dx) {
+    solution_vector_type a = (U - Ul) / dx;
+    solution_vector_type b = (Ur - U) / dx;
+    double epsilon = 1.0e-6;
+    solution_vector_type phi =  a.array() * b.array() * (a.array() + b.array()) / (a.array() * a.array() + b.array() * b.array() + epsilon);
+    for (int i = 0; i < 3; ++i) {
+      if (a[i] / b[i] <= 0.0 || b[i] == 0) {
+        phi[i] = 0.0;
+      }
+    }
+    return phi;
+  }
+};
+
+
+template <typename global_solution_vector_type, typename matrix_type>
+matrix_type Implicit_Matrix_Entries<global_solution_vector_type, matrix_type>::mid_matrix() {
+
+  matrix_type b;
+  matrix_type temp;
 ///////////////////////////////////////////////////////////////////////////////
 // Needed
 ///////////////////////////////////////////////////////////////////////////////
@@ -186,77 +237,20 @@ Matrix_type create_mid_band_matrix(const solution_vector_type& solution_vector_m
     ((-1 + gamma)*Power(-2*e + rho*Power(u,2),2)*(1 + zeta)),
    (4*dt*Power(E,(2*rho*theta)/((-1 + gamma)*(-2*e + rho*Power(u,2))))*Lambda*Power(rho,2)*theta*Theta*Y)/
     ((-1 + gamma)*Power(-2*e + rho*Power(u,2),2)*(1 + zeta)),(dt*Power(E,(2*rho*theta)/((-1 + gamma)*(-2*e + rho*Power(u,2))))*Lambda*Theta)/(1 + zeta);
-  b += temp;
 
+  if((gamma-1.0)/ rho * (e-0.5*rho*u*u) > 1.1/(gamma*0.005*0.005)){
+    b += temp;
+  }
 #endif
 
   return b;
 }
 
-template <typename solution_vector_type, typename Matrix_type>
-Matrix_type create_top_band_matrix(const solution_vector_type& solution_vector_mm,
-                                       const solution_vector_type solution_vector_m,
-                                       const solution_vector_type solution_vector,
-                                       const solution_vector_type solution_vector_p,
-                                       const solution_vector_type solution_vector_pp,
-                                       const double& gamma, const double& Pr,
-                                       const double& Le, const double& Q, const double& Lambda,
-                                       const double& theta, const double& dx, const double& dt,
-                                       const double& zeta, const double& Theta) {
-  double rhomm = solution_vector_mm[0];
-  double rhom = solution_vector_m[0];
-  double rho = solution_vector[0];
-  double rhop = solution_vector_p[0];
-  double rhopp = solution_vector_pp[0];
-  double umm = solution_vector_mm[1]/solution_vector_mm[0];
-  double um = solution_vector_m[1]/solution_vector_m[0];
-  double u = solution_vector[1]/solution_vector[0];
-  double up = solution_vector_p[1]/solution_vector_p[0];
-  double upp = solution_vector_pp[1]/solution_vector_pp[0];
-  double emm = solution_vector_mm[2];
-  double em = solution_vector_m[2];
-  double e = solution_vector[2];
-  double ep = solution_vector_p[2];
-  double epp = solution_vector_pp[2];
-  double Ymm = solution_vector_mm[3]/solution_vector_mm[0];
-  double Ym = solution_vector_m[3]/solution_vector_m[0];
-  double Y = solution_vector[3]/solution_vector[0];
-  double Yp = solution_vector_p[3]/solution_vector_p[0];
-  double Ypp = solution_vector_pp[3]/solution_vector_pp[0];
-  double pm = (solution_vector_m[2] - solution_vector_m[1]* solution_vector_m[1] /
-             (2.0 * solution_vector_m[0])) * (gamma - 1);
-  double p = (solution_vector[2] - solution_vector[1]* solution_vector[1] /
-             (2.0 * solution_vector[0])) * (gamma - 1);
-  double pp = (solution_vector_p[2] - solution_vector_p[1]* solution_vector_p[1] /
-             (2.0 * solution_vector_p[0])) * (gamma - 1);
-  double LlambdaR;
-  double LlambdaL;
-  double RlambdaL;
-  double RlambdaR;
-  int E = 0;
+template <typename global_solution_vector_type, typename matrix_type>
+matrix_type Implicit_Matrix_Entries<global_solution_vector_type, matrix_type>::top_matrix() {
 
-  {
-  double lambda_1 = u + sqrt(gamma*p/rho);
-  double lambda_2 = u_rhoavg(rhom, rho, um, u) + sqrt(gamma*p_rhoavg(rhom, rho, um, u, pm, p, gamma)/rho_rhoavg(rhom, rho));
-  LlambdaR = std::max(lambda_1,lambda_2);
-  }
-  {
-  double lambda_1 = um - sqrt(gamma*pm/rhom);
-  double lambda_2 = u_rhoavg(rhom, rho, um, u) - sqrt(gamma*p_rhoavg(rhom, rho, um, u, pm, p, gamma)/rho_rhoavg(rhom, rho));
-  LlambdaL = std::min(lambda_1,lambda_2);
-  }
-  {
-  double lambda_1 = up + sqrt(gamma*pp/rhop);
-  double lambda_2 = u_rhoavg(rho, rhop, u, up) + sqrt(gamma*p_rhoavg(rho, rhop, u, up, p, pp, gamma)/rho_rhoavg(rho, rhop));
-  RlambdaR = std::max(lambda_1,lambda_2);
-  }
-  {
-  double lambda_1 = u - sqrt(gamma*p/rho);
-  double lambda_2 = u_rhoavg(rho, rhop, u, up) - sqrt(gamma*p_rhoavg(rho, rhop, u, up, p, pp, gamma)/rho_rhoavg(rho, rhop));
-  RlambdaL = std::min(lambda_1,lambda_2);
-  }
-  Matrix_type c;
-  Matrix_type temp;
+  matrix_type c;
+  matrix_type temp;
 ///////////////////////////////////////////////////////////////////////////////
 // Needed
 ///////////////////////////////////////////////////////////////////////////////
@@ -305,71 +299,11 @@ Matrix_type create_top_band_matrix(const solution_vector_type& solution_vector_m
   return c;
 }
 
-template <typename solution_vector_type, typename Matrix_type>
-Matrix_type create_bot_band_matrix(const solution_vector_type& solution_vector_mm,
-                                       const solution_vector_type solution_vector_m,
-                                       const solution_vector_type solution_vector,
-                                       const solution_vector_type solution_vector_p,
-                                       const solution_vector_type solution_vector_pp,
-                                       const double& gamma, const double& Pr,
-                                       const double& Le, const double& Q, const double& Lambda,
-                                       const double& theta, const double& dx, const double& dt,
-                                       const double& zeta, const double& Theta) {
-  double rhomm = solution_vector_mm[0];
-  double rhom = solution_vector_m[0];
-  double rho = solution_vector[0];
-  double rhop = solution_vector_p[0];
-  double rhopp = solution_vector_pp[0];
-  double umm = solution_vector_mm[1]/solution_vector_mm[0];
-  double um = solution_vector_m[1]/solution_vector_m[0];
-  double u = solution_vector[1]/solution_vector[0];
-  double up = solution_vector_p[1]/solution_vector_p[0];
-  double upp = solution_vector_pp[1]/solution_vector_pp[0];
-  double emm = solution_vector_mm[2];
-  double em = solution_vector_m[2];
-  double e = solution_vector[2];
-  double ep = solution_vector_p[2];
-  double epp = solution_vector_pp[2];
-  double Ymm = solution_vector_mm[3]/solution_vector_mm[0];
-  double Ym = solution_vector_m[3]/solution_vector_m[0];
-  double Y = solution_vector[3]/solution_vector[0];
-  double Yp = solution_vector_p[3]/solution_vector_p[0];
-  double Ypp = solution_vector_pp[3]/solution_vector_pp[0];
-  double pm = (solution_vector_m[2] - solution_vector_m[1]* solution_vector_m[1] /
-             (2.0 * solution_vector_m[0])) * (gamma - 1);
-  double p = (solution_vector[2] - solution_vector[1]* solution_vector[1] /
-             (2.0 * solution_vector[0])) * (gamma - 1);
-  double pp = (solution_vector_p[2] - solution_vector_p[1]* solution_vector_p[1] /
-             (2.0 * solution_vector_p[0])) * (gamma - 1);
-  double LlambdaR;
-  double LlambdaL;
-  double RlambdaL;
-  double RlambdaR;
-  int E = 0;
+template <typename global_solution_vector_type, typename matrix_type>
+matrix_type Implicit_Matrix_Entries<global_solution_vector_type, matrix_type>::bot_matrix() {
 
-  {
-  double lambda_1 = u + sqrt(gamma*p/rho);
-  double lambda_2 = u_rhoavg(rhom, rho, um, u) + sqrt(gamma*p_rhoavg(rhom, rho, um, u, pm, p, gamma)/rho_rhoavg(rhom, rho));
-  LlambdaR = std::max(lambda_1,lambda_2);
-  }
-  {
-  double lambda_1 = um - sqrt(gamma*pm/rhom);
-  double lambda_2 = u_rhoavg(rhom, rho, um, u) - sqrt(gamma*p_rhoavg(rhom, rho, um, u, pm, p, gamma)/rho_rhoavg(rhom, rho));
-  LlambdaL = std::min(lambda_1,lambda_2);
-  }
-  {
-  double lambda_1 = up + sqrt(gamma*pp/rhop);
-  double lambda_2 = u_rhoavg(rho, rhop, u, up) + sqrt(gamma*p_rhoavg(rho, rhop, u, up, p, pp, gamma)/rho_rhoavg(rho, rhop));
-  RlambdaR = std::max(lambda_1,lambda_2);
-  }
-  {
-  double lambda_1 = u - sqrt(gamma*p/rho);
-  double lambda_2 = u_rhoavg(rho, rhop, u, up) - sqrt(gamma*p_rhoavg(rho, rhop, u, up, p, pp, gamma)/rho_rhoavg(rho, rhop));
-  RlambdaL = std::min(lambda_1,lambda_2);
-  }
-
-  Matrix_type a;
-  Matrix_type temp;
+  matrix_type a;
+  matrix_type temp;
 ///////////////////////////////////////////////////////////////////////////////
 // Needed
 ///////////////////////////////////////////////////////////////////////////////
@@ -421,74 +355,9 @@ Matrix_type create_bot_band_matrix(const solution_vector_type& solution_vector_m
   return a;
 }
 
-template <typename solution_vector_type, typename Matrix_type>
-solution_vector_type create_rhs_vector(const solution_vector_type& solution_vector_mm,
-                                       const solution_vector_type solution_vector_m,
-                                       const solution_vector_type solution_vector,
-                                       const solution_vector_type solution_vector_p,
-                                       const solution_vector_type solution_vector_pp,
-                                       const double& gamma, const double& Pr,
-                                       const double& Le, const double& Q, const double& Lambda,
-                                       const double& theta, const double& dx, const double& dt,
-                                       const double& zeta, const double& Theta,
-                                       const solution_vector_type& DeltaUm) {
-
-  double rhomm = solution_vector_mm[0];
-  double rhom = solution_vector_m[0];
-  double rho = solution_vector[0];
-  double rhop = solution_vector_p[0];
-  double rhopp = solution_vector_pp[0];
-  double umm = solution_vector_mm[1]/solution_vector_mm[0];
-  double um = solution_vector_m[1]/solution_vector_m[0];
-  double u = solution_vector[1]/solution_vector[0];
-  double up = solution_vector_p[1]/solution_vector_p[0];
-  double upp = solution_vector_pp[1]/solution_vector_pp[0];
-  double emm = solution_vector_mm[2];
-  double em = solution_vector_m[2];
-  double e = solution_vector[2];
-  double ep = solution_vector_p[2];
-  double epp = solution_vector_pp[2];
-  double Ymm = solution_vector_mm[3]/solution_vector_mm[0];
-  double Ym = solution_vector_m[3]/solution_vector_m[0];
-  double Y = solution_vector[3]/solution_vector[0];
-  double Yp = solution_vector_p[3]/solution_vector_p[0];
-  double Ypp = solution_vector_pp[3]/solution_vector_pp[0];
-  double pm = (solution_vector_m[2] - solution_vector_m[1]* solution_vector_m[1] /
-             (2.0 * solution_vector_m[0])) * (gamma - 1);
-  double p = (solution_vector[2] - solution_vector[1]* solution_vector[1] /
-             (2.0 * solution_vector[0])) * (gamma - 1);
-  double pp = (solution_vector_p[2] - solution_vector_p[1]* solution_vector_p[1] /
-             (2.0 * solution_vector_p[0])) * (gamma - 1);
-  double dUm1 = DeltaUm[0];
-  double dUm2 = DeltaUm[1];
-  double dUm3 = DeltaUm[2];
-  double dUm4 = DeltaUm[3];
-  double LlambdaR;
-  double LlambdaL;
-  double RlambdaL;
-  double RlambdaR;
-  int E = 0;
-
-  {
-  double lambda_1 = u + sqrt(gamma*p/rho);
-  double lambda_2 = u_rhoavg(rhom, rho, um, u) + sqrt(gamma*p_rhoavg(rhom, rho, um, u, pm, p, gamma)/rho_rhoavg(rhom, rho));
-  LlambdaR = std::max(lambda_1,lambda_2);
-  }
-  {
-  double lambda_1 = um - sqrt(gamma*pm/rhom);
-  double lambda_2 = u_rhoavg(rhom, rho, um, u) - sqrt(gamma*p_rhoavg(rhom, rho, um, u, pm, p, gamma)/rho_rhoavg(rhom, rho));
-  LlambdaL = std::min(lambda_1,lambda_2);
-  }
-  {
-  double lambda_1 = up + sqrt(gamma*pp/rhop);
-  double lambda_2 = u_rhoavg(rho, rhop, u, up) + sqrt(gamma*p_rhoavg(rho, rhop, u, up, p, pp, gamma)/rho_rhoavg(rho, rhop));
-  RlambdaR = std::max(lambda_1,lambda_2);
-  }
-  {
-  double lambda_1 = u - sqrt(gamma*p/rho);
-  double lambda_2 = u_rhoavg(rho, rhop, u, up) - sqrt(gamma*p_rhoavg(rho, rhop, u, up, p, pp, gamma)/rho_rhoavg(rho, rhop));
-  RlambdaL = std::min(lambda_1,lambda_2);
-  }
+template <typename global_solution_vector_type, typename matrix_type>
+typename global_solution_vector_type::value_type
+Implicit_Matrix_Entries<global_solution_vector_type, matrix_type>::rhs_matrix() {
 
   HLLE<std::vector<solution_vector_type>> hyperbolic_flux;
   solution_vector_type rhs;
@@ -563,7 +432,9 @@ solution_vector_type create_rhs_vector(const solution_vector_type& solution_vect
   temp << 0.,0.,(dt*Lambda*Q*rho*Y)/(Power(E,(rho*theta)/((-1 + gamma)*(e - (rho*Power(u,2))/2.)))*(1 + zeta)),
    -((dt*Lambda*rho*Y)/(Power(E,(rho*theta)/((-1 + gamma)*(e - (rho*Power(u,2))/2.)))*(1 + zeta)));
 
-  rhs += temp;
+  if((gamma-1.0)/ rho * (e-0.5*rho*u*u) > 1.1/(gamma*0.005*0.005)){
+    rhs += temp;
+  }
 
 #endif
 

@@ -34,9 +34,9 @@ int main(){
   double lambda = 0.0;
   double x_min = 0.0;
   double x_max;
-  double lambda_max;
-  double lambda_min;
-  double lambda_run;
+  // double lambda_max;
+  // double lambda_min;
+  // double lambda_run;
   double target_residual = 1e-19;
 
   double Theta = 1.0;
@@ -51,8 +51,8 @@ int main(){
                theta_low_mach, T_ignition, gamma, x_max, mf);
   auto solver = Solver<global_solution_vector_type, matrix_type>();
   unserialize_to_file(solver, filename);
-  auto explicit_march = explicit_marching_type(Pr, Le, Q, theta, mf, gamma,
-                        number_of_cells, CFL, (x_max - x_min)/number_of_cells);
+  // auto explicit_march = explicit_marching_type(Pr, Le, Q, theta, mf, gamma,
+  //                       number_of_cells, CFL, (x_max - x_min)/number_of_cells);
   auto implicit_march = implicit_marching_type(Pr, Le, Q, theta, mf, gamma,
                         number_of_cells, CFL, (x_max - x_min)/number_of_cells, Theta, zeta);
   // solver.expand_solution_vector<implicit_marching_type>(1,implicit_march);

@@ -79,17 +79,11 @@ class Implicit_Marching {
 
  private:
   HLLE<global_solution_vector_type> hyperbolic_flux;
-  double Pr;
-  double Le;
-  double Q;
-  double theta;
-  double mf;
-  double gamma;
-  double CFL;
-  double Theta;
-  double zeta;
+  double Pr, Le, Q, theta;
+  double mf, gamma, CFL;
   int number_of_cells;
   double dx;
+  double Theta, zeta;
   double dt = 0.0;
   double residual;
   int count = 0;
@@ -130,6 +124,10 @@ class Implicit_Marching {
 
   solution_vector_type manufactured_residual(const double lambda, const int i);
 
+  template <typename T>
+  double Power(const T num, const int expo) {return pow(num, expo);}
+
+  double Power(const char num, const double expo) {return exp(expo);}
 
 };
 
@@ -147,9 +145,7 @@ double Implicit_Marching<global_solution_vector_type, matrix_type>::timemarch(do
   global_solution_vector_type rhs(global_solution_vector.size()-2);
   global_solution_vector_type delta_global_solution_vector = global_solution_vector_type(number_of_cells-2,
   solution_vector_type::Zero());;
-// using explicit_marching_type = Explicit_Marching<global_solution_vector_type, matrix_type>;
-//   auto explicit_march = explicit_marching_type(Pr, Le, Q, theta, mf, gamma,
-//                         number_of_cells, 1e10, dx);
+
 #pragma omp parallel
   {
   while (current_time < time_frame){
@@ -162,56 +158,27 @@ double Implicit_Marching<global_solution_vector_type, matrix_type>::timemarch(do
   }
 }
 #pragma omp for
-  for(int i = 1; i < global_solution_vector.size()-1; ++i) {
-    mid[i-1] = create_mid_band_matrix<solution_vector_type, matrix_type>
-                                   (global_solution_vector[std::max(i-2,0)], global_solution_vector[i-1], global_solution_vector[i],
-                                    global_solution_vector[i+1],global_solution_vector[std::min(i+2,number_of_cells-1)],
-                                    gamma, Pr, Le, Q, Lambda,
-                                    theta, dx, dt, zeta, Theta);
-    bot[i-1] = create_bot_band_matrix<solution_vector_type, matrix_type>
-                                   (global_solution_vector[std::max(i-2,0)], global_solution_vector[i-1], global_solution_vector[i],
-                                    global_solution_vector[i+1],global_solution_vector[std::min(i+2,number_of_cells-1)],
-                                    gamma, Pr, Le, Q, Lambda,
-                                    theta, dx, dt, zeta, Theta);
-    top[i-1] = create_top_band_matrix<solution_vector_type, matrix_type>
-                                   (global_solution_vector[std::max(i-2,0)], global_solution_vector[i-1], global_solution_vector[i],
-                                    global_solution_vector[i+1],global_solution_vector[std::min(i+2,number_of_cells-1)],
-                                    gamma, Pr, Le, Q, Lambda,
-                                    theta, dx, dt, zeta, Theta);
-    rhs[i-1] = create_rhs_vector<solution_vector_type, matrix_type>
-                                   (global_solution_vector[std::max(i-2,0)], global_solution_vector[i-1], global_solution_vector[i],
-                                    global_solution_vector[i+1],global_solution_vector[std::min(i+2,number_of_cells-1)],
-                                    gamma, Pr, Le, Q, Lambda,
-                                    theta, dx, dt, zeta, Theta, delta_global_solution_vector[i-1]);
-      rhs[i-1] += manufactured_residual(Lambda, i)*dt;
+  for(int i = 1; i < static_cast<int>(global_solution_vector.size()-1); ++i) {
+    auto matrix_entries = Implicit_Matrix_Entries<global_solution_vector_type, matrix_type>
+                                       (global_solution_vector[std::max(i-2,0)], global_solution_vector[i-1], global_solution_vector[i],
+                                        global_solution_vector[i+1],global_solution_vector[std::min(i+2,number_of_cells-1)],
+                                        delta_global_solution_vector[i-1],
+                                        gamma, Pr, Le, Q, Lambda,
+                                        theta, dx, dt, zeta, Theta);
+    mid[i-1] = matrix_entries.mid_matrix();
+    bot[i-1] = matrix_entries.bot_matrix();
+    top[i-1] = matrix_entries.top_matrix();
+    rhs[i-1] = matrix_entries.rhs_matrix();
+    rhs[i-1] += manufactured_residual(Lambda, i)*dt;
+
     // rhs[i-1] += numerical_dissipation(global_solution_vector, i, 0.9);
     // rhs[i-1] += numerical_dissipation(global_solution_vector, i, 0.1);
     // rhs[i-1] += numerical_dissipation(global_solution_vector, i, 0.01);
-    // if (mid[i-1].determinant() < (bot[i-1].determinant() + top[i-1].determinant())) {
-    //   std::cout << "Matrix inverse will not work." << std::endl;
-    // }
   }
-  // auto global_solution_vector_temp = global_solution_vector;
-  // explicit_march.timemarch(dt, global_solution_vector_temp, Lambda);
-  // for(int i = 1; i < global_solution_vector.size()-1; ++i){
-  // rhs[i-1] = global_solution_vector_temp[i]-global_solution_vector[i];
-  // }
-// #pragma omp single
-//   mid[0] += 0.1 *
-//   create_bot_band_matrix<solution_vector_type, matrix_type>
-//                         (global_solution_vector[0],
-//                          global_solution_vector[1],
-//                          global_solution_vector[2],
-// //                          gamma, Pr, Le, Q, Lambda, theta, dx, dt, zeta, Theta);
-// #pragma omp single
-//   mid[global_solution_vector.size()-3] +=
-//   create_top_band_matrix<solution_vector_type, matrix_type>
-//                         (global_solution_vector[global_solution_vector.size()-4],
-//                          global_solution_vector[global_solution_vector.size()-3],
-//                          global_solution_vector[global_solution_vector.size()-2],
-//                          global_solution_vector[global_solution_vector.size()-1],
-//                          global_solution_vector[global_solution_vector.size()-1],
-//                          gamma, Pr, Le, Q, Lambda, theta, dx, dt, zeta, Theta);
+
+// Implicit Boundary Conditions
+#pragma omp single
+  mid[global_solution_vector.size()-3] += top[global_solution_vector.size()-3];
 
 #pragma omp single
   delta_global_solution_vector = block_triagonal_matrix_inverse<matrix_type, solution_vector_type>(mid, top, bot, rhs);
@@ -225,6 +192,7 @@ double Implicit_Marching<global_solution_vector_type, matrix_type>::timemarch(do
     }
   }
 
+//Explicit Boundary Conditions
 // #pragma omp single
 //   {
 //     global_solution_vector[global_solution_vector.size()-1] = global_solution_vector[global_solution_vector.size()-2];
@@ -306,7 +274,6 @@ typename global_solution_vector_type::value_type Implicit_Marching<global_soluti
     solution_vector_type man_sol;
     man_sol << 0,0,0,0;
     double x = dx*(i+0.5);
-    // std::cout << "x: " << x << std::endl;
     ///////////////////////////////////////////////////////////////////////////////
     // Full
     ///////////////////////////////////////////////////////////////////////////////

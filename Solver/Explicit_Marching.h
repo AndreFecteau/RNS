@@ -145,6 +145,15 @@ class Explicit_Marching {
 
   solution_vector_type manufactured_residual(const double lambda, const int i);
 
+  template <typename T>
+  double Power(const T num, const int expo) {
+    return pow(num, expo);
+  }
+
+  double Power(const char num, const double expo) {
+    return exp(expo);
+  }
+
 };
 
 

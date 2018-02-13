@@ -82,9 +82,9 @@ template <typename marching_type>
   }
  private:
    global_solution_vector_type global_solution_vector;
-   global_solution_vector_type initial_solution;
-   std::string filename;
    double lambda;
+   std::string filename;
+   global_solution_vector_type initial_solution;
    double current_time = 0.0;
    int current_frame = 0;
    int old_position;
