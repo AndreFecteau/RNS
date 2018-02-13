@@ -158,6 +158,7 @@ double Implicit_Marching<global_solution_vector_type, matrix_type>::timemarch(do
   }
 }
 #pragma omp for
+<<<<<<< HEAD
   for(int i = 1; i < static_cast<int>(global_solution_vector.size()-1); ++i) {
     auto matrix_entries = Implicit_Matrix_Entries<global_solution_vector_type, matrix_type>
                                        (global_solution_vector[std::max(i-2,0)], global_solution_vector[i-1], global_solution_vector[i],
@@ -170,6 +171,30 @@ double Implicit_Marching<global_solution_vector_type, matrix_type>::timemarch(do
     top[i-1] = matrix_entries.top_matrix();
     rhs[i-1] = matrix_entries.rhs_matrix();
     rhs[i-1] += manufactured_residual(Lambda, i)*dt;
+=======
+  for(int i = 1; i < global_solution_vector.size()-1; ++i) {
+    mid[i-1] = create_mid_band_matrix<solution_vector_type, matrix_type>
+                                   (global_solution_vector[std::max(i-2,0)], global_solution_vector[i-1], global_solution_vector[i],
+                                    global_solution_vector[i+1],global_solution_vector[std::min(i+2,number_of_cells-1)],
+                                    gamma, Pr, Le, Q, Lambda,
+                                    theta, dx, dt, zeta, Theta);
+    bot[i-1] = create_bot_band_matrix<solution_vector_type, matrix_type>
+                                   (global_solution_vector[std::max(i-2,0)], global_solution_vector[i-1], global_solution_vector[i],
+                                    global_solution_vector[i+1],global_solution_vector[std::min(i+2,number_of_cells-1)],
+                                    gamma, Pr, Le, Q, Lambda,
+                                    theta, dx, dt, zeta, Theta);
+    top[i-1] = create_top_band_matrix<solution_vector_type, matrix_type>
+                                   (global_solution_vector[std::max(i-2,0)], global_solution_vector[i-1], global_solution_vector[i],
+                                    global_solution_vector[i+1],global_solution_vector[std::min(i+2,number_of_cells-1)],
+                                    gamma, Pr, Le, Q, Lambda,
+                                    theta, dx, dt, zeta, Theta);
+    rhs[i-1] = create_rhs_vector<solution_vector_type, matrix_type>
+                                   (global_solution_vector[std::max(i-2,0)], global_solution_vector[i-1], global_solution_vector[i],
+                                    global_solution_vector[i+1],global_solution_vector[std::min(i+2,number_of_cells-1)],
+                                    gamma, Pr, Le, Q, Lambda,
+                                    theta, dx, dt, zeta, Theta, delta_global_solution_vector[i-1]);
+      rhs[i-1] += manufactured_residual(Lambda, i)*dt;
+>>>>>>> d444da6efe4b69421316ad4a1d5fab52dd459cec
     // rhs[i-1] += numerical_dissipation(global_solution_vector, i, 0.9);
     // rhs[i-1] += numerical_dissipation(global_solution_vector, i, 0.1);
     // rhs[i-1] += numerical_dissipation(global_solution_vector, i, 0.01);
@@ -177,7 +202,25 @@ double Implicit_Marching<global_solution_vector_type, matrix_type>::timemarch(do
 
 // Implicit Boundary Conditions
 // #pragma omp single
+<<<<<<< HEAD
 //   mid[global_solution_vector.size()-3] += top[global_solution_vector.size()-3];
+=======
+//   mid[0] += 0.1 *
+//   create_bot_band_matrix<solution_vector_type, matrix_type>
+//                         (global_solution_vector[0],
+//                          global_solution_vector[1],
+//                          global_solution_vector[2],
+// //                          gamma, Pr, Le, Q, Lambda, theta, dx, dt, zeta, Theta);
+// #pragma omp single
+//   mid[global_solution_vector.size()-3] +=
+//   create_top_band_matrix<solution_vector_type, matrix_type>
+//                         (global_solution_vector[global_solution_vector.size()-4],
+//                          global_solution_vector[global_solution_vector.size()-3],
+//                          global_solution_vector[global_solution_vector.size()-2],
+//                          global_solution_vector[global_solution_vector.size()-1],
+//                          global_solution_vector[global_solution_vector.size()-1],
+//                          gamma, Pr, Le, Q, Lambda, theta, dx, dt, zeta, Theta);
+>>>>>>> d444da6efe4b69421316ad4a1d5fab52dd459cec
 
 #pragma omp single
   delta_global_solution_vector = block_triagonal_matrix_inverse<matrix_type, solution_vector_type>(mid, top, bot, rhs);
@@ -185,13 +228,16 @@ double Implicit_Marching<global_solution_vector_type, matrix_type>::timemarch(do
 #pragma omp for
   for (int i = 1; i < number_of_cells-1; ++i) {
     if(current_time == 0.0) {
-      global_solution_vector[i] += delta_global_solution_vector[i-1]*(1+zeta);
+      global_solution_vector[i] += delta_global_solution_vector[i-1]*(1);
     } else {
       global_solution_vector[i] += delta_global_solution_vector[i-1];
     }
   }
 
+<<<<<<< HEAD
 //Explicit Boundary Conditions
+=======
+>>>>>>> d444da6efe4b69421316ad4a1d5fab52dd459cec
 // #pragma omp single
 //   {
 //     global_solution_vector[global_solution_vector.size()-1] = global_solution_vector[global_solution_vector.size()-2];
@@ -276,45 +322,52 @@ typename global_solution_vector_type::value_type Implicit_Marching<global_soluti
     ///////////////////////////////////////////////////////////////////////////////
     // Full
     ///////////////////////////////////////////////////////////////////////////////
-    temp << (81*Power(1.0/cosh(10 - 4*x),2)*tanh(10 - 4*x))/5.,(Power(1.0/cosh(10 - 4*x),2)*
-      (2947 - 769*gamma - 6*(-891 + 297*gamma + 1280*Pr)*tanh(10 - 4*x) + 2187*(-3 + gamma)*Power(tanh(10 - 4*x),2)))/40.,
-   (36*Power(1.0/cosh(10 - 4*x),4)*(-100791541*gamma - 15972*Pr + 9801*(3*gamma - 4*Pr)*tanh(10 - 4*x) + 8019*(3*gamma - 4*Pr)*Power(tanh(10 - 4*x),2) +
-         2187*(3*gamma - 4*Pr)*Power(tanh(10 - 4*x),3)))/Power(11 + 9*tanh(10 - 4*x),3) -
-    (Power(1.0/cosh(10 - 4*x),2)*(-121*(11979 + 50389781*gamma) + (6147901762*gamma + 7986*(-297 + 640*Pr))*tanh(10 - 4*x) -
-         54*(75686097*gamma - 121*(297 + 640*Pr))*Power(tanh(10 - 4*x),2) - 972*(-3267 + 387*gamma + 3520*Pr)*Power(tanh(10 - 4*x),3) +
-         2187*(-297 + 1257*gamma - 1280*Pr)*Power(tanh(10 - 4*x),4) + 1062882*(-1 + gamma)*Power(tanh(10 - 4*x),5)))/(40.*Power(11 + 9*tanh(10 - 4*x),2))
-      - (exp((8*theta*(11 + 9*tanh(10 - 4*x)))/
-         ((-1 + gamma)*(-11198669 - 769*tanh(10 - 4*x) - 891*Power(tanh(10 - 4*x),2) + 729*Power(tanh(10 - 4*x),3))))*lambda*Q*(11 + 9*tanh(10 - 4*x))*
-       (1 + tanh(2 - x)))/40.,(Power(1.0/cosh(2 - x),2)*(-11 + 9*tanh(10 - 4*x))*(11 + 9*tanh(10 - 4*x)) + (80*Power(1.0/cosh(2 - x),2)*tanh(2 - x))/Le +
-      36*Power(1.0/cosh(10 - 4*x),2)*(-11 + 9*tanh(10 - 4*x))*(1 + tanh(2 - x)) +
-      2*exp((8*theta*(11 + 9*tanh(10 - 4*x)))/
-         ((-1 + gamma)*(-11198669 - 769*tanh(10 - 4*x) - 891*Power(tanh(10 - 4*x),2) + 729*Power(tanh(10 - 4*x),3))))*lambda*(11 + 9*tanh(10 - 4*x))*
-       (1 + tanh(2 - x)) + 36*Power(1.0/cosh(10 - 4*x),2)*(11 + 9*tanh(10 - 4*x))*(1 + tanh(2 - x)))/80.;
+  //   temp << (81*Power(1.0/cosh(10 - 4*x),2)*tanh(10 - 4*x))/5.,(Power(1.0/cosh(10 - 4*x),2)*
+  //     (2947 - 769*gamma - 6*(-891 + 297*gamma + 1280*Pr)*tanh(10 - 4*x) + 2187*(-3 + gamma)*Power(tanh(10 - 4*x),2)))/40.,
+  //  (36*Power(1.0/cosh(10 - 4*x),4)*(-100791541*gamma - 15972*Pr + 9801*(3*gamma - 4*Pr)*tanh(10 - 4*x) + 8019*(3*gamma - 4*Pr)*Power(tanh(10 - 4*x),2) +
+  //        2187*(3*gamma - 4*Pr)*Power(tanh(10 - 4*x),3)))/Power(11 + 9*tanh(10 - 4*x),3) -
+  //   (Power(1.0/cosh(10 - 4*x),2)*(-121*(11979 + 50389781*gamma) + (6147901762*gamma + 7986*(-297 + 640*Pr))*tanh(10 - 4*x) -
+  //        54*(75686097*gamma - 121*(297 + 640*Pr))*Power(tanh(10 - 4*x),2) - 972*(-3267 + 387*gamma + 3520*Pr)*Power(tanh(10 - 4*x),3) +
+  //        2187*(-297 + 1257*gamma - 1280*Pr)*Power(tanh(10 - 4*x),4) + 1062882*(-1 + gamma)*Power(tanh(10 - 4*x),5)))/(40.*Power(11 + 9*tanh(10 - 4*x),2))
+  //     - (exp((8*theta*(11 + 9*tanh(10 - 4*x)))/
+  //        ((-1 + gamma)*(-11198669 - 769*tanh(10 - 4*x) - 891*Power(tanh(10 - 4*x),2) + 729*Power(tanh(10 - 4*x),3))))*lambda*Q*(11 + 9*tanh(10 - 4*x))*
+  //      (1 + tanh(2 - x)))/40.,(Power(1.0/cosh(2 - x),2)*(-11 + 9*tanh(10 - 4*x))*(11 + 9*tanh(10 - 4*x)) + (80*Power(1.0/cosh(2 - x),2)*tanh(2 - x))/Le +
+  //     36*Power(1.0/cosh(10 - 4*x),2)*(-11 + 9*tanh(10 - 4*x))*(1 + tanh(2 - x)) +
+  //     2*exp((8*theta*(11 + 9*tanh(10 - 4*x)))/
+  //        ((-1 + gamma)*(-11198669 - 769*tanh(10 - 4*x) - 891*Power(tanh(10 - 4*x),2) + 729*Power(tanh(10 - 4*x),3))))*lambda*(11 + 9*tanh(10 - 4*x))*
+  //      (1 + tanh(2 - x)) + 36*Power(1.0/cosh(10 - 4*x),2)*(11 + 9*tanh(10 - 4*x))*(1 + tanh(2 - x)))/80.;
 
-    man_sol += temp;
+    // man_sol += temp;
     ///////////////////////////////////////////////////////////////////////////////
     // Hyperbolic
     ///////////////////////////////////////////////////////////////////////////////
-  //   temp << -2*(10 + cos(x))*sin(x),((-898 + 298*gamma + 3*(-3 + gamma)*cos(x)*(20 + cos(x)))*sin(x))/2.,
-  //  2*(-5*(200 + 801*gamma) + cos(x)*(-300 + 299*gamma + (-1 + gamma)*cos(x)*(30 + cos(x))))*sin(x),-3*Power(10 + cos(x),2)*sin(x);
-   //
-  //   man_sol += temp;
-  //   ///////////////////////////////////////////////////////////////////////////////
-  //   // Viscous
-  //   ///////////////////////////////////////////////////////////////////////////////
-  //   temp << 0,(4*Pr*cos(x))/3.,(-10*gamma + (40*Pr)/3.)*cos(x) + ((-3*gamma + 4*Pr)*cos(2*x))/3. +
-  //   (4995*gamma*(-3 - 20*cos(x) + cos(2*x)))/Power(10 + cos(x),3),cos(x)/Le;
-   //
-  //   man_sol += temp;
-  //   ///////////////////////////////////////////////////////////////////////////////
-  //   // Source
-  //   ///////////////////////////////////////////////////////////////////////////////
-  //   temp << 0.,0.,-((lambda*Q*Power(10 + cos(x),2))/
-  //     exp((theta*(10 + cos(x)))/((-1 + gamma)*(10000 + cos(x) - Power(10 + cos(x),3)/2.)))),
-  //  (lambda*Power(10 + cos(x),2))/
-  //   exp((theta*(10 + cos(x)))/((-1 + gamma)*(10000 + cos(x) - Power(10 + cos(x),3)/2.)));
-   //
-  //   man_sol += temp;
+    temp << (81*Power(1/cosh(10 - 4*x),2)*tanh(10 - 4*x))/5.,(Power(1/cosh(10 - 4*x),2)*
+      (2947 - 769*gamma - 1782*(-3 + gamma)*tanh(10 - 4*x) + 2187*(-3 + gamma)*Power(tanh(10 - 4*x),2)))/40.,
+   (Power(1/cosh(10 - 4*x),2)*(11979 + 50389781*gamma - 2880*gamma*tanh(10 - 4*x) + 24057*(-1 + gamma)*Power(tanh(10 - 4*x),2) -
+        13122*(-1 + gamma)*Power(tanh(10 - 4*x),3)))/40.,(Power(1/cosh(2 - x),2)*(-121 + 81*Power(tanh(10 - 4*x),2)) +
+      648*Power(1/cosh(10 - 4*x),2)*tanh(10 - 4*x)*(1 + tanh(2 - x)))/80.;
+
+    man_sol += temp;
+    ///////////////////////////////////////////////////////////////////////////////
+    // Viscous
+    ///////////////////////////////////////////////////////////////////////////////
+    temp << 0,-192*Pr*Power(1/cosh(10 - 4*x),2)*tanh(10 - 4*x),(36*Power(1/cosh(10 - 4*x),4)*
+       (-100791541*gamma - 15972*Pr + 9801*(3*gamma - 4*Pr)*tanh(10 - 4*x) + 8019*(3*gamma - 4*Pr)*Power(tanh(10 - 4*x),2) +
+         2187*(3*gamma - 4*Pr)*Power(tanh(10 - 4*x),3)) - 8*Power(1/cosh(10 - 4*x),2)*tanh(10 - 4*x)*
+       (554287591*gamma + 175692*Pr + 18*(25188901*gamma + 15972*Pr)*tanh(10 - 4*x) + 48114*(3*gamma - 4*Pr)*Power(tanh(10 - 4*x),3) +
+         19683*(3*gamma - 4*Pr)*Power(tanh(10 - 4*x),4)))/Power(11 + 9*tanh(10 - 4*x),3),(Power(1/cosh(2 - x),2)*tanh(2 - x))/Le;
+
+    man_sol += temp;
+    ///////////////////////////////////////////////////////////////////////////////
+    // Source
+    ///////////////////////////////////////////////////////////////////////////////
+    temp << 0.,0.,-(exp((8*theta*(11 + 9*tanh(10 - 4*x)))/
+         ((-1 + gamma)*(-11198669 - 769*tanh(10 - 4*x) - 891*Power(tanh(10 - 4*x),2) + 729*Power(tanh(10 - 4*x),3))))*lambda*Q*(11 + 9*tanh(10 - 4*x))*
+       (1 + tanh(2 - x)))/40.,(exp((8*theta*(11 + 9*tanh(10 - 4*x)))/
+        ((-1 + gamma)*(-11198669 - 769*tanh(10 - 4*x) - 891*Power(tanh(10 - 4*x),2) + 729*Power(tanh(10 - 4*x),3))))*lambda*(11 + 9*tanh(10 - 4*x))*
+      (1 + tanh(2 - x)))/40.;
+
+    man_sol += temp;
 
    return man_sol;
 }

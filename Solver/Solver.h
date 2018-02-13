@@ -131,14 +131,15 @@ bool Solver<global_solution_vector_type, matrix_type>::solve(marching_type march
                           (-0.45*tanh(4.0 * x - 10.0) + 0.55)*(4.5*tanh(4.0 * x - 10.0) + 5.5),
                           2.0*tanh(4.0*x - 10.0) + 70000,
                           (-0.45*tanh(4.0 * x - 10.0) + 0.55)*(-0.5*tanh(x - 8.0/4.0) + 0.5);
-    // initial_solution[i] << cos(x)+10, (cos(x)+10)*(cos(x)+10), cos(x)+10000, (cos(x)+10)*(cos(x)+10);
   }
   double convergence = 0.0;
   for(size_t i = 0; i < initial_solution.size(); ++i) {
     for(int j = 0; j < 4; ++j){
-      convergence += std::fabs(initial_solution[i][j]-global_solution_vector[i][j]);
+      convergence += std::pow(std::fabs(initial_solution[i][j]-global_solution_vector[i][j]),2)*march.get_dx();
     }
   }
+
+  convergence = std::sqrt(convergence);
 
   std::ofstream gnu_input_file;
   gnu_input_file.open("Convergence_Plot.dat", std::ios_base::app);

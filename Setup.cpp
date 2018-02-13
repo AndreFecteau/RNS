@@ -44,6 +44,13 @@ int main(){
 
   int    number_of_cells = 2000;
   double frame_time = 1e1;
+  double T_ignition = 1.0;
+  double theta_low_mach =5*(1+Q_low_mach)*(1+Q_low_mach) / Q_low_mach;
+  double Q = Q_low_mach/(mf*mf*(gamma-1));
+  double theta =theta_low_mach/(gamma*mf*mf);
+
+  int    number_of_cells =10000;
+  double frame_time = 1e2;
 
   double lambda = 0.0;
   double x_min = 0.0;
@@ -56,13 +63,16 @@ int main(){
 
   double Theta = 1.0;
   double zeta = 0.0;
-  // double CFL =  1e5;
+
+  double CFL =  0.5;
+
   std::ofstream gnu_input_file;
   gnu_input_file.open("Convergence_Plot.dat", std::ios_base::app);
   gnu_input_file << "#number_of_cells residual time" << std::endl;
 
-  while(number_of_cells < 20000) {
-    double CFL =  number_of_cells*4;
+  while(number_of_cells < 200000) {
+    double CFL =  number_of_cells*10000;
+
   // std::string filename = "Movie/Plot_Euler_" + tostring(frame_time) + "_" + tostring(number_of_cells) + "_";
   // std::string filename = "Movie/Test_Implicit_Residual_" + tostring(number_of_cells) + "_";
   std::string filename = "Movie/Test_Explicit_Residual_" + tostring(number_of_cells) + "_";
@@ -98,7 +108,7 @@ int main(){
   bool check = solver.solve<implicit_marching_type>(implicit_march, target_residual, frame_time, gamma);
   // bool check = solver.solve<explicit_marching_type>(explicit_march, target_residual, frame_time, gamma);
   // solver.solve<explicit_euler_marching_type>(explicit_euler_march, target_residual, frame_time, gamma);
-  number_of_cells += 2000;
+  number_of_cells += 10000;
   // bisection_lambda(lambda_min, lambda_max, lambda_run, check);
 }
 
