@@ -1,49 +1,102 @@
-#ifndef CREATE_IMPLICIT_MATRIX_VECTOR_3_H
-#define CREATE_IMPLICIT_MATRIX_VECTOR_3_H
-
-#include "../Explicit_Flux_and_Sources/HLLE.h"
-#include "../Explicit_Flux_and_Sources/Centered_Difference.h"
-#include "../Explicit_Flux_and_Sources/Sources.h"
+#ifndef IMPLICIT_MATRIX_ENTRIES
+#define IMPLICIT_MATRIX_ENTRIES
 
 #define HYPERBOLIC
 #define VISCOUS
 #define SOURCE
 
-template <typename T>
-T Power(T num, int expo) {
-  return pow(num, expo);
-}
+template <typename global_solution_vector_type, typename matrix_type>
+class Implicit_Matrix_Entries {
+using solution_vector_type = typename global_solution_vector_type::value_type;
+ public:
+  /////////////////////////////////////////////////////////////////////////
+  /// \brief Default constructor.
+  Implicit_Matrix_Entries() = default;
 
-double Power(int num, double expo) {
-  return exp(expo);
-}
+  /////////////////////////////////////////////////////////////////////////
+  /// \brief Copy constructor.
+  Implicit_Matrix_Entries(const Implicit_Matrix_Entries&) = default;
 
-template <typename solution_vector_type, typename Matrix_type>
-Matrix_type create_mid_band_matrix(const solution_vector_type& solution_vector_mm,
-                                       const solution_vector_type solution_vector_m,
-                                       const solution_vector_type solution_vector,
-                                       const solution_vector_type solution_vector_p,
-                                       const solution_vector_type solution_vector_pp,
-                                       const double& gamma, const double& Pr,
-                                       const double& Le, const double& Q, const double& lambda,
-                                       const double& theta, const double& dx, const double& dt,
-                                       const double& zeta, const double& Theta) {
-  double rho = solution_vector[0];
-  double rhom = solution_vector_m[0];
-  double rhop = solution_vector_p[0];
-  double u = solution_vector[1]/solution_vector[0];
-  double um = solution_vector_m[1]/solution_vector_m[0];
-  double up = solution_vector_p[1]/solution_vector_p[0];
-  double e = solution_vector[2];
-  double em = solution_vector_m[2];
-  double ep = solution_vector_p[2];
-  double Y = solution_vector[3]/solution_vector[0];
-  double Ym = solution_vector_m[3]/solution_vector_m[0];
-  double Yp = solution_vector_p[3]/solution_vector_p[0];
-  int E = 0;
+  /////////////////////////////////////////////////////////////////////////
+  /// \brief Move constructor.
+  Implicit_Matrix_Entries(Implicit_Matrix_Entries&&) = default;
 
-  Matrix_type b;
-  Matrix_type temp;
+  /////////////////////////////////////////////////////////////////////////
+  /// \brief Copy assignment operator.
+  Implicit_Matrix_Entries& operator=(const Implicit_Matrix_Entries&) = default;
+
+  /////////////////////////////////////////////////////////////////////////
+  /// \brief Move assignment operator.
+  Implicit_Matrix_Entries& operator=(Implicit_Matrix_Entries&&) = default;
+
+  /////////////////////////////////////////////////////////////////////////
+  /// \brief Constructor setting up required inputs.
+  Implicit_Matrix_Entries(const solution_vector_type& solution_vector_mm,
+                             const solution_vector_type& solution_vector_m,
+                             const solution_vector_type& solution_vector,
+                             const solution_vector_type& solution_vector_p,
+                             const solution_vector_type& solution_vector_pp,
+                             const solution_vector_type& DeltaUm,
+                             const double& gamma_in, const double& Pr_in,
+                             const double& Le_in, const double& Q_in, const double& lambda_in,
+                             const double& theta_in, const double& dx_in, const double& dt_in,
+                             const double& zeta_in, const double& Theta_in) :
+                             gamma(gamma_in), Pr(Pr_in), Le(Le_in), Q(Q_in), lambda(lambda_in),
+                             theta(theta_in), dx(dx_in), dt(dt_in), zeta(zeta_in),
+                             Theta(Theta_in) {
+  rho = solution_vector[0];
+  rhom = solution_vector_m[0];
+  rhop = solution_vector_p[0];
+  u = solution_vector[1]/solution_vector[0];
+  um = solution_vector_m[1]/solution_vector_m[0];
+  up = solution_vector_p[1]/solution_vector_p[0];
+  e = solution_vector[2];
+  em = solution_vector_m[2];
+  ep = solution_vector_p[2];
+  Y = solution_vector[3]/solution_vector[0];
+  Ym = solution_vector_m[3]/solution_vector_m[0];
+  Yp = solution_vector_p[3]/solution_vector_p[0];
+  dUm1 = DeltaUm[0];
+  dUm2 = DeltaUm[1];
+  dUm3 = DeltaUm[2];
+  dUm4 = DeltaUm[3];
+  (void) solution_vector_mm;
+  (void) solution_vector_pp;
+  }
+
+  matrix_type top_matrix();
+  matrix_type mid_matrix();
+  matrix_type bot_matrix();
+  solution_vector_type rhs_matrix();
+
+ private:
+  double rho, rhom, rhop;
+  double u, um, up;
+  double e, em, ep;
+  double Y, Ym, Yp;
+  char E;
+  double gamma, Pr, Le, Q;
+  double lambda, theta;
+  double dx, dt;
+  double zeta, Theta;
+  double dUm1, dUm2, dUm3, dUm4;
+
+  template <typename T>
+  double Power(const T num, const int expo) {
+    return pow(num, expo);
+  }
+
+  double Power(const char num, const double expo) {
+    return exp(expo);
+  }
+};
+
+
+template <typename global_solution_vector_type, typename matrix_type>
+matrix_type Implicit_Matrix_Entries<global_solution_vector_type, matrix_type>::mid_matrix() {
+
+  matrix_type b;
+  matrix_type temp;
 ///////////////////////////////////////////////////////////////////////////////
 // Needed
 ///////////////////////////////////////////////////////////////////////////////
@@ -101,40 +154,20 @@ Matrix_type create_mid_band_matrix(const solution_vector_type& solution_vector_m
    (4*dt*Power(E,(2*rho*theta)/((-1 + gamma)*(-2*e + rho*Power(u,2))))*lambda*Power(rho,2)*theta*Theta*Y)/
     ((-1 + gamma)*Power(-2*e + rho*Power(u,2),2)*(1 + zeta)),(dt*Power(E,(2*rho*theta)/((-1 + gamma)*(-2*e + rho*Power(u,2))))*lambda*Theta)/(1 + zeta);
 
-   if((gamma-1.0)/ rho * (e-0.5*rho*u*u) > 1.2/(gamma*0.005*0.005)){
+   if((gamma-1.0)/ rho * (e-0.5*rho*u*u) > 1.1/(gamma*0.005*0.005)){
     b += temp;
   }
+
 #endif
 
   return b;
 }
 
-template <typename solution_vector_type, typename Matrix_type>
-Matrix_type create_top_band_matrix(const solution_vector_type& solution_vector_mm,
-                                       const solution_vector_type solution_vector_m,
-                                       const solution_vector_type solution_vector,
-                                       const solution_vector_type solution_vector_p,
-                                       const solution_vector_type solution_vector_pp,
-                                       const double& gamma, const double& Pr,
-                                       const double& Le, const double& Q, const double& lambda,
-                                       const double& theta, const double& dx, const double& dt,
-                                       const double& zeta, const double& Theta) {
-  double rho = solution_vector[0];
-  double rhom = solution_vector_m[0];
-  double rhop = solution_vector_p[0];
-  double u = solution_vector[1]/solution_vector[0];
-  double um = solution_vector_m[1]/solution_vector_m[0];
-  double up = solution_vector_p[1]/solution_vector_p[0];
-  double e = solution_vector[2];
-  double em = solution_vector_m[2];
-  double ep = solution_vector_p[2];
-  double Y = solution_vector[3]/solution_vector[0];
-  double Ym = solution_vector_m[3]/solution_vector_m[0];
-  double Yp = solution_vector_p[3]/solution_vector_p[0];
-  int E = 0;
+template <typename global_solution_vector_type, typename matrix_type>
+matrix_type Implicit_Matrix_Entries<global_solution_vector_type, matrix_type>::top_matrix() {
 
-  Matrix_type c;
-  Matrix_type temp;
+  matrix_type c;
+  matrix_type temp;
 ///////////////////////////////////////////////////////////////////////////////
 // Needed
 ///////////////////////////////////////////////////////////////////////////////
@@ -179,32 +212,11 @@ Matrix_type create_top_band_matrix(const solution_vector_type& solution_vector_m
   return c;
 }
 
-template <typename solution_vector_type, typename Matrix_type>
-Matrix_type create_bot_band_matrix(const solution_vector_type& solution_vector_mm,
-                                       const solution_vector_type solution_vector_m,
-                                       const solution_vector_type solution_vector,
-                                       const solution_vector_type solution_vector_p,
-                                       const solution_vector_type solution_vector_pp,
-                                       const double& gamma, const double& Pr,
-                                       const double& Le, const double& Q, const double& lambda,
-                                       const double& theta, const double& dx, const double& dt,
-                                       const double& zeta, const double& Theta) {
-  double rho = solution_vector[0];
-  double rhom = solution_vector_m[0];
-  double rhop = solution_vector_p[0];
-  double u = solution_vector[1]/solution_vector[0];
-  double um = solution_vector_m[1]/solution_vector_m[0];
-  double up = solution_vector_p[1]/solution_vector_p[0];
-  double e = solution_vector[2];
-  double em = solution_vector_m[2];
-  double ep = solution_vector_p[2];
-  double Y = solution_vector[3]/solution_vector[0];
-  double Ym = solution_vector_m[3]/solution_vector_m[0];
-  double Yp = solution_vector_p[3]/solution_vector_p[0];
-  int E = 0;
+template <typename global_solution_vector_type, typename matrix_type>
+matrix_type Implicit_Matrix_Entries<global_solution_vector_type, matrix_type>::bot_matrix() {
 
-  Matrix_type a;
-  Matrix_type temp;
+  matrix_type a;
+  matrix_type temp;
 ///////////////////////////////////////////////////////////////////////////////
 // Needed
 ///////////////////////////////////////////////////////////////////////////////
@@ -248,38 +260,10 @@ Matrix_type create_bot_band_matrix(const solution_vector_type& solution_vector_m
   return a;
 }
 
-template <typename solution_vector_type, typename Matrix_type>
-solution_vector_type create_rhs_vector(const solution_vector_type& solution_vector_mm,
-                                       const solution_vector_type solution_vector_m,
-                                       const solution_vector_type solution_vector,
-                                       const solution_vector_type solution_vector_p,
-                                       const solution_vector_type solution_vector_pp,
-                                       const double& gamma, const double& Pr,
-                                       const double& Le, const double& Q, const double& lambda,
-                                       const double& theta, const double& dx, const double& dt,
-                                       const double& zeta, const double& Theta,
-                                       const solution_vector_type& DeltaUm) {
+template <typename global_solution_vector_type, typename matrix_type>
+typename global_solution_vector_type::value_type
+Implicit_Matrix_Entries<global_solution_vector_type, matrix_type>::rhs_matrix() {
 
-
-  double rho = solution_vector[0];
-  double rhom = solution_vector_m[0];
-  double rhop = solution_vector_p[0];
-  double u = solution_vector[1]/solution_vector[0];
-  double um = solution_vector_m[1]/solution_vector_m[0];
-  double up = solution_vector_p[1]/solution_vector_p[0];
-  double e = solution_vector[2];
-  double em = solution_vector_m[2];
-  double ep = solution_vector_p[2];
-  double Y = solution_vector[3]/solution_vector[0];
-  double Ym = solution_vector_m[3]/solution_vector_m[0];
-  double Yp = solution_vector_p[3]/solution_vector_p[0];
-  double dUm1 = DeltaUm[0];
-  double dUm2 = DeltaUm[1];
-  double dUm3 = DeltaUm[2];
-  double dUm4 = DeltaUm[3];
-  int E = 0;
-
-  // HLLE<std::vector<solution_vector_type>> hyperbolic_flux;
   solution_vector_type rhs;
   solution_vector_type temp;
 ///////////////////////////////////////////////////////////////////////////////
@@ -324,7 +308,7 @@ solution_vector_type create_rhs_vector(const solution_vector_type& solution_vect
   temp << 0.,0.,(dt*lambda*Q*rho*Y)/(Power(E,(rho*theta)/((-1 + gamma)*(e - (rho*Power(u,2))/2.)))*(1 + zeta)),
    -((dt*lambda*rho*Y)/(Power(E,(rho*theta)/((-1 + gamma)*(e - (rho*Power(u,2))/2.)))*(1 + zeta)));
 
-   if((gamma-1.0)/ rho * (e-0.5*rho*u*u) > 1.2/(gamma*0.005*0.005)){
+   if((gamma-1.0)/ rho * (e-0.5*rho*u*u) > 1.1/(gamma*0.005*0.005)){
      rhs += temp;
    }
 
@@ -338,4 +322,4 @@ solution_vector_type create_rhs_vector(const solution_vector_type& solution_vect
   return rhs;
 }
 
-#endif //#ifndef CREATE_IMPLICIT_MATRIX_VECTOR_H
+#endif //#ifndef IMPLICIT_MATRIX_ENTRIES_CD

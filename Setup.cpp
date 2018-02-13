@@ -1,4 +1,4 @@
-  #include "Solver/Solver.h"
+#include "Solver/Solver.h"
 #include "Low_Mach_Solver/RK4_Low_Mach_Solver.h"
 #include "Usefull_Headers/Variable_Vector_Isolator.h"
 #include "Gnuplot_RNS/Gnuplot_Primitive_Variables.h"
@@ -16,8 +16,6 @@ using solution_vector_type = typename global_solution_vector_type::value_type;
 
 using implicit_marching_type = Implicit_Marching<global_solution_vector_type, matrix_type>;
 using explicit_marching_type = Explicit_Marching<global_solution_vector_type, matrix_type>;
-
-
 
 void bisection_lambda(double& lambda_min, double& lambda_max, double& lambda_run, bool check) {
   if (check == 1){
@@ -40,34 +38,35 @@ int main(){
   double mf = 0.005;
   double gamma = 1.4;
   double Q_low_mach = 9.0;
-  double T_ignition = 1.0;
   double theta_low_mach =500.0/9.0;
   double Q = Q_low_mach/(mf*mf*(gamma-1));
   double theta =theta_low_mach/(gamma*mf*mf);
 
-  int    number_of_cells = 50000;
+  int    number_of_cells = 2000;
   double frame_time = 1e1;
 
   double lambda = 0.0;
   double x_min = 0.0;
   double x_max;
+  double T_ignition = 1.0;
   double lambda_max;
   double lambda_min;
   double lambda_run;
-  double target_residual = 1e-19;
+  double target_residual = 1e-16;
 
   double Theta = 1.0;
   double zeta = 0.0;
-  double CFL =  1e5;
+  // double CFL =  1e5;
   std::ofstream gnu_input_file;
   gnu_input_file.open("Convergence_Plot.dat", std::ios_base::app);
   gnu_input_file << "#number_of_cells residual time" << std::endl;
 
-  // while(number_of_cells < 20000) {
-    // double CFL =  number_of_cells/200;
+  while(number_of_cells < 20000) {
+    double CFL =  number_of_cells*4;
   // std::string filename = "Movie/Plot_Euler_" + tostring(frame_time) + "_" + tostring(number_of_cells) + "_";
   // std::string filename = "Movie/Test_Implicit_Residual_" + tostring(number_of_cells) + "_";
   std::string filename = "Movie/Test_Explicit_Residual_" + tostring(number_of_cells) + "_";
+  // std::string filename = "Movie/Test_Convergence_" + tostring(number_of_cells) + "_";
   // std::string filename = "Movie/Exact_" + tostring(number_of_cells) + "_";
 
   global_solution_vector_type initial_solution;
@@ -81,26 +80,26 @@ int main(){
   lambda_min = 94000;
   lambda_run = 95400;
 
-  // manufactured_solution(number_of_cells, initial_solution, x_max, x_min);
+  manufactured_solution(number_of_cells, initial_solution, x_max, x_min);
   // case_4(frame_time, number_of_cells, initial_solution, gamma, x_max, x_min);
-  RK4_low_mach_initial_conditions(lambda, number_of_cells, initial_solution, Le, Q_low_mach,
-               theta_low_mach, T_ignition, gamma, x_max, mf);
-  auto explicit_march = explicit_marching_type(Pr, Le, Q, theta, mf, gamma,
-                        number_of_cells, CFL, (x_max - x_min)/number_of_cells);
+  // RK4_low_mach_initial_conditions(lambda, number_of_cells, initial_solution, Le, Q_low_mach,
+  //              theta_low_mach, T_ignition, gamma, x_max, mf);
+  // auto explicit_march = explicit_marching_type(Pr, Le, Q, theta, mf, gamma,
+  //                       number_of_cells, CFL, (x_max - x_min)/number_of_cells);
   auto implicit_march = implicit_marching_type(Pr, Le, Q, theta, mf, gamma,
                         number_of_cells, CFL, (x_max - x_min)/number_of_cells, Theta, zeta);
 
   plot<global_solution_vector_type>(filename+"0",
                                     initial_solution, (x_max - x_min)/number_of_cells);
 
-  auto solver = Solver<global_solution_vector_type, matrix_type>(initial_solution, lambda,
+  auto solver = Solver<global_solution_vector_type, matrix_type>(initial_solution, lambda_run,
                                                                  filename);
 
   bool check = solver.solve<implicit_marching_type>(implicit_march, target_residual, frame_time, gamma);
   // bool check = solver.solve<explicit_marching_type>(explicit_march, target_residual, frame_time, gamma);
   // solver.solve<explicit_euler_marching_type>(explicit_euler_march, target_residual, frame_time, gamma);
-  // number_of_cells += 1000;
+  number_of_cells += 2000;
   // bisection_lambda(lambda_min, lambda_max, lambda_run, check);
-// }
+}
 
 };
