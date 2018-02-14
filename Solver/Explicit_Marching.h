@@ -207,7 +207,7 @@ double Explicit_Marching<global_solution_vector_type, matrix_type>::timemarch(do
       global_flux_vector[i] += parabolic_flux.flux(global_solution_vector[i-1], global_solution_vector[i], global_solution_vector[i+1], gamma, Le, Pr, dx) * dt;
       global_flux_vector[i] += sources.flux(global_solution_vector[i], gamma, Q, lambda, theta) * dt;
       // std::cout << sources.flux(global_solution_vector[i], gamma, Q, lambda, theta) * dt;
-      // global_flux_vector[i] += manufactured_residual(lambda, i)*dt;
+      global_flux_vector[i] += manufactured_residual(lambda, i)*dt;
     }
 
 #pragma omp single
@@ -237,7 +237,7 @@ double Explicit_Marching<global_solution_vector_type, matrix_type>::timemarch(do
       global_flux_future_vector[i] += (hyperbolic_flux_future_vector[i] - hyperbolic_flux_future_vector[i+1]) / dx * dt ;
       global_flux_future_vector[i] += parabolic_flux.flux(global_solution_vector_future[i-1], global_solution_vector_future[i], global_solution_vector_future[i+1], gamma, Le, Pr, dx) * dt;
       global_flux_future_vector[i] += sources.flux(global_solution_vector_future[i], gamma, Q, lambda, theta) * dt;
-      // global_flux_future_vector[i] += manufactured_residual(lambda, i)*dt;
+      global_flux_future_vector[i] += manufactured_residual(lambda, i)*dt;
     }
 
 #pragma omp for reduction (+:residual)

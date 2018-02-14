@@ -8,8 +8,8 @@
 #include "Eigen/Core"
 #include "Eigen/Dense"
 // #include "../Implicit_Flux_and_Sources/Implicit_Euler.h"
-#include "../Implicit_Flux_and_Sources/Variable_Implicit_Scheme.h"
-// #include "../Implicit_Flux_and_Sources/Variable_Implicit_Scheme_HLLE.h"
+// #include "../Implicit_Flux_and_Sources/Variable_Implicit_Scheme.h"
+#include "../Implicit_Flux_and_Sources/Variable_Implicit_Scheme_HLLE.h"
 // #include "../Usefull_Headers/Block_Triagonal_Matrix_Inverse.h"
 #include "../Matrix_Inverse/Gaussian_Block_Triagonal_Matrix_Inverse.h"
 #include "../Usefull_Headers/Variable_Vector_Isolator.h"
@@ -178,8 +178,10 @@ double Implicit_Marching<global_solution_vector_type, matrix_type>::timemarch(do
 
 // Implicit Boundary Conditions
 #pragma omp single
+{
   mid[global_solution_vector.size()-3] += top[global_solution_vector.size()-3];
-  mid[0] += bot[0];
+  // mid[0] += bot[0];
+}
 
 #pragma omp single
   delta_global_solution_vector = block_triagonal_matrix_inverse<matrix_type, solution_vector_type>(mid, top, bot, rhs);
@@ -197,7 +199,7 @@ double Implicit_Marching<global_solution_vector_type, matrix_type>::timemarch(do
 #pragma omp single
   {
     global_solution_vector[global_solution_vector.size()-1] = global_solution_vector[global_solution_vector.size()-2];
-    global_solution_vector[0] = global_solution_vector[1];
+    // global_solution_vector[0] = global_solution_vector[1];
   }
 
 #pragma omp single

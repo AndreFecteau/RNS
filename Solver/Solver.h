@@ -108,8 +108,8 @@ bool Solver<global_solution_vector_type, matrix_type>::solve(marching_type march
   // plot<global_solution_vector_type>(filename + std::to_string(static_cast<int>(lambda)) + "_0" ), global_solution_vector, march.get_dx());
   double residual = 100000.0;
   int i = 0;
-  // while (i < 10){
-  while (residual > target_residual){
+  while (i < 10){
+  // while (residual > target_residual){
     old_position = flame_position_algorithm(global_solution_vector, gamma);
     auto start = std::chrono::high_resolution_clock::now();
     std::cout << "Time = " <<  current_time << std::endl;

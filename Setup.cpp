@@ -44,7 +44,7 @@ int main(){
 
   // int    number_of_cells =400000;
   int    number_of_cells;
-  double frame_time = 1e-2;
+  double frame_time = 1e4;
 
   double lambda = 0.0;
   double x_min = 0.0;
@@ -57,23 +57,28 @@ int main(){
 
   double Theta = 1.0;
   double zeta = 0.0;
-  double CFL =  0.5e0;
-  double per_FL = 16.0;
+  double CFL =  1e7;
+  double per_FL = 32.0;
   double dx = 1.0/per_FL;
   double domaine_length = 2000;
   std::ofstream gnu_input_file;
   gnu_input_file.open("Convergence_Plot.dat", std::ios_base::app);
   gnu_input_file << "#number_of_cells residual time" << std::endl;
 
-  global_solution_vector_type initial_solution;
-  initial_solution.resize(number_of_cells);
-  RK4_low_mach_initial_conditions(lambda, number_of_cells, initial_solution, Le, Q_low_mach,
-    theta_low_mach, T_ignition, gamma, x_max, mf, dx, domaine_length);
-  // while(CFL > 100) {
+  // initial_solution.resize(number_of_cells);
+  // manufactured_solution(number_of_cells, initial_solution, x_max, x_min, dx);
+
+
+
+
+  while(domaine_length < 10000) {
+    global_solution_vector_type initial_solution;
+    RK4_low_mach_initial_conditions(lambda, number_of_cells, initial_solution, Le, Q_low_mach,
+      theta_low_mach, T_ignition, gamma, x_max, mf, dx, domaine_length);
     // double CFL =  number_of_cells/1000;
   // std::string filename = "Movie/Plot_Euler_" + tostring(frame_time) + "_" + tostring(number_of_cells) + "_";
   // std::string filename = "Movie/Test_Implicit_Residual_" + tostring(number_of_cells) + "_";
-  std::string filename = "Movie/Test_Explicit_Residual_" + tostring(per_FL) + "_" + tostring(CFL) + "_";
+  std::string filename = "Movie/Test_Explicit_Residual_" + tostring(per_FL) + "_" + tostring(domaine_length) + "_";
   // std::string filename = "Movie/Exact_" + tostring(number_of_cells) + "_";
 
 
@@ -86,7 +91,7 @@ int main(){
   lambda_run = 95400;
 
   // straight_line(number_of_cells, initial_solution, x_max, x_min, mf, gamma);
-  // manufactured_solution(number_of_cells, initial_solution, x_max, x_min);
+  // manufactured_solution(number_of_cells, initial_solution, x_max, x_min, dx);
   // case_4(frame_time, number_of_cells, initial_solution, gamma, x_max, x_min);
   // RK4_low_mach_initial_conditions(lambda, number_of_cells, initial_solution, Le, Q_low_mach,
   //              theta_low_mach, T_ignition, gamma, x_max, mf);
@@ -101,11 +106,12 @@ int main(){
   auto solver = Solver<global_solution_vector_type, matrix_type>(initial_solution, lambda,
                                                                  filename);
 
-  // bool check = solver.solve<implicit_marching_type>(implicit_march, target_residual, frame_time, gamma);
-  bool check = solver.solve<explicit_marching_type>(explicit_march, target_residual, frame_time, gamma);
+  bool check = solver.solve<implicit_marching_type>(implicit_march, target_residual, frame_time, gamma);
+  // bool check = solver.solve<explicit_marching_type>(explicit_march, target_residual, frame_time, gamma);
   // solver.solve<explicit_euler_marching_type>(explicit_euler_march, target_residual, frame_time, gamma);
   // CFL /= 10;
-  // bisection_lambda(lambda_min, lambda_max, lambda_run, check);
-// }
+  // bisection_lambda(lambda_min, lambda_max, lambda, check);
+  domaine_length += 2000;
+}
 
 };

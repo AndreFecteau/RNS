@@ -87,10 +87,14 @@ void RK4_low_mach_initial_conditions(double &lambda, int &number_of_cells,
 }
 
 void straight_line(int number_of_cells, global_solution_vector_type &initial_solution, double &x_max, double &x_min,
-                  double mf, double gamma){
+                  double mf, double gamma, double dx){
 x_min = 0.0;
 x_max = 1000;
-double dx = (x_max-x_min) / number_of_cells;
+number_of_cells = x_max/dx;
+
+initial_solution.resize(number_of_cells);
+
+// double dx = (x_max-x_min) / number_of_cells;
   for (int i = 0; i < number_of_cells; ++i) {
     if (i < number_of_cells * 0.5) {
       initial_solution[i] << 1.0,
@@ -114,10 +118,12 @@ double dx = (x_max-x_min) / number_of_cells;
 }
 
 
-void manufactured_solution(int number_of_cells, global_solution_vector_type &initial_solution, double &x_max, double &x_min){
+void manufactured_solution(int &number_of_cells, global_solution_vector_type &initial_solution, double &x_max, double &x_min, double dx){
 x_min = 0.0;
 x_max = 2*atan(1)*4;
-double dx = (x_max-x_min) / number_of_cells;
+number_of_cells = x_max/dx;
+initial_solution.resize(number_of_cells);
+// double dx = (x_max-x_min) / number_of_cells;
   for (int i = 0; i < number_of_cells; ++i) {
     double x = x_min + (i+0.5)*dx;
     initial_solution[i] << (-0.45*tanh(4.0 * x - 10.0) + 0.55),

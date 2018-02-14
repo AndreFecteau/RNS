@@ -5,14 +5,13 @@ set key title ""
 #set yrange [-0.1:1]
 #set xrange [0:1]
 plot \
-"./Movie/Test_Explicit_Residual_16_0_0.dat"           using 1:4 title "Initial Solution " with lines,\
-"./Movie/Test_Explicit_Residual_16_0_15.dat"          using 1:4 title "Initial Solution " with lines,\
-"./Movie/Test_Explicit_Residual_16_0_16.dat"          using 1:4 title "Initial Solution " with lines,\
-"./Movie/Test_Explicit_Residual_16_0_17.dat"          using 1:4 title "Initial Solution " with lines,\
-"./Movie/Test_Explicit_Residual_16_0_18.dat"          using 1:4 title "Initial Solution " with lines,\
-"./Movie/Test_Explicit_Residual_16_0_19.dat"          using 1:4 title "Initial Solution " with lines,\
-"./Movie/Test_Explicit_Residual_16_0_110.dat"          using 1:4 title "Initial Solution " with lines,\
-"./Movie/Test_Explicit_Residual_0_10000_20.dat"          using 1:4 title "Initial Solution " with lines,\
+"./Movie/Test_Explicit_Residual_32_2000_0.dat"   using 1:4 title "Initial Solution " with lines,\
+"./Movie/Test_Explicit_Residual_32_2000_1.dat"   using 1:4 title "Initial Solution " with lines,\
+"./Movie/Test_Explicit_Residual_32_2000_2.dat"   using 1:4 title "Initial Solution " with lines,\
+"./Movie/Test_Explicit_Residual_32_2000_3.dat"   using 1:4 title "Initial Solution " with lines,\
+"./Movie/Test_Explicit_Residual_32_2000_4.dat"   using 1:4 title "Initial Solution " with lines,\
+"./Movie/Test_Explicit_Residual_32_2000_5.dat"   using 1:4 title "Initial Solution " with lines,\
+"./Movie/Test_Explicit_Residual_32_2000_6.dat"   using 1:4 title "Initial Solution " with lines,\
 
 
 
