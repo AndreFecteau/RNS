@@ -3,9 +3,9 @@
 
 #include "../Explicit_Flux_and_Sources/HLLE.h"
 
-#define HYPERBOLIC
-#define VISCOUS
-#define SOURCE
+// #define HYPERBOLIC
+// #define VISCOUS
+// #define SOURCE
 
 template <typename global_solution_vector_type, typename matrix_type>
 class Implicit_Matrix_Entries {
@@ -179,8 +179,18 @@ using solution_vector_type = typename global_solution_vector_type::value_type;
         phi[i] = 0.0;
       }
     }
+
+  // solution_vector_type phi;
+  // solution_vector_type a = (U - Ul) / dx;
+  // solution_vector_type b = (Ur - U) / dx;
+  // for(int i = 0; i < 4; ++i) {
+  // phi[i] = sign(a[i])*std::max(0.0,std::min(fabs(a[i]), sign(a[i])*b[i]));
+  // }
     return phi;
   }
+
+  template <typename T> int sign(T val) {return (T(0) < val) - (val < T(0));}
+
 };
 
 
@@ -416,7 +426,7 @@ Implicit_Matrix_Entries<global_solution_vector_type, matrix_type>::rhs_matrix() 
   // auto var_vec = Variable_Vector_Isolator<solution_vector_type>(solution_vector, gamma);
   // auto var_vec_r = Variable_Vector_Isolator<solution_vector_type>(solution_vector_p, gamma);
 
-   rhs += (hyperbolic_flux.flux(LUl, LUr, gamma) - hyperbolic_flux.flux(RUl, RUr, gamma)) /dx*dt;
+   rhs += 1.0 / (1.0 + zeta) * (hyperbolic_flux.flux(LUl, LUr, gamma) - hyperbolic_flux.flux(RUl, RUr, gamma)) /dx*dt;
 
 #endif
 ///////////////////////////////////////////////////////////////////////////////

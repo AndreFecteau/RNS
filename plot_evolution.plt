@@ -5,13 +5,12 @@ set key title ""
 #set yrange [-0.1:1]
 #set xrange [0:1]
 plot \
-"./Movie/Test_Explicit_Residual_32_2000_0.dat"   using 1:4 title "Initial Solution " with lines,\
-"./Movie/Test_Explicit_Residual_32_2000_1.dat"   using 1:4 title "Initial Solution " with lines,\
-"./Movie/Test_Explicit_Residual_32_2000_2.dat"   using 1:4 title "Initial Solution " with lines,\
-"./Movie/Test_Explicit_Residual_32_2000_3.dat"   using 1:4 title "Initial Solution " with lines,\
-"./Movie/Test_Explicit_Residual_32_2000_4.dat"   using 1:4 title "Initial Solution " with lines,\
-"./Movie/Test_Explicit_Residual_32_2000_5.dat"   using 1:4 title "Initial Solution " with lines,\
-"./Movie/Test_Explicit_Residual_32_2000_6.dat"   using 1:4 title "Initial Solution " with lines,\
+"./Movie/Plot_HLLE_Resolution_16_2000_3_0.dat"   using 1:4 title "Initial Solution " with lines,\
+"./Movie/Plot_HLLE_Resolution_16_2000_3_1.dat"   using 1:4 title "Initial Solution " with lines,\
+"./Movie/Plot_HLLE_Resolution_16_2000_3_2.dat"   using 1:4 title "Initial Solution " with lines,\
+"./Movie/Plot_HLLE_Resolution_16_2000_3_3.dat"   using 1:4 title "Initial Solution " with lines,\
+"./Movie/Plot_HLLE_Resolution_16_2000_3_4.dat"   using 1:4 title "Initial Solution " with lines,\
+"./Movie/Plot_HLLE_Resolution_16_2000_3_5.dat"   using 1:4 title "Initial Solution " with lines,\
 
 
 
