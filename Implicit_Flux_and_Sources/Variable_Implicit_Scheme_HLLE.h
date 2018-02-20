@@ -170,22 +170,22 @@ using solution_vector_type = typename global_solution_vector_type::value_type;
                                const solution_vector_type &U,
                                const solution_vector_type &Ur,
                                double dx) {
-    solution_vector_type a = (U - Ul) / dx;
-    solution_vector_type b = (Ur - U) / dx;
-    double epsilon = 1.0e-6;
-    solution_vector_type phi =  a.array() * b.array() * (a.array() + b.array()) / (a.array() * a.array() + b.array() * b.array() + epsilon);
-    for (int i = 0; i < 3; ++i) {
-      if (a[i] / b[i] <= 0.0 || b[i] == 0) {
-        phi[i] = 0.0;
-      }
-    }
+    // solution_vector_type a = (U - Ul) / dx;
+    // solution_vector_type b = (Ur - U) / dx;
+    // double epsilon = 1.0e-6;
+    // solution_vector_type phi =  a.array() * b.array() * (a.array() + b.array()) / (a.array() * a.array() + b.array() * b.array() + epsilon);
+    // for (int i = 0; i < 3; ++i) {
+    //   if (a[i] / b[i] <= 0.0 || b[i] == 0) {
+    //     phi[i] = 0.0;
+    //   }
+    // }
 
-  // solution_vector_type phi;
-  // solution_vector_type a = (U - Ul) / dx;
-  // solution_vector_type b = (Ur - U) / dx;
-  // for(int i = 0; i < 4; ++i) {
-  // phi[i] = sign(a[i])*std::max(0.0,std::min(fabs(a[i]), sign(a[i])*b[i]));
-  // }
+  solution_vector_type phi;
+  solution_vector_type a = (U - Ul) / dx;
+  solution_vector_type b = (Ur - U) / dx;
+  for(int i = 0; i < 4; ++i) {
+  phi[i] = sign(a[i])*std::max(0.0,static_cast<double>(std::min(fabs(a[i]), sign(a[i])*b[i])));
+  }
     return phi;
   }
 
@@ -422,9 +422,6 @@ Implicit_Matrix_Entries<global_solution_vector_type, matrix_type>::rhs_matrix() 
   solution_vector_type LUr =   var_vec.w().array() - phi.array() * dx / 2.0;
   solution_vector_type RUl =   var_vec.w().array() + phi.array() *dx / 2.0;
   solution_vector_type RUr = var_vec_p.w().array() - phi_p.array() * dx / 2.0;
-  // auto var_vec_l = Variable_Vector_Isolator<solution_vector_type>(solution_vector_m, gamma);
-  // auto var_vec = Variable_Vector_Isolator<solution_vector_type>(solution_vector, gamma);
-  // auto var_vec_r = Variable_Vector_Isolator<solution_vector_type>(solution_vector_p, gamma);
 
    rhs += 1.0 / (1.0 + zeta) * (hyperbolic_flux.flux(LUl, LUr, gamma) - hyperbolic_flux.flux(RUl, RUr, gamma)) /dx*dt;
 

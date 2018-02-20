@@ -15,8 +15,8 @@
 #include <cmath>
 
 
-typedef Eigen::Matrix<double, 4, 1> Vector_type;
-using matrix_type = Eigen::Matrix<double, 4,4>;
+typedef Eigen::Matrix<long double, 4, 1> Vector_type;
+using matrix_type = Eigen::Matrix<long double, 4,4>;
 using global_solution_vector_type = std::vector<Vector_type>;
 using solution_vector_type = typename global_solution_vector_type::value_type;
 #include "Usefull_Headers/Initial_Conditions.h"
@@ -51,7 +51,7 @@ int main(){
 
   // int    number_of_cells =400000;
   int    number_of_cells;
-  double frame_time = 1e2;
+  double frame_time = 1e1;
 
   double lambda = 0.0;
   double x_min = 0.0;
@@ -60,14 +60,14 @@ int main(){
   double lambda_max;
   double lambda_min;
   double lambda_run;
-  double target_residual = 1e-14;
+  double target_residual = 1e-17;
 
   double Theta = 1.0;
   double zeta = 0.0;
-  double CFL =  1e3;
-  double per_FL = 16.0;
+  double CFL =  1e4;
+  double per_FL = 64.0;
   double dx = 1.0/per_FL;
-  double domaine_length = 2000;
+  double domaine_length = 250;
   std::ofstream gnu_input_file;
   gnu_input_file.open("Convergence_Plot.dat", std::ios_base::app);
   gnu_input_file << "#number_of_cells residual time" << std::endl;
@@ -78,7 +78,8 @@ int main(){
 
 
 
-  while(per_FL < 1000) {
+  // while(CFL > 1e6) {
+    // double dx = 1.0/per_FL;
     global_solution_vector_type initial_solution;
     RK4_low_mach_initial_conditions(lambda, number_of_cells, initial_solution, Le, Q_low_mach,
       theta_low_mach, T_ignition, gamma, x_max, mf, dx, domaine_length);
@@ -87,7 +88,7 @@ int main(){
   // std::string filename = "Movie/Test_Implicit_Residual_" + tostring(number_of_cells) + "_";
   // manufactured_solution(number_of_cells, initial_solution, x_max, x_min, dx);
 
-  std::string filename = "Movie/Plot_HLLE_Resolution_" + tostring(per_FL) + "_"
+  std::string filename = "Movie/Plot_HLLE_5_" + tostring(per_FL) + "_"
                                        + tostring(domaine_length) + "_"
                                        + tostring(log10(CFL)) + "_";
   // std::string filename = "Movie/Exact_" + tostring(number_of_cells) + "_";
@@ -122,7 +123,7 @@ int main(){
   // CFL /= 10;
   // bisection_lambda(lambda_min, lambda_max, lambda, check);
 //   domaine_length += 2000;
-  per_FL *=2.0;
-}
+  // per_FL *=2.0;
+// }
 
 };

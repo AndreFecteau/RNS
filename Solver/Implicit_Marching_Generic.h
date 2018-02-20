@@ -8,8 +8,8 @@
 #include "Eigen/Core"
 #include "Eigen/Dense"
 // #include "../Implicit_Flux_and_Sources/Implicit_Euler.h"
-#include "../Implicit_Flux_and_Sources/Variable_Implicit_Scheme.h"
-// #include "../Implicit_Flux_and_Sources/Variable_Implicit_Scheme_HLLE.h"
+// #include "../Implicit_Flux_and_Sources/Variable_Implicit_Scheme.h"
+#include "../Implicit_Flux_and_Sources/Variable_Implicit_Scheme_HLLE.h"
 // #include "../Usefull_Headers/Block_Triagonal_Matrix_Inverse.h"
 #include "../Matrix_Inverse/Gaussian_Block_Triagonal_Matrix_Inverse.h"
 #include "../Usefull_Headers/Variable_Vector_Isolator.h"
@@ -173,7 +173,7 @@ double Implicit_Marching<global_solution_vector_type, matrix_type>::timemarch(do
     rhs[i-1] = matrix_entries.rhs_matrix();
     // rhs[i-1] += manufactured_residual(Lambda, i)*dt/(1+zeta);
 
-    rhs[i-1] += numerical_dissipation(global_solution_vector, i, 0.9);
+    // rhs[i-1] += numerical_dissipation(global_solution_vector, i, 0.9);
     // rhs[i-1] += numerical_dissipation(global_solution_vector, i, 0.1);
     // rhs[i-1] += numerical_dissipation(global_solution_vector, i, 0.01);
   }
@@ -182,7 +182,7 @@ double Implicit_Marching<global_solution_vector_type, matrix_type>::timemarch(do
 #pragma omp single
 {
   mid[global_solution_vector.size()-3] += top[global_solution_vector.size()-3];
-  mid[0] += bot[0];
+  // mid[0] += bot[0];
 }
 
 #pragma omp single
@@ -191,7 +191,7 @@ double Implicit_Marching<global_solution_vector_type, matrix_type>::timemarch(do
 #pragma omp for
   for (int i = 1; i < number_of_cells-1; ++i) {
     if(current_time == 0.0) {
-      global_solution_vector[i] += delta_global_solution_vector[i-1]*(1+zeta);
+      global_solution_vector[i] += delta_global_solution_vector[i-1]*(1.0+zeta);
     } else {
       global_solution_vector[i] += delta_global_solution_vector[i-1];
     }
@@ -201,7 +201,7 @@ double Implicit_Marching<global_solution_vector_type, matrix_type>::timemarch(do
 #pragma omp single
   {
     global_solution_vector[global_solution_vector.size()-1] = global_solution_vector[global_solution_vector.size()-2];
-    global_solution_vector[0] = global_solution_vector[1];
+    // global_solution_vector[0] = global_solution_vector[1];
   }
 
 #pragma omp single
