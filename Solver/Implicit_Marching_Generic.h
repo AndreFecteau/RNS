@@ -157,8 +157,8 @@ double Implicit_Marching<global_solution_vector_type, matrix_type>::timemarch(do
     dt = time_frame - current_time;
   }
 }
-// #pragma omp single
-#pragma omp for
+// #pragma omp for
+#pragma omp single
   for(int i = 1; i < static_cast<int>(global_solution_vector.size()-1); ++i) {
     // std::cout << i << std::endl;
     auto matrix_entries = Implicit_Matrix_Entries<global_solution_vector_type, matrix_type>
@@ -187,6 +187,13 @@ double Implicit_Marching<global_solution_vector_type, matrix_type>::timemarch(do
 
 #pragma omp single
   delta_global_solution_vector = block_triagonal_matrix_inverse<matrix_type, solution_vector_type>(mid, top, bot, rhs);
+
+// #pragma omp single
+// {
+//  std::cout << delta_global_solution_vector[0] << std::endl;
+//  getchar();
+// }
+
 
 #pragma omp for
   for (int i = 1; i < number_of_cells-1; ++i) {

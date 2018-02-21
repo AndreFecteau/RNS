@@ -424,7 +424,7 @@ Implicit_Matrix_Entries<global_solution_vector_type, matrix_type>::rhs_matrix() 
   solution_vector_type RUr = var_vec_p.w().array() - phi_p.array() * dx / 2.0;
 
    rhs += 1.0 / (1.0 + zeta) * (hyperbolic_flux.flux(LUl, LUr, gamma) - hyperbolic_flux.flux(RUl, RUr, gamma)) /dx*dt;
-
+  //  std::cout << (hyperbolic_flux.flux(LUl, LUr, gamma) - hyperbolic_flux.flux(RUl, RUr, gamma)) << std::endl;
 #endif
 ///////////////////////////////////////////////////////////////////////////////
 // Viscous (2nd order derivatives)
@@ -455,7 +455,7 @@ Implicit_Matrix_Entries<global_solution_vector_type, matrix_type>::rhs_matrix() 
   }
 
 #endif
-
+  // std::cout << rhs << std::endl;
   return rhs;
 }
 

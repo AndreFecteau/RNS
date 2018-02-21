@@ -64,10 +64,10 @@ int main(){
 
   double Theta = 1.0;
   double zeta = 0.0;
-  double CFL =  1e4;
-  double per_FL = 64.0;
+  double CFL =  1e6;
+  double per_FL = 512.0;
   double dx = 1.0/per_FL;
-  double domaine_length = 250;
+  double domaine_length = 500;
   std::ofstream gnu_input_file;
   gnu_input_file.open("Convergence_Plot.dat", std::ios_base::app);
   gnu_input_file << "#number_of_cells residual time" << std::endl;
@@ -76,9 +76,12 @@ int main(){
   // manufactured_solution(number_of_cells, initial_solution, x_max, x_min, dx);
 
 
+  lambda_max = 95600;
+  lambda_min = 94500;
+  lambda_run = 94550;
 
 
-  // while(CFL > 1e6) {
+  while(CFL < 1e9) {
     // double dx = 1.0/per_FL;
     global_solution_vector_type initial_solution;
     RK4_low_mach_initial_conditions(lambda, number_of_cells, initial_solution, Le, Q_low_mach,
@@ -88,9 +91,10 @@ int main(){
   // std::string filename = "Movie/Test_Implicit_Residual_" + tostring(number_of_cells) + "_";
   // manufactured_solution(number_of_cells, initial_solution, x_max, x_min, dx);
 
-  std::string filename = "Movie/Plot_HLLE_5_" + tostring(per_FL) + "_"
+  std::string filename = "Movie/Plot_HLLE_8_" + tostring(per_FL) + "_"
                                        + tostring(domaine_length) + "_"
-                                       + tostring(log10(CFL)) + "_";
+                                       + tostring(log10(CFL)) + "_"
+                                       + tostring(lambda_run) + "_";
   // std::string filename = "Movie/Exact_" + tostring(number_of_cells) + "_";
 
 
@@ -98,9 +102,6 @@ int main(){
   std::cout << "Initial Conditions "  << number_of_cells << std::endl;
   std::cout << "//////////////////////" << std::endl;
 
-  lambda_max = 95700;
-  lambda_min = 94000;
-  lambda_run = 95400;
 
   // straight_line(number_of_cells, initial_solution, x_max, x_min, mf, gamma);
   // manufactured_solution(number_of_cells, initial_solution, x_max, x_min, dx);
@@ -121,9 +122,9 @@ int main(){
   bool check = solver.solve<implicit_marching_type>(implicit_march, target_residual, frame_time, gamma);
   // bool check = solver.solve<explicit_marching_type>(explicit_march, target_residual, frame_time, gamma);
   // CFL /= 10;
-  // bisection_lambda(lambda_min, lambda_max, lambda, check);
+  bisection_lambda(lambda_min, lambda_max, lambda, check);
 //   domaine_length += 2000;
   // per_FL *=2.0;
-// }
+}
 
 };

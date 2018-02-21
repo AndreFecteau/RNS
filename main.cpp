@@ -19,13 +19,12 @@ std::string tostring(T name) {
 
 int main(){
 
-double per_FL = 16;
-double domaine_length = 4000;
-double CFL = 1e4;
+double per_FL = 64;
+double domaine_length = 100;
+double CFL = 1e6;
 int location = 0;
 
-  std::string filename = "dat_saves/Implicit_CD_16_Domaine/Plot_" + tostring(domaine_length) + "_"
-                                       + tostring(std::log10(CFL)) + "_2";
+  std::string filename = "dat_saves/Implicit_R512_D500_VC/Plot_" + tostring(log10(CFL)) + "_" + "0";
 
   global_solution_vector_type global_solution_vector;
   std::string line;
