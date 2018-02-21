@@ -42,7 +42,6 @@ public:
     T_var = isolate_T(solution_vector);
     rho_var = isolate_rho(solution_vector);
     Y_var = isolate_Y(solution_vector);
-    // p_var = isolate_p(solution_vector);
   }
   /////////////////////////////////////////////////////////////////////////
   /// \brief Function to return T.
@@ -65,7 +64,7 @@ public:
   double p(){return T_var * rho_var;};
 
   /////////////////////////////////////////////////////////////////////////
-  /// \brief
+  /// \brief Function to return primitive variable vector.
   solution_vector_type w(){
     solution_vector_type temp; temp << rho(), u(), p(), Y();
     return temp;
@@ -102,7 +101,6 @@ private:
   double rho_var;
   double Y_var;
   double gamma;
-  // double p_var;
 };
 
 #endif //#endif VARIABLE_VECTOR_ISOLATOR_H

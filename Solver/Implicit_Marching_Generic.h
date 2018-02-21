@@ -137,7 +137,8 @@ class Implicit_Marching {
 ///////////////////////////////////////////////////////////////////////////////
 template <typename global_solution_vector_type, typename matrix_type>
 double Implicit_Marching<global_solution_vector_type, matrix_type>::timemarch(double time_frame,
-                             global_solution_vector_type &global_solution_vector, double Lambda) {
+                             global_solution_vector_type &global_solution_vector, double lambda) {
+
   double current_time = 0.0;
   std::vector<matrix_type>    mid(global_solution_vector.size()-2);
   std::vector<matrix_type>    top(global_solution_vector.size()-2);
@@ -165,13 +166,13 @@ double Implicit_Marching<global_solution_vector_type, matrix_type>::timemarch(do
                                        (global_solution_vector[std::max(i-2,0)], global_solution_vector[i-1], global_solution_vector[i],
                                         global_solution_vector[i+1],global_solution_vector[std::min(i+2,number_of_cells-1)],
                                         delta_global_solution_vector[i-1],
-                                        gamma, Pr, Le, Q, Lambda,
+                                        gamma, Pr, Le, Q, lambda,
                                         theta, dx, dt, zeta, Theta);
     mid[i-1] = matrix_entries.mid_matrix();
     bot[i-1] = matrix_entries.bot_matrix();
     top[i-1] = matrix_entries.top_matrix();
     rhs[i-1] = matrix_entries.rhs_matrix();
-    // rhs[i-1] += manufactured_residual(Lambda, i)*dt/(1+zeta);
+    // rhs[i-1] += manufactured_residual(lambda, i)*dt/(1+zeta);
 
     // rhs[i-1] += numerical_dissipation(global_solution_vector, i, 0.9);
     // rhs[i-1] += numerical_dissipation(global_solution_vector, i, 0.1);
@@ -240,14 +241,14 @@ double Implicit_Marching<global_solution_vector_type, matrix_type>::calculate_dt
 ///////////////////////////////////////////////////////////////////////////////
 template <typename global_solution_vector_type, typename matrix_type>
 double Implicit_Marching<global_solution_vector_type, matrix_type>::lambda_eigenvalue(const global_solution_vector_type &global_solution_vector){
-  double lambda = 0.0;
+  double wavespeed = 0.0;
   for (int i = 0; i < number_of_cells; ++i) {
     Variable_Vector_Isolator<solution_vector_type> var_vec = Variable_Vector_Isolator<solution_vector_type>(global_solution_vector[i], gamma);
-    if (lambda < std::fabs(var_vec.u()) + sqrt(gamma * var_vec.p()/var_vec.rho())) {
-      lambda = std::fabs(var_vec.u()) + sqrt(gamma*var_vec.p()/var_vec.rho());
+    if (wavespeed < std::fabs(var_vec.u()) + sqrt(gamma * var_vec.p()/var_vec.rho())) {
+      wavespeed = std::fabs(var_vec.u()) + sqrt(gamma*var_vec.p()/var_vec.rho());
     }
   }
-  return lambda;
+  return wavespeed;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
