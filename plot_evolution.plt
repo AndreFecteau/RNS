@@ -6,10 +6,11 @@ set key title ""
 set xrange [-10:10]
 
 plot \
-"./Movie/Plot_CD_8_512_500_6_0.dat"   using 1:4 title "Initial Solution " with lines,\
-"./Movie/Plot_CD_8_512_500_6_40.dat"   using 1:4 title "Initial Solution " with lines,\
-"./Movie/Plot_CD_8_512_500_6_50.dat"   using 1:4 title "Initial Solution " with lines,\
-"./Movie/Plot_CD_8_512_500_6_60.dat"   using 1:4 title "Initial Solution " with lines,\
+"./Movie/Plot_HLLE_64_250_3_0.dat"   using 1:4 title "Initial Solution " with lines,\
+"./Movie/Plot_HLLE_128_250_3_4.dat"   using 1:4 title "Initial Solution " with lines,\
+"./Movie/Plot_HLLE_128_250_3_8.dat"   using 1:4 title "Initial Solution " with lines,\
+"./Movie/Plot_HLLE_128_250_3_13.dat"   using 1:4 title "Initial Solution " with lines,\
+"./Movie/Plot_HLLE_128_250_3_16.dat"   using 1:4 title "Initial Solution " with lines,\
 
 
 #"./Tests/Problem4_Exact.dat"                          using 1:3  title " " with lines,\

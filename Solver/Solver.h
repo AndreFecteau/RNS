@@ -96,8 +96,8 @@ bool Solver<global_solution_vector_type, matrix_type>::solve(marching_type march
   (void)target_residual;
   int i = 0;
 
-  while (i < 5){
-  // while (residual > target_residual){
+  // while (i < 5){
+  while (residual > target_residual){
     old_position = flame_position_algorithm(gamma);
     auto start = std::chrono::high_resolution_clock::now();
     std::cout << "Time = " <<  current_time << std::endl;
@@ -112,8 +112,9 @@ bool Solver<global_solution_vector_type, matrix_type>::solve(marching_type march
     ++i;
   }
 
-  // manufactured_solution_residual<marching_type>(march);
-
+#if defined(MANUFACTURED)
+  manufactured_solution_residual<marching_type>(march);
+#endif
   int position = 0;
   auto var_vec = Variable_Vector_Isolator<solution_vector_type>(global_solution_vector[position], 1.4);
   while (var_vec.rho() > 0.5) {

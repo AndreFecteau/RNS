@@ -1,10 +1,6 @@
 #ifndef IMPLICIT_MATRIX_ENTRIES
 #define IMPLICIT_MATRIX_ENTRIES
 
-#define HYPERBOLIC
-#define VISCOUS
-#define SOURCE
-
 template <typename global_solution_vector_type, typename matrix_type>
 class Implicit_Matrix_Entries {
 using solution_vector_type = typename global_solution_vector_type::value_type;

@@ -1,25 +1,11 @@
 #ifndef IMPLICIT_MARCHING_H
 #define IMPLICIT_MARCHING_H
 
-#include <omp.h>
-#include <math.h>
-#include <limits>
-#include <vector>
-#include "Eigen/Core"
-#include "Eigen/Dense"
-// #include "../Implicit_Flux_and_Sources/Implicit_Euler.h"
 // #include "../Implicit_Flux_and_Sources/Variable_Implicit_Scheme.h"
 #include "../Implicit_Flux_and_Sources/Variable_Implicit_Scheme_HLLE.h"
-// #include "../Usefull_Headers/Block_Triagonal_Matrix_Inverse.h"
-#include "../Matrix_Inverse/Gaussian_Block_Triagonal_Matrix_Inverse.h"
+// #include "../Matrix_Inverse/Gaussian_Block_Triagonal_Matrix_Inverse.h"
+#include "../Matrix_Inverse/Thomas_Block_Triagonal_Matrix_Inverse.h"
 #include "../Usefull_Headers/Variable_Vector_Isolator.h"
-
-
-#include "../Explicit_Flux_and_Sources/HLLE.h"
-#include "../Explicit_Flux_and_Sources/Centered_Difference.h"
-#include "../Explicit_Flux_and_Sources/Sources.h"
-#include "Explicit_Marching.h"
-
 
 template <typename global_solution_vector_type, typename matrix_type>
 class Implicit_Marching {
@@ -65,9 +51,7 @@ class Implicit_Marching {
   /////////////////////////////////////////////////////////////////////////
   /// \brief
   /// \param
-  double get_dx() {
-    return dx;
-  }
+  double get_dx() {return dx;}
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief
@@ -78,7 +62,6 @@ class Implicit_Marching {
   }
 
  private:
-  HLLE<global_solution_vector_type> hyperbolic_flux;
   double Pr, Le, Q, theta;
   double mf, gamma, CFL;
   int number_of_cells;
@@ -86,8 +69,6 @@ class Implicit_Marching {
   double Theta, zeta;
   double dt = 0.0;
   double residual;
-  int count = 0;
-
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief Calculates maximum stable timestep.
@@ -120,15 +101,21 @@ class Implicit_Marching {
                 solution_vector[3]*solution_vector[3]);
   }
 
+  /////////////////////////////////////////////////////////////////////////
+  /// \brief
+  /// \param
   solution_vector_type numerical_dissipation(const global_solution_vector_type &global_solution_vector, const int i, const double omega);
 
+  /////////////////////////////////////////////////////////////////////////
+  /// \brief
+  /// \param
   solution_vector_type manufactured_residual(const double lambda, const int i);
 
+  /////////////////////////////////////////////////////////////////////////
+  /// \brief
+  /// \param
   template <typename T>
   double Power(const T num, const int expo) {return pow(num, expo);}
-
-  double Power(const char num, const double expo) {return exp(expo);}
-
 };
 
 
@@ -158,13 +145,15 @@ double Implicit_Marching<global_solution_vector_type, matrix_type>::timemarch(do
     dt = time_frame - current_time;
   }
 }
-// #pragma omp for
-#pragma omp single
+
+#pragma omp for
   for(int i = 1; i < static_cast<int>(global_solution_vector.size()-1); ++i) {
-    // std::cout << i << std::endl;
     auto matrix_entries = Implicit_Matrix_Entries<global_solution_vector_type, matrix_type>
-                                       (global_solution_vector[std::max(i-2,0)], global_solution_vector[i-1], global_solution_vector[i],
-                                        global_solution_vector[i+1],global_solution_vector[std::min(i+2,number_of_cells-1)],
+                                       (global_solution_vector[std::max(i-2,0)],
+                                        global_solution_vector[i-1],
+                                        global_solution_vector[i],
+                                        global_solution_vector[i+1],
+                                        global_solution_vector[std::min(i+2,number_of_cells-1)],
                                         delta_global_solution_vector[i-1],
                                         gamma, Pr, Le, Q, lambda,
                                         theta, dx, dt, zeta, Theta);
@@ -172,8 +161,9 @@ double Implicit_Marching<global_solution_vector_type, matrix_type>::timemarch(do
     bot[i-1] = matrix_entries.bot_matrix();
     top[i-1] = matrix_entries.top_matrix();
     rhs[i-1] = matrix_entries.rhs_matrix();
-    // rhs[i-1] += manufactured_residual(lambda, i)*dt/(1+zeta);
-
+#if defined(MANUFACTURED)
+    rhs[i-1] += manufactured_residual(lambda, i)*dt/(1+zeta);
+#endif
     // rhs[i-1] += numerical_dissipation(global_solution_vector, i, 0.9);
     // rhs[i-1] += numerical_dissipation(global_solution_vector, i, 0.1);
     // rhs[i-1] += numerical_dissipation(global_solution_vector, i, 0.01);
@@ -182,19 +172,14 @@ double Implicit_Marching<global_solution_vector_type, matrix_type>::timemarch(do
 // Implicit Boundary Conditions
 #pragma omp single
 {
+#if !defined(MANUFACTURED)
   mid[global_solution_vector.size()-3] += top[global_solution_vector.size()-3];
+#endif
   // mid[0] += bot[0];
 }
 
 #pragma omp single
   delta_global_solution_vector = block_triagonal_matrix_inverse<matrix_type, solution_vector_type>(mid, top, bot, rhs);
-
-// #pragma omp single
-// {
-//  std::cout << delta_global_solution_vector[0] << std::endl;
-//  getchar();
-// }
-
 
 #pragma omp for
   for (int i = 1; i < number_of_cells-1; ++i) {
@@ -208,7 +193,9 @@ double Implicit_Marching<global_solution_vector_type, matrix_type>::timemarch(do
 // Explicit Boundary Conditions
 #pragma omp single
   {
-    global_solution_vector[global_solution_vector.size()-1] = global_solution_vector[global_solution_vector.size()-2];
+#if !defined(MANUFACTURED)
+    // global_solution_vector[global_solution_vector.size()-1] = global_solution_vector[global_solution_vector.size()-2];
+#endif
     // global_solution_vector[0] = global_solution_vector[1];
   }
 
@@ -222,7 +209,6 @@ double Implicit_Marching<global_solution_vector_type, matrix_type>::timemarch(do
   }
   }
   std::cout << "residual: " << residual << std::endl;
-  ++count;
   return residual;
 }
 
@@ -289,27 +275,9 @@ typename global_solution_vector_type::value_type Implicit_Marching<global_soluti
     man_sol << 0,0,0,0;
     double x = dx*(i+0.5);
     ///////////////////////////////////////////////////////////////////////////////
-    // Full
-    ///////////////////////////////////////////////////////////////////////////////
-  //   temp << (81*Power(1.0/cosh(10 - 4*x),2)*tanh(10 - 4*x))/5.,(Power(1.0/cosh(10 - 4*x),2)*
-  //     (2947 - 769*gamma - 6*(-891 + 297*gamma + 1280*Pr)*tanh(10 - 4*x) + 2187*(-3 + gamma)*Power(tanh(10 - 4*x),2)))/40.,
-  //  (36*Power(1.0/cosh(10 - 4*x),4)*(-100791541*gamma - 15972*Pr + 9801*(3*gamma - 4*Pr)*tanh(10 - 4*x) + 8019*(3*gamma - 4*Pr)*Power(tanh(10 - 4*x),2) +
-  //        2187*(3*gamma - 4*Pr)*Power(tanh(10 - 4*x),3)))/Power(11 + 9*tanh(10 - 4*x),3) -
-  //   (Power(1.0/cosh(10 - 4*x),2)*(-121*(11979 + 50389781*gamma) + (6147901762*gamma + 7986*(-297 + 640*Pr))*tanh(10 - 4*x) -
-  //        54*(75686097*gamma - 121*(297 + 640*Pr))*Power(tanh(10 - 4*x),2) - 972*(-3267 + 387*gamma + 3520*Pr)*Power(tanh(10 - 4*x),3) +
-  //        2187*(-297 + 1257*gamma - 1280*Pr)*Power(tanh(10 - 4*x),4) + 1062882*(-1 + gamma)*Power(tanh(10 - 4*x),5)))/(40.*Power(11 + 9*tanh(10 - 4*x),2))
-  //     - (exp((8*theta*(11 + 9*tanh(10 - 4*x)))/
-  //        ((-1 + gamma)*(-11198669 - 769*tanh(10 - 4*x) - 891*Power(tanh(10 - 4*x),2) + 729*Power(tanh(10 - 4*x),3))))*lambda*Q*(11 + 9*tanh(10 - 4*x))*
-  //      (1 + tanh(2 - x)))/40.,(Power(1.0/cosh(2 - x),2)*(-11 + 9*tanh(10 - 4*x))*(11 + 9*tanh(10 - 4*x)) + (80*Power(1.0/cosh(2 - x),2)*tanh(2 - x))/Le +
-  //     36*Power(1.0/cosh(10 - 4*x),2)*(-11 + 9*tanh(10 - 4*x))*(1 + tanh(2 - x)) +
-  //     2*exp((8*theta*(11 + 9*tanh(10 - 4*x)))/
-  //        ((-1 + gamma)*(-11198669 - 769*tanh(10 - 4*x) - 891*Power(tanh(10 - 4*x),2) + 729*Power(tanh(10 - 4*x),3))))*lambda*(11 + 9*tanh(10 - 4*x))*
-  //      (1 + tanh(2 - x)) + 36*Power(1.0/cosh(10 - 4*x),2)*(11 + 9*tanh(10 - 4*x))*(1 + tanh(2 - x)))/80.;
-
-    // man_sol += temp;
-    ///////////////////////////////////////////////////////////////////////////////
     // Hyperbolic
     ///////////////////////////////////////////////////////////////////////////////
+#if defined(HYPERBOLIC)
     temp << (81*Power(1/cosh(10 - 4*x),2)*tanh(10 - 4*x))/5.,(Power(1/cosh(10 - 4*x),2)*
       (2947 - 769*gamma - 1782*(-3 + gamma)*tanh(10 - 4*x) + 2187*(-3 + gamma)*Power(tanh(10 - 4*x),2)))/40.,
    (Power(1/cosh(10 - 4*x),2)*(11979 + 50389781*gamma - 2880*gamma*tanh(10 - 4*x) + 24057*(-1 + gamma)*Power(tanh(10 - 4*x),2) -
@@ -317,9 +285,11 @@ typename global_solution_vector_type::value_type Implicit_Marching<global_soluti
       648*Power(1/cosh(10 - 4*x),2)*tanh(10 - 4*x)*(1 + tanh(2 - x)))/80.;
 
     man_sol += temp;
+#endif
     ///////////////////////////////////////////////////////////////////////////////
     // Viscous
     ///////////////////////////////////////////////////////////////////////////////
+#if defined(VISCOUS)
     temp << 0,-192*Pr*Power(1/cosh(10 - 4*x),2)*tanh(10 - 4*x),(36*Power(1/cosh(10 - 4*x),4)*
        (-100791541*gamma - 15972*Pr + 9801*(3*gamma - 4*Pr)*tanh(10 - 4*x) + 8019*(3*gamma - 4*Pr)*Power(tanh(10 - 4*x),2) +
          2187*(3*gamma - 4*Pr)*Power(tanh(10 - 4*x),3)) - 8*Power(1/cosh(10 - 4*x),2)*tanh(10 - 4*x)*
@@ -327,9 +297,11 @@ typename global_solution_vector_type::value_type Implicit_Marching<global_soluti
          19683*(3*gamma - 4*Pr)*Power(tanh(10 - 4*x),4)))/Power(11 + 9*tanh(10 - 4*x),3),(Power(1/cosh(2 - x),2)*tanh(2 - x))/Le;
 
     man_sol += temp;
+#endif
     ///////////////////////////////////////////////////////////////////////////////
     // Source
     ///////////////////////////////////////////////////////////////////////////////
+#if defined(SOURCE)
     temp << 0.,0.,-(exp((8*theta*(11 + 9*tanh(10 - 4*x)))/
          ((-1 + gamma)*(-11198669 - 769*tanh(10 - 4*x) - 891*Power(tanh(10 - 4*x),2) + 729*Power(tanh(10 - 4*x),3))))*lambda*Q*(11 + 9*tanh(10 - 4*x))*
        (1 + tanh(2 - x)))/40.,(exp((8*theta*(11 + 9*tanh(10 - 4*x)))/
@@ -337,6 +309,7 @@ typename global_solution_vector_type::value_type Implicit_Marching<global_soluti
       (1 + tanh(2 - x)))/40.;
 
     man_sol += temp;
+#endif
 
    return man_sol;
 }

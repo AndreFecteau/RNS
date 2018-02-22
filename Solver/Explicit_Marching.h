@@ -129,13 +129,6 @@ class Explicit_Marching {
   /////////////////////////////////////////////////////////////////////////
   /// \brief
   /// \param
-  // void get_residual(solution_vector_type solution_vector) {
-  //   residual = solution_vector.squaredNorm()
-  // }
-
-  /////////////////////////////////////////////////////////////////////////
-  /// \brief
-  /// \param
   double squaredNorm(solution_vector_type solution_vector){
     return sqrt(solution_vector[0]*solution_vector[0] +
                 solution_vector[1]*solution_vector[1] +
@@ -196,7 +189,7 @@ double Explicit_Marching<global_solution_vector_type, matrix_type>::timemarch(do
       auto var_vec_l = Variable_Vector_Isolator<solution_vector_type>(global_solution_vector[i-1], gamma);
       auto var_vec = Variable_Vector_Isolator<solution_vector_type>(global_solution_vector[i], gamma);
       auto var_vec_r = Variable_Vector_Isolator<solution_vector_type>(global_solution_vector[i+1], gamma);
-      phi[i] = vanalbada_limiter(var_vec_l.w(),var_vec.w(), var_vec_r.w());
+      phi[i] = minmod_limiter(var_vec_l.w(),var_vec.w(), var_vec_r.w());
       solution_vector_type Wl = var_vec_l.w().array() + phi[i-1].array() *dx / 2.0;
       solution_vector_type Wr = var_vec.w().array() - phi[i].array() * dx / 2.0;
       hyperbolic_flux_vector[i] = hyperbolic_flux.flux(Wl, Wr, gamma);
@@ -206,8 +199,9 @@ double Explicit_Marching<global_solution_vector_type, matrix_type>::timemarch(do
       global_flux_vector[i] += (hyperbolic_flux_vector[i] - hyperbolic_flux_vector[i+1]) / dx * dt ;
       global_flux_vector[i] += parabolic_flux.flux(global_solution_vector[i-1], global_solution_vector[i], global_solution_vector[i+1], gamma, Le, Pr, dx) * dt;
       global_flux_vector[i] += sources.flux(global_solution_vector[i], gamma, Q, lambda, theta) * dt;
-      // std::cout << sources.flux(global_solution_vector[i], gamma, Q, lambda, theta) * dt;
+#if defined(MANUFACTURED)
       global_flux_vector[i] += manufactured_residual(lambda, i)*dt;
+#endif
     }
 
 #pragma omp single
@@ -226,7 +220,7 @@ double Explicit_Marching<global_solution_vector_type, matrix_type>::timemarch(do
       auto var_vec_l = Variable_Vector_Isolator<solution_vector_type>(global_solution_vector_future[i-1], gamma);
       auto var_vec = Variable_Vector_Isolator<solution_vector_type>(global_solution_vector_future[i], gamma);
       auto var_vec_r = Variable_Vector_Isolator<solution_vector_type>(global_solution_vector_future[i+1], gamma);
-      phi[i] = vanalbada_limiter(var_vec_l.w(),var_vec.w(), var_vec_r.w());
+      phi[i] = minmod_limiter(var_vec_l.w(),var_vec.w(), var_vec_r.w());
       solution_vector_type Ul = var_vec_l.w().array() + phi[i-1].array() *dx / 2.0;
       solution_vector_type Ur = var_vec.w().array() - phi[i].array() * dx / 2.0;
       hyperbolic_flux_future_vector[i] = hyperbolic_flux.flux(Ul, Ur, gamma);
@@ -237,7 +231,9 @@ double Explicit_Marching<global_solution_vector_type, matrix_type>::timemarch(do
       global_flux_future_vector[i] += (hyperbolic_flux_future_vector[i] - hyperbolic_flux_future_vector[i+1]) / dx * dt ;
       global_flux_future_vector[i] += parabolic_flux.flux(global_solution_vector_future[i-1], global_solution_vector_future[i], global_solution_vector_future[i+1], gamma, Le, Pr, dx) * dt;
       global_flux_future_vector[i] += sources.flux(global_solution_vector_future[i], gamma, Q, lambda, theta) * dt;
+#if defined(MANUFACTURED)
       global_flux_future_vector[i] += manufactured_residual(lambda, i)*dt;
+#endif
     }
 
 #pragma omp for reduction (+:residual)
@@ -309,7 +305,7 @@ typename global_solution_vector_type::value_type Explicit_Marching<global_soluti
 ///////////////////////////////////////////////////////////////////////////////
 template <typename global_solution_vector_type, typename matrix_type>
 void Explicit_Marching<global_solution_vector_type, matrix_type>::boundary_conditions(global_solution_vector_type &global_solution_vector) {
-    // global_solution_vector[number_of_cells - 1] << global_solution_vector[number_of_cells - 3];
+    global_solution_vector[number_of_cells - 1] << global_solution_vector[number_of_cells - 3];
     // global_solution_vector[number_of_cells - 2] << global_solution_vector[number_of_cells - 3];
     // global_solution_vector[0] << global_solution_vector[1];
 }

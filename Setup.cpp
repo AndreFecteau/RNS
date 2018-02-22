@@ -3,12 +3,14 @@
 #define SOURCE
 #define IMPLICIT
 // #define EXPLICIT
+// #define MANUFACTURED
+// #define
 
 #include "Solver/Solver.h"
 #include "Low_Mach_Solver/RK4_Low_Mach_Solver.h"
 #include "Usefull_Headers/Variable_Vector_Isolator.h"
 #include "Gnuplot_RNS/Gnuplot_Primitive_Variables.h"
-#include "Solver/Implicit_Marching_Generic.h"
+#include "Solver/Implicit_Marching.h"
 #include "Solver/Explicit_Marching.h"
 #include <iomanip>
 // #include "Eigen/Core"
@@ -62,34 +64,38 @@ int main(){
 
   double Theta = 1.0;
   double zeta = 0.0;
-  double CFL =  1e4;
+  double CFL =  1e3 ;
   double per_FL = 64.0;
-  double frame_time = 1e1;
+  double frame_time = 1e0;
   double dx = 1.0/per_FL;
-  double domaine_length = 500;
+  double domaine_length = 250;
   int    number_of_cells;
-  std::ofstream gnu_input_file;
   global_solution_vector_type initial_solution;
+
+  #if defined(MANUFACTURED)
+  std::ofstream gnu_input_file;
   gnu_input_file.open("Convergence_Plot.dat", std::ios_base::app);
   gnu_input_file << "#number_of_cells residual time" << std::endl;
-
+  #endif
   // initial_solution.resize(number_of_cells);
   // manufactured_solution(number_of_cells, initial_solution, x_max, x_min, dx);
 
 
   lambda_max = 95600;
   lambda_min = 94500;
-  lambda_run = 94550;
+  lambda_run = 945;
 
 
   std::cout << "//////////////////////////" << std::endl;
   std::cout << "Setting Initial Conditions " << std::endl;
   std::cout << "//////////////////////////" << std::endl;
   // straight_line(number_of_cells, initial_solution, x_max, x_min, mf, gamma);
-  // manufactured_solution(number_of_cells, initial_solution, x_max, x_min, dx);
   // case_4(frame_time, number_of_cells, initial_solution, gamma, x_max, x_min);
-  RK4_low_mach_initial_conditions(lambda, number_of_cells, initial_solution, Le, Q_low_mach,
-                                  theta_low_mach, T_ignition, gamma, x_max, mf, dx, domaine_length);
+  // RK4_low_mach_initial_conditions(lambda, number_of_cells, initial_solution, Le, Q_low_mach,
+  //                                 theta_low_mach, T_ignition, gamma, x_max, mf, dx, domaine_length);
+#if defined(MANUFACTURED)
+  manufactured_solution(number_of_cells, initial_solution, x_max, x_min, dx);
+#endif
 
   std::string filename = "Movie/Plot_HLLE_" + tostring(per_FL) + "_"
                                               + tostring(domaine_length) + "_"
@@ -110,7 +116,7 @@ int main(){
                             (x_max - x_min)/number_of_cells, Theta, zeta);
 #endif
 
-  while(1 < 2) {
+  // while(1 < 2) {
 
 
   plot<global_solution_vector_type>(filename+"0",
@@ -118,7 +124,7 @@ int main(){
 
 
   bool check = solver.solve<marching_type>(march, target_residual, frame_time, gamma, lambda_run);
-  bisection_lambda(lambda_min, lambda_max, lambda_run, check);
-  }
+  // bisection_lambda(lambda_min, lambda_max, lambda_run, check);
+  // }
 
 };

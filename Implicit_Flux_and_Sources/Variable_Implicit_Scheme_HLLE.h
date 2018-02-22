@@ -3,10 +3,6 @@
 
 #include "../Explicit_Flux_and_Sources/HLLE.h"
 
-// #define HYPERBOLIC
-// #define VISCOUS
-// #define SOURCE
-
 template <typename global_solution_vector_type, typename matrix_type>
 class Implicit_Matrix_Entries {
 using solution_vector_type = typename global_solution_vector_type::value_type;
@@ -104,9 +100,24 @@ using solution_vector_type = typename global_solution_vector_type::value_type;
   }
   }
 
+  /////////////////////////////////////////////////////////////////////////
+  /// \brief
+  /// \param
   matrix_type top_matrix();
+
+  /////////////////////////////////////////////////////////////////////////
+  /// \brief
+  /// \param
   matrix_type mid_matrix();
+
+  /////////////////////////////////////////////////////////////////////////
+  /// \brief
+  /// \param
   matrix_type bot_matrix();
+
+  /////////////////////////////////////////////////////////////////////////
+  /// \brief
+  /// \param
   solution_vector_type rhs_matrix();
 
  private:
@@ -131,25 +142,39 @@ using solution_vector_type = typename global_solution_vector_type::value_type;
   double RlambdaL;
   double RlambdaR;
 
-
+  /////////////////////////////////////////////////////////////////////////
+  /// \brief
+  /// \param
   template <typename T>
   double Power(const T& num, const int& expo) {
     return pow(num, expo);
   }
 
+  /////////////////////////////////////////////////////////////////////////
+  /// \brief
+  /// \param
   double Power(const char&, const double& expo) {
     return exp(expo);
   }
 
+  /////////////////////////////////////////////////////////////////////////
+  /// \brief
+  /// \param
   double u_rhoavg(double rho_left, double rho_right, double u_left, double u_right) {
     return (sqrt(rho_left) * u_left + sqrt(rho_right) * u_right) /
     (sqrt(rho_left) + sqrt(rho_right));
   }
 
+  /////////////////////////////////////////////////////////////////////////
+  /// \brief
+  /// \param
   double rho_rhoavg(double rho_left, double rho_right) {
     return sqrt(rho_left * rho_right);
   }
 
+  /////////////////////////////////////////////////////////////////////////
+  /// \brief
+  /// \param
   double p_rhoavg(double rho_left, double rho_right, double u_left, double u_right,
                   double p_left, double p_right, double gamma) {
 
@@ -166,20 +191,13 @@ using solution_vector_type = typename global_solution_vector_type::value_type;
     return (h_ravg - u_ravg*u_ravg * 0.5) * (gamma - 1.0) / gamma * rho_ravg;
   }
 
+  /////////////////////////////////////////////////////////////////////////
+  /// \brief
+  /// \param
   solution_vector_type limiter(const solution_vector_type &Ul,
                                const solution_vector_type &U,
                                const solution_vector_type &Ur,
                                double dx) {
-    // solution_vector_type a = (U - Ul) / dx;
-    // solution_vector_type b = (Ur - U) / dx;
-    // double epsilon = 1.0e-6;
-    // solution_vector_type phi =  a.array() * b.array() * (a.array() + b.array()) / (a.array() * a.array() + b.array() * b.array() + epsilon);
-    // for (int i = 0; i < 3; ++i) {
-    //   if (a[i] / b[i] <= 0.0 || b[i] == 0) {
-    //     phi[i] = 0.0;
-    //   }
-    // }
-
   solution_vector_type phi;
   solution_vector_type a = (U - Ul) / dx;
   solution_vector_type b = (Ur - U) / dx;
@@ -189,10 +207,12 @@ using solution_vector_type = typename global_solution_vector_type::value_type;
     return phi;
   }
 
+  /////////////////////////////////////////////////////////////////////////
+  /// \brief
+  /// \param
   template <typename T> int sign(T val) {return (T(0) < val) - (val < T(0));}
 
 };
-
 
 template <typename global_solution_vector_type, typename matrix_type>
 matrix_type Implicit_Matrix_Entries<global_solution_vector_type, matrix_type>::mid_matrix() {
@@ -246,20 +266,17 @@ matrix_type Implicit_Matrix_Entries<global_solution_vector_type, matrix_type>::m
 #if defined(SOURCE)
 
   temp << 0,0,0,0,0,0,0,0,(4*dt*Power(E,(2*rho*theta)/((-1 + gamma)*(-2*e + rho*Power(u,2))))*Lambda*Q*rho*theta*Theta*(e - rho*Power(u,2))*Y)/
-    ((-1 + gamma)*Power(-2*e + rho*Power(u,2),2)*(1 + zeta)),
-   (4*dt*Power(E,(2*rho*theta)/((-1 + gamma)*(-2*e + rho*Power(u,2))))*Lambda*Q*Power(rho,2)*theta*Theta*u*Y)/
-    ((-1 + gamma)*Power(-2*e + rho*Power(u,2),2)*(1 + zeta)),
+    ((-1 + gamma)*Power(-2*e + rho*Power(u,2),2)*(1 + zeta)),(4*dt*Power(E,(2*rho*theta)/((-1 + gamma)*(-2*e + rho*Power(u,2))))*Lambda*Q*Power(rho,2)*
+      theta*Theta*u*Y)/((-1 + gamma)*Power(-2*e + rho*Power(u,2),2)*(1 + zeta)),
    (-4*dt*Power(E,(2*rho*theta)/((-1 + gamma)*(-2*e + rho*Power(u,2))))*Lambda*Q*Power(rho,2)*theta*Theta*Y)/
-    ((-1 + gamma)*Power(-2*e + rho*Power(u,2),2)*(1 + zeta)),
-   -((dt*Power(E,(2*rho*theta)/((-1 + gamma)*(-2*e + rho*Power(u,2))))*Lambda*Q*Theta)/(1 + zeta)),
-   (4*dt*Power(E,(2*rho*theta)/((-1 + gamma)*(-2*e + rho*Power(u,2))))*Lambda*rho*theta*Theta*(-e + rho*Power(u,2))*Y)/
-    ((-1 + gamma)*Power(-2*e + rho*Power(u,2),2)*(1 + zeta)),
-   (-4*dt*Power(E,(2*rho*theta)/((-1 + gamma)*(-2*e + rho*Power(u,2))))*Lambda*Power(rho,2)*theta*Theta*u*Y)/
-    ((-1 + gamma)*Power(-2*e + rho*Power(u,2),2)*(1 + zeta)),
+    ((-1 + gamma)*Power(-2*e + rho*Power(u,2),2)*(1 + zeta)),-((dt*Power(E,(2*rho*theta)/((-1 + gamma)*(-2*e + rho*Power(u,2))))*Lambda*Q*Theta)/
+      (1 + zeta)),(4*dt*Power(E,(2*rho*theta)/((-1 + gamma)*(-2*e + rho*Power(u,2))))*Lambda*rho*theta*Theta*(-e + rho*Power(u,2))*Y)/
+    ((-1 + gamma)*Power(-2*e + rho*Power(u,2),2)*(1 + zeta)),(-4*dt*Power(E,(2*rho*theta)/((-1 + gamma)*(-2*e + rho*Power(u,2))))*Lambda*Power(rho,2)*
+      theta*Theta*u*Y)/((-1 + gamma)*Power(-2*e + rho*Power(u,2),2)*(1 + zeta)),
    (4*dt*Power(E,(2*rho*theta)/((-1 + gamma)*(-2*e + rho*Power(u,2))))*Lambda*Power(rho,2)*theta*Theta*Y)/
     ((-1 + gamma)*Power(-2*e + rho*Power(u,2),2)*(1 + zeta)),(dt*Power(E,(2*rho*theta)/((-1 + gamma)*(-2*e + rho*Power(u,2))))*Lambda*Theta)/(1 + zeta);
 
-  if((gamma-1.0)/ rho * (e-0.5*rho*u*u) > 1.1/(gamma*0.005*0.005)){
+  if((gamma-1.0)/ rho * (e-0.5*rho*u*u) > 1.01/(gamma*0.005*0.005)){
     b += temp;
   }
 #endif
@@ -424,7 +441,7 @@ Implicit_Matrix_Entries<global_solution_vector_type, matrix_type>::rhs_matrix() 
   solution_vector_type RUr = var_vec_p.w().array() - phi_p.array() * dx / 2.0;
 
    rhs += 1.0 / (1.0 + zeta) * (hyperbolic_flux.flux(LUl, LUr, gamma) - hyperbolic_flux.flux(RUl, RUr, gamma)) /dx*dt;
-  //  std::cout << (hyperbolic_flux.flux(LUl, LUr, gamma) - hyperbolic_flux.flux(RUl, RUr, gamma)) << std::endl;
+
 #endif
 ///////////////////////////////////////////////////////////////////////////////
 // Viscous (2nd order derivatives)
@@ -450,12 +467,12 @@ Implicit_Matrix_Entries<global_solution_vector_type, matrix_type>::rhs_matrix() 
   temp << 0.,0.,(dt*Lambda*Q*rho*Y)/(Power(E,(rho*theta)/((-1 + gamma)*(e - (rho*Power(u,2))/2.)))*(1 + zeta)),
    -((dt*Lambda*rho*Y)/(Power(E,(rho*theta)/((-1 + gamma)*(e - (rho*Power(u,2))/2.)))*(1 + zeta)));
 
-  if((gamma-1.0)/ rho * (e-0.5*rho*u*u) > 1.1/(gamma*0.005*0.005)){
+  if((gamma-1.0)/ rho * (e-0.5*rho*u*u) > 1.01/(gamma*0.005*0.005)){
     rhs += temp;
   }
 
 #endif
-  // std::cout << rhs << std::endl;
+
   return rhs;
 }
 
