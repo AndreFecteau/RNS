@@ -4,28 +4,21 @@
 #define IMPLICIT
 // #define EXPLICIT
 // #define MANUFACTURED
-// #define
 
 #include "Solver/Solver.h"
 #include "Low_Mach_Solver/RK4_Low_Mach_Solver.h"
 #include "Usefull_Headers/Variable_Vector_Isolator.h"
 #include "Gnuplot_RNS/Gnuplot_Primitive_Variables.h"
-#include "Solver/Implicit_Marching.h"
+// #include "Solver/Implicit_Marching.h"
+#include "Solver/Implicit_Marching_4th_Order.h"
 #include "Solver/Explicit_Marching.h"
 #include <iomanip>
-// #include "Eigen/Core"
-// #include "Eigen/Dense"
-// #include <cmath>
-
 
 typedef Eigen::Matrix<long double, 4, 1> Vector_type;
 using matrix_type = Eigen::Matrix<long double, 4,4>;
 using global_solution_vector_type = std::vector<Vector_type>;
 using solution_vector_type = typename global_solution_vector_type::value_type;
 #include "Usefull_Headers/Initial_Conditions.h"
-
-// using implicit_marching_type = Implicit_Marching<global_solution_vector_type, matrix_type>;
-// using explicit_marching_type = Explicit_Marching<global_solution_vector_type, matrix_type>;
 
 void bisection_lambda(double& lambda_min, double& lambda_max, double& lambda_run, bool check) {
   if (check == 1){
@@ -60,13 +53,13 @@ int main(){
   double lambda_max;
   double lambda_min;
   double lambda_run;
-  double target_residual = 1e-17;
+  double target_residual = 1e-15;
 
   double Theta = 1.0;
   double zeta = 0.0;
-  double CFL =  1e3 ;
-  double per_FL = 64.0;
-  double frame_time = 1e0;
+  double CFL =  1e8;
+  double per_FL = 4096.0;
+  double frame_time = 3e1;
   double dx = 1.0/per_FL;
   double domaine_length = 250;
   int    number_of_cells;
@@ -81,9 +74,9 @@ int main(){
   // manufactured_solution(number_of_cells, initial_solution, x_max, x_min, dx);
 
 
-  lambda_max = 95600;
+  lambda_max = 96000;
   lambda_min = 94500;
-  lambda_run = 945;
+  lambda_run = 95654;
 
 
   std::cout << "//////////////////////////" << std::endl;
@@ -91,13 +84,14 @@ int main(){
   std::cout << "//////////////////////////" << std::endl;
   // straight_line(number_of_cells, initial_solution, x_max, x_min, mf, gamma);
   // case_4(frame_time, number_of_cells, initial_solution, gamma, x_max, x_min);
-  // RK4_low_mach_initial_conditions(lambda, number_of_cells, initial_solution, Le, Q_low_mach,
-  //                                 theta_low_mach, T_ignition, gamma, x_max, mf, dx, domaine_length);
 #if defined(MANUFACTURED)
   manufactured_solution(number_of_cells, initial_solution, x_max, x_min, dx);
+#else
+RK4_low_mach_initial_conditions(lambda, number_of_cells, initial_solution, Le, Q_low_mach,
+                                theta_low_mach, T_ignition, gamma, x_max, mf, dx, domaine_length);
 #endif
 
-  std::string filename = "Movie/Plot_HLLE_" + tostring(per_FL) + "_"
+  std::string filename = "Movie/Plot_4th_" + tostring(per_FL) + "_"
                                               + tostring(domaine_length) + "_"
                                               + tostring(log10(CFL)) + "_";
 
@@ -107,24 +101,23 @@ int main(){
   using marching_type = Explicit_Marching<global_solution_vector_type, matrix_type>;
   auto march = marching_type(Pr, Le, Q, theta, mf, gamma,
                             number_of_cells, CFL,
-                            (x_max - x_min)/number_of_cells);
+                            dx);
 #endif
 #if defined(IMPLICIT)
   using marching_type = Implicit_Marching<global_solution_vector_type, matrix_type>;
   auto march = marching_type(Pr, Le, Q, theta, mf, gamma,
                             number_of_cells, CFL,
-                            (x_max - x_min)/number_of_cells, Theta, zeta);
+                            dx, Theta, zeta);
 #endif
 
-  // while(1 < 2) {
-
+  while(1 < 2) {
 
   plot<global_solution_vector_type>(filename+"0",
                                     initial_solution, (x_max - x_min)/number_of_cells);
 
 
   bool check = solver.solve<marching_type>(march, target_residual, frame_time, gamma, lambda_run);
-  // bisection_lambda(lambda_min, lambda_max, lambda_run, check);
-  // }
+  bisection_lambda(lambda_min, lambda_max, lambda_run, check);
+  }
 
 };

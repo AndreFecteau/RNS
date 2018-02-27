@@ -24,7 +24,7 @@ double domaine_length = 100;
 double CFL = 1e6;
 int location = 0;
 
-  std::string filename = "dat_saves/Implicit_R512_D500_VC/Plot_" + tostring(log10(CFL)) + "_" + "0";
+  std::string filename = "dat_saves/Implicit_HLLE_R4096_D250_L94900/Plot_15";
 
   global_solution_vector_type global_solution_vector;
   std::string line;

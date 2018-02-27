@@ -12,7 +12,7 @@ void plot(std::string file_name, global_solution_vector_type solution_vector, do
 
   std::ofstream gnu_input_file;
   gnu_input_file.open (file_name + ".dat");
-  gnu_input_file.precision(22);
+  gnu_input_file.precision(40);
 
   gnu_input_file << "#rho u p T Y" << std::endl;
 

@@ -96,8 +96,8 @@ bool Solver<global_solution_vector_type, matrix_type>::solve(marching_type march
   (void)target_residual;
   int i = 0;
 
-  // while (i < 5){
-  while (residual > target_residual){
+  // while (residual > target_residual){
+    while (i < 5){
     old_position = flame_position_algorithm(gamma);
     auto start = std::chrono::high_resolution_clock::now();
     std::cout << "Time = " <<  current_time << std::endl;
@@ -134,12 +134,13 @@ bool Solver<global_solution_vector_type, matrix_type>::solve(marching_type march
 template <typename global_solution_vector_type, typename matrix_type>
 template <typename marching_type>
 void Solver<global_solution_vector_type, matrix_type>::manufactured_solution_residual(marching_type march){
+  std::cout << march.get_dx() << std::endl;
   for (size_t i = 0; i < initial_solution.size(); ++i) {
    double x = (i+0.5)*march.get_dx();
-   initial_solution[i] << (-0.45*tanh(4.0 * x - 10.0) + 0.55),
-                         (-0.45*tanh(4.0 * x - 10.0) + 0.55)*(4.5*tanh(4.0 * x - 10.0) + 5.5),
-                         2.0*tanh(4.0*x - 10.0) + 70000,
-                         (-0.45*tanh(4.0 * x - 10.0) + 0.55)*(-0.5*tanh(x - 8.0/4.0) + 0.5);
+    initial_solution[i] << (-0.45*tanh(4.0 * x - 10.0) + 0.55),
+                          (-0.45*tanh(4.0 * x - 10.0) + 0.55)*(4.5*tanh(4.0 * x - 10.0) + 5.5),
+                          2.0*tanh(4.0*x - 10.0) + 70000,
+                          (-0.45*tanh(4.0 * x - 10.0) + 0.55)*(-0.5*tanh(x - 8.0/4.0) + 0.5);
   }
   double convergence = 0.0;
   for(size_t i = 0; i < initial_solution.size(); ++i) {
@@ -149,7 +150,7 @@ void Solver<global_solution_vector_type, matrix_type>::manufactured_solution_res
   }
 
   convergence = std::sqrt(convergence);
-
+  std::cout << "convergence:" << convergence << std::endl;
   std::ofstream gnu_input_file;
   gnu_input_file.open("Convergence_Plot.dat", std::ios_base::app);
   gnu_input_file << global_solution_vector.size() << " " <<  convergence << " " << current_time << std::endl;
