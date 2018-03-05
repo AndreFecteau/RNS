@@ -186,10 +186,6 @@ double Implicit_Marching<global_solution_vector_type, matrix_type>::timemarch(do
   }
 #endif
 }
-// #pragma omp single
-// for (int i = 0; i < delta_global_solution_vector.size(); ++i){
-//   std::cout << bot2[i] << std::endl;
-// }
 
 #pragma omp single
   delta_global_solution_vector = block_triagonal_matrix_inverse<matrix_type, solution_vector_type>(top2, top, mid, bot, bot2, rhs);

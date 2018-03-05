@@ -62,6 +62,7 @@ using solution_vector_type = typename global_solution_vector_type::value_type;
   global_solution_vector_type initial_solution;
   double current_time = 0.0;
   int current_frame = 0;
+  int count = 0;
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief
@@ -97,7 +98,7 @@ bool Solver<global_solution_vector_type, matrix_type>::solve(marching_type march
   int i = 0;
 
   // while (residual > target_residual){
-    while (i < 5){
+    while (i < 10){
     old_position = flame_position_algorithm(gamma);
     auto start = std::chrono::high_resolution_clock::now();
     std::cout << "Time = " <<  current_time << std::endl;
@@ -110,7 +111,16 @@ bool Solver<global_solution_vector_type, matrix_type>::solve(marching_type march
     std::chrono::duration<double> elapsed = finish - start;
     std::cout << "Elapsed time: " << elapsed.count() << " s\n";
     ++i;
+    ++count;
+    // std::cout << count%5 << std::endl;
   }
+  // if(count%5 == 0){
+    // for(size_t i = 1; i < global_solution_vector.size(); ++i){
+    //   if(global_solution_vector[i][0] > 1.0){
+    //     global_solution_vector[i][0] = 0.95;
+    //   }
+    // }
+  // }
 
 #if defined(MANUFACTURED)
   manufactured_solution_residual<marching_type>(march);

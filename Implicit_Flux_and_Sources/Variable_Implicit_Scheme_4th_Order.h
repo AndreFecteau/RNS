@@ -303,7 +303,7 @@ matrix_type Implicit_Matrix_Entries<global_solution_vector_type, matrix_type>::m
    (4*dt*Power(E,(2*rho*theta)/((-1 + gamma)*(-2*e + rho*Power(u,2))))*lambda*Power(rho,2)*theta*Theta*Y)/
     ((-1 + gamma)*Power(-2*e + rho*Power(u,2),2)*(1 + zeta)),(dt*Power(E,(2*rho*theta)/((-1 + gamma)*(-2*e + rho*Power(u,2))))*lambda*Theta)/(1 + zeta);
 
-   if((gamma-1.0)/ rho * (e-0.5*rho*u*u) > 1.1/(gamma*0.005*0.005)){
+   if((gamma-1.0)/ rho * (e-0.5*rho*u*u) > 1.01/(gamma*0.005*0.005)){
     mid += temp;
   }
 
@@ -475,7 +475,7 @@ Implicit_Matrix_Entries<global_solution_vector_type, matrix_type>::rhs_matrix() 
   temp << 0.,0.,(dt*lambda*Q*rho*Y)/(Power(E,(rho*theta)/((-1 + gamma)*(e - (rho*Power(u,2))/2.)))*(1 + zeta)),
    -((dt*lambda*rho*Y)/(Power(E,(rho*theta)/((-1 + gamma)*(e - (rho*Power(u,2))/2.)))*(1 + zeta)));
 
-   if((gamma-1.0)/ rho * (e-0.5*rho*u*u) > 1.1/(gamma*0.005*0.005)){
+   if((gamma-1.0)/ rho * (e-0.5*rho*u*u) > 1.01/(gamma*0.005*0.005)){
      rhs += temp;
    }
 
