@@ -3,28 +3,34 @@ set xlabel "x"
 set ylabel ""
 set key title ""
 #set yrange [1:100000]
-set xrange [-10:100]
+#set xrange [-10:100]
 
 plot \
-"./Movie/Plot_4th_2_256_250_7_0.dat"                    using 1:5       title "Initial Solution " with lines,\
-"./dat_saves/Implicit_CD_R256_D250_CE9/Plot_0.dat"      using 1:5 title "256-0" with lines,\
-"./dat_saves/Implicit_CD_R256_D250_CE9/Plot_2.dat"      using 1:5 title "256-2" with lines,\
-"./dat_saves/Implicit_CD_R256_D250_CE9/Plot_4.dat"      using 1:5 title "256-4" with lines,\
-"./dat_saves/Implicit_CD_R256_D250_CE9/Plot_6.dat"      using 1:5 title "256-6" with lines,\
-"./dat_saves/Implicit_CD_R256_D250_CE9/Plot_8.dat"      using 1:5 title "256-8" with lines,\
-"./dat_saves/Implicit_CD_R256_D250_CE9/Plot_10.dat"     using 1:5 title "256-10" with lines,\
-"./dat_saves/Implicit_CD_R1024_D250_CE10/Plot_2.dat"    using 1:5 title "1024-2" with lines,\
-"./dat_saves/Implicit_CD_R1024_D250_CE10/Plot_4.dat"    using 1:5 title "1024-4" with lines,\
-"./dat_saves/Implicit_CD_R1024_D250_CE10/Plot_6.dat"    using 1:5 title "1024-6" with lines,\
-"./dat_saves/Implicit_CD_R1024_D250_CE10/Plot_8.dat"    using 1:5 title "1024-8" with lines,\
-"./dat_saves/Implicit_CD_R1024_D250_CE10/Plot_10.dat"   using 1:5 title "1024-10" with lines,\
+"./Movie/Plot8_256_100_250_34.dat"                    using 1:4    title "Initial Solution " with lines,\
+"./Movie/Plot8_256_100_250_35.dat"                    using 1:4    title "Initial Solution " with lines,\
+"./Movie/Plot8_256_100_250_36.dat"                    using 1:4    title "Initial Solution " with lines,\
+"./Movie/Plot8_256_100_250_1012.dat"                  using 1:4    title "Initial Solution " with lines,\
 
-#"./Movie/Plot_4th_05_256_250_6_0.dat"    using 1:4       title "Initial Solution " with lines,\
+
+
+#"./dat_saves/Implicit_CD_R256_D250_CE9/Plot_0.dat"      using 1:6  title "256-0" with lines,\
+"./dat_saves/Implicit_CD_R256_D250_CE9/Plot_2.dat"      using 1:6  title "256-2" with lines,\
+"./dat_saves/Implicit_CD_R256_D250_CE9/Plot_4.dat"      using 1:6  title "256-4" with lines,\
+"./dat_saves/Implicit_CD_R256_D250_CE9/Plot_6.dat"      using 1:6  title "256-6" with lines,\
+"./dat_saves/Implicit_CD_R256_D250_CE9/Plot_8.dat"      using 1:6  title "256-8" with lines,\
+"./dat_saves/Implicit_CD_R256_D250_CE9/Plot_10.dat"     using 1:6  title "256-10" with lines,\
+"./dat_saves/Implicit_CD_R1024_D250_CE10/Plot_2.dat"    using 1:6  title "1024-2" with lines,\
+"./dat_saves/Implicit_CD_R1024_D250_CE10/Plot_4.dat"    using 1:6  title "1024-4" with lines,\
+"./dat_saves/Implicit_CD_R1024_D250_CE10/Plot_6.dat"    using 1:6  title "1024-6" with lines,\
+"./dat_saves/Implicit_CD_R1024_D250_CE10/Plot_8.dat"    using 1:6  title "1024-8" with lines,\
+"./dat_saves/Implicit_CD_R1024_D250_CE10/Plot_10.dat"   using 1:6  title "1024-10" with lines,\
+
+#"./Movie/Plot_4th_05_256_250_6_0.dat"   using 1:4       title "Initial Solution " with lines,\
 "./Movie/Plot_4th_05_256_250_6_5.dat"    using 1:4       title "Initial Solution " with lines,\
 "./Movie/Plot_4th_05_256_250_6_10.dat"   using 1:4       title "Initial Solution " with lines,\
 #"./Tests/Problem4_Exact.dat"                          using 1:3  title " " with lines,\
-"./Movie/Plot_4th_2_256_250_7_100.dat"    using 1:5       title "Initial Solution " with lines,\
-"./Movie/Plot_4th_2_256_250_7_110.dat"    using 1:5       title "Initial Solution " with lines,\
+"./Movie/Plot_4th_2_256_250_7_100.dat"   using 1:5       title "Initial Solution " with lines,\
+"./Movie/Plot_4th_2_256_250_7_110.dat"   using 1:5       title "Initial Solution " with lines,\
 "./Movie/Plot_2nd_4096_250_10_10.dat"    using 1:3   title "Initial Solution " with lines,\
 "./Movie/Plot_2th_4096_250_10_10.dat"    using 1:3   title "Initial Solution " with lines,\
 "./Movie/Plot_2nd_512_250_8_10.dat"      using 1:3   title "Initial Solution " with lines,\

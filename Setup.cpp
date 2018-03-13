@@ -5,6 +5,8 @@
 // #define EXPLICIT
 // #define MANUFACTURED
 
+#include <iomanip>
+#include <fenv.h>
 #include "Solver/Solver.h"
 #include "Low_Mach_Solver/RK4_Low_Mach_Solver.h"
 #include "Usefull_Headers/Variable_Vector_Isolator.h"
@@ -12,7 +14,6 @@
 #include "Solver/Implicit_Marching.h"
 // #include "Solver/Implicit_Marching_4th_Order.h"
 #include "Solver/Explicit_Marching.h"
-#include <iomanip>
 
 typedef Eigen::Matrix<double, 4, 1> Vector_type;
 using matrix_type = Eigen::Matrix<double, 4,4>;
@@ -31,6 +32,7 @@ void bisection_lambda(double& lambda_min, double& lambda_max, double& lambda_run
 }
 
 int main(){
+  feenableexcept(FE_INVALID | FE_OVERFLOW);
   std::cout << std::setprecision(10);
   double Pr = 0.75;
   double Le = 0.3;
@@ -44,7 +46,7 @@ int main(){
   // double Le = 1.0;
   // double Q_low_mach = 6;
   // double theta_low_mach = 30;
-  double mf = 0.001;
+  double mf = 0.10;
   double gamma = 1.4;
   double Q = Q_low_mach/(mf*mf*(gamma-1));
   double theta =theta_low_mach/(gamma*mf*mf);
@@ -61,11 +63,11 @@ int main(){
 
   double Theta = 1.0;
   double zeta = 0.0;
-  double CFL =  1e6;
+  double CFL =  2.5e6;
   double per_FL = 256.0;
-  double frame_time = 1e2;
+  double frame_time = 3e2;
   double dx = 1.0/per_FL;
-  double domaine_length = 250;
+  double domaine_length = 500;
   int    number_of_cells;
   global_solution_vector_type initial_solution;
 
@@ -80,27 +82,28 @@ int main(){
 
 
 
+
   std::cout << "//////////////////////////" << std::endl;
   std::cout << "Setting Initial Conditions " << std::endl;
   std::cout << "//////////////////////////" << std::endl;
-  // straight_line(number_of_cells, initial_solution, x_max, x_min, mf, gamma);
-  // case_4(frame_time, number_of_cells, initial_solution, gamma, x_max, x_min);
 #if defined(MANUFACTURED)
   manufactured_solution(number_of_cells, initial_solution, x_max, x_min, dx);
 #else
 RK4_low_mach_initial_conditions(lambda, number_of_cells, initial_solution, Le, Q_low_mach,
                                 theta_low_mach, T_ignition, gamma, x_max, mf, dx, domaine_length);
 #endif
-
-lambda_max = lambda*1.001;
-lambda_min = lambda*0.999;
+lambda_max = lambda*1.0001;
+lambda_min = lambda*0.9999;
 lambda_run = lambda;
+  std::string filename = "Movie/Plot8_" + tostring(per_FL) + "_"
+                                        + tostring(mf*1000) + "_"
+                                        + tostring(domaine_length) + "_";
+auto solver = Solver<global_solution_vector_type, matrix_type>(initial_solution, filename);
 
-  std::string filename = "Movie/Plot_4th_05_" + tostring(per_FL) + "_"
-                                              + tostring(domaine_length) + "_"
-                                              + tostring(log10(CFL)) + "_";
-
-  auto solver = Solver<global_solution_vector_type, matrix_type>(initial_solution, filename);
+while(mf < 1.0) {
+  double Q = Q_low_mach/(mf*mf*(gamma-1));
+  double theta =theta_low_mach/(gamma*mf*mf);
+  // std::cout << "Q: " << Q << "theta: " << theta << std::endl;
 
 #if defined(EXPLICIT)
   using marching_type = Explicit_Marching<global_solution_vector_type, matrix_type>;
@@ -115,14 +118,40 @@ lambda_run = lambda;
                             dx, Theta, zeta);
 #endif
 
-  while(1 < 2) {
-
-  plot<global_solution_vector_type>(filename+"0",
-                                    initial_solution, (x_max - x_min)/number_of_cells);
+      plot<global_solution_vector_type>(filename+"0",
+      initial_solution, (x_max - x_min)/number_of_cells);
 
 
-  bool check = solver.solve<marching_type>(march, target_residual, frame_time, gamma, lambda_run);
-  bisection_lambda(lambda_min, lambda_max, lambda_run, check);
+      solver.solve<marching_type>(march, target_residual, frame_time, gamma, lambda_run);
+
+  solver.set_bound_solution_vector(lambda_run, theta, Q, dx, mf);
+  lambda_max = lambda_run*1.02;
+  lambda_min = lambda_run*0.98;
+  while(fabs(lambda_min - lambda_max) > 1e2) {
+#if defined(EXPLICIT)
+  using marching_type = Explicit_Marching<global_solution_vector_type, matrix_type>;
+  march = marching_type(Pr, Le, Q, theta, mf, gamma,
+                            number_of_cells, CFL,
+                            dx);
+#endif
+#if defined(IMPLICIT)
+  using marching_type = Implicit_Marching<global_solution_vector_type, matrix_type>;
+  march = marching_type(Pr, Le, Q, theta, mf, gamma,
+                            number_of_cells, CFL,
+                            dx, Theta, zeta);
+#endif
+    bool check = solver.solve<marching_type>(march, target_residual, frame_time, gamma, lambda_run);
+    bisection_lambda(lambda_min, lambda_max, lambda_run, check);
+    // CFL = 5e6;
+  }
+solver.set_bound_solution_vector(lambda_run, theta, Q, dx, mf);
+// CFL = 2e6;
+    double mf_old = mf;
+    mf +=0.02;
+    solver.set_new_mf_to_solution_vector(lambda_run, mf_old, mf);
+    std::cout << "//////////////////////////" << std::endl;
+    std::cout << mf << " : " << lambda_run << std::endl;
+    std::cout << "//////////////////////////" << std::endl;
   }
 
 };

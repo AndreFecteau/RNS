@@ -126,7 +126,6 @@ class Implicit_Marching {
 template <typename global_solution_vector_type, typename matrix_type>
 double Implicit_Marching<global_solution_vector_type, matrix_type>::timemarch(double time_frame,
                              global_solution_vector_type &global_solution_vector, double lambda) {
-
   double current_time = 0.0;
   std::vector<matrix_type>    mid(global_solution_vector.size()-2);
   std::vector<matrix_type>    top(global_solution_vector.size()-2);
@@ -166,7 +165,7 @@ double Implicit_Marching<global_solution_vector_type, matrix_type>::timemarch(do
     rhs[i-1] += manufactured_residual(lambda, i)*dt/(1+zeta);
 #endif
     // rhs[i-1] += numerical_dissipation(global_solution_vector, i, 0.9);
-    // rhs[i-1] += numerical_dissipation(global_solution_vector, i, 0.1);
+    // rhs[i-1] += numerical_dissipation(global_solution_vector, i, 0.5);
     // rhs[i-1] += numerical_dissipation(global_solution_vector, i, 0.01);
   }
 
@@ -175,9 +174,7 @@ double Implicit_Marching<global_solution_vector_type, matrix_type>::timemarch(do
 {
 #if !defined(MANUFACTURED)
   mid[global_solution_vector.size()-3] += top[global_solution_vector.size()-3];
-  for(int i = 0; i < mid[0].cols(); ++i){
-    // mid[0](0,i) += bot[0](0,i);
-  }
+  // mid[0] += bot[0];
 #endif
 }
 
@@ -198,7 +195,7 @@ double Implicit_Marching<global_solution_vector_type, matrix_type>::timemarch(do
   {
 #if !defined(MANUFACTURED)
     global_solution_vector[global_solution_vector.size()-1] = global_solution_vector[global_solution_vector.size()-2];
-    // global_solution_vector[0][0] = global_solution_vector[1][0];
+    // global_solution_vector[0] = global_solution_vector[1];
 #endif
   }
 
@@ -211,7 +208,7 @@ double Implicit_Marching<global_solution_vector_type, matrix_type>::timemarch(do
     residual += delta_global_solution_vector[i-1].squaredNorm() * dx / dt;
   }
   }
-  std::cout << "residual: " << residual << std::endl;
+  std::cout << "residual: " << residual << " : ";
   return residual;
 }
 
