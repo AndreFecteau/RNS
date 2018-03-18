@@ -101,6 +101,21 @@ using solution_vector_type = typename global_solution_vector_type::value_type;
     }
     global_solution_vector = global_solution_vector_temp;
   }
+
+  void recenter_solution_minus(){
+    auto global_solution_vector_temp = global_solution_vector;
+    for(size_t i = global_solution_vector.size()-1; i > 0.95*global_solution_vector.size(); --i){
+      global_solution_vector_temp[i] = global_solution_vector[i];
+    }
+    for(size_t i = 0.95*global_solution_vector.size(); i > 0.65*global_solution_vector.size(); --i){
+      global_solution_vector_temp[i] = global_solution_vector[0.95*global_solution_vector.size()];
+    }
+    for(size_t i = 0.65*global_solution_vector.size(); i > 0; --i){
+      global_solution_vector_temp[i] = global_solution_vector[0.95*global_solution_vector.size()-(i-0.65*global_solution_vector.size())];
+    }
+    global_solution_vector = global_solution_vector_temp;
+  }
+
  private:
   global_solution_vector_type global_solution_vector;
   std::string filename;
@@ -145,7 +160,7 @@ bool Solver<global_solution_vector_type, matrix_type>::solve(marching_type march
     plot<global_solution_vector_type>(filename + std::to_string(static_cast<int>(count+100)), global_solution_vector, march.get_dx());
 
   // while (residual > target_residual){
-    while (i < 3){
+    while (i < 300){
     old_position = flame_position_algorithm(gamma);
     auto start = std::chrono::high_resolution_clock::now();
     residual = march.timemarch(frame_time, global_solution_vector, lambda);
@@ -173,8 +188,13 @@ bool Solver<global_solution_vector_type, matrix_type>::solve(marching_type march
   }
   std::cout << "position: " << position << std::endl;
   if(position < 0.25*global_solution_vector.size()) {
-  std::cout << "moved: " <<  std::endl;
+  std::cout << "moved_plus: " <<  std::endl;
     recenter_solution_plus();
+    plot<global_solution_vector_type>(filename + std::to_string(static_cast<int>(count+1000)), global_solution_vector, march.get_dx());
+  }
+  if(position > 0.75*global_solution_vector.size()) {
+  std::cout << "moved_minus: " << std::endl;
+    recenter_solution_minus();
     plot<global_solution_vector_type>(filename + std::to_string(static_cast<int>(count+1000)), global_solution_vector, march.get_dx());
   }
   if(position < old_position) {
