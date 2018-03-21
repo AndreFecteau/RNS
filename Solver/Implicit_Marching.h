@@ -1,6 +1,7 @@
 #ifndef IMPLICIT_MARCHING_H
 #define IMPLICIT_MARCHING_H
 
+#include <math.h>
 #include "../Implicit_Flux_and_Sources/Variable_Implicit_Scheme.h"
 // #include "../Implicit_Flux_and_Sources/Variable_Implicit_Scheme_4th_Order.h"
 // #include "../Implicit_Flux_and_Sources/Variable_Implicit_Scheme_HLLE.h"
@@ -53,6 +54,11 @@ class Implicit_Marching {
   /// \brief
   /// \param
   double get_dx() {return dx;}
+
+  /////////////////////////////////////////////////////////////////////////
+  /// \brief
+  /// \param
+  void reduce_CFL() {CFL /= 2.0; std::cout << "Reduced CFL: " << CFL << std::endl;}
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief
@@ -164,7 +170,7 @@ double Implicit_Marching<global_solution_vector_type, matrix_type>::timemarch(do
 #if defined(MANUFACTURED)
     rhs[i-1] += manufactured_residual(lambda, i)*dt/(1+zeta);
 #endif
-    rhs[i-1] += numerical_dissipation(global_solution_vector, i, 0.9);
+    rhs[i-1] += numerical_dissipation(global_solution_vector, i, 0.8);
     // rhs[i-1] += numerical_dissipation(global_solution_vector, i, 0.5);
     // rhs[i-1] += numerical_dissipation(global_solution_vector, i, 0.01);
   }
@@ -201,6 +207,8 @@ double Implicit_Marching<global_solution_vector_type, matrix_type>::timemarch(do
 
 #pragma omp single
   current_time += dt;
+// #pragma omp single
+//   std::cout << current_time << std::endl;
   }
   residual = 0.0;
 #pragma omp for reduction(+: residual)
@@ -219,7 +227,14 @@ template <typename global_solution_vector_type, typename matrix_type>
 double Implicit_Marching<global_solution_vector_type, matrix_type>::calculate_dt(const global_solution_vector_type &global_solution_vector) {
   double dt1 = CFL * dx / lambda_eigenvalue(global_solution_vector);
   double dt2 = CFL * dx*dx / (K_value(global_solution_vector));
-  return std::min(dt1, dt2);
+
+  if(isnan(global_solution_vector[1][2])){
+    dt1 = 1e4;
+    dt2 = 1e4;
+  }
+
+  // std::cout << dt1 << " : " << dt2 << std::endl;
+  return std::min(fabs(dt1), fabs(dt2));
 }
 
 ///////////////////////////////////////////////////////////////////////////////

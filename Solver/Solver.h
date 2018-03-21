@@ -1,6 +1,7 @@
 #ifndef SOLVER_H
 #define SOLVER_H
 
+#include <math.h>
 #include <chrono>
 #include <cereal/cereal.hpp>
 #include <cereal/types/vector.hpp>
@@ -49,13 +50,13 @@ using solution_vector_type = typename global_solution_vector_type::value_type;
   ///        ex:Implicit or Explicit.
   /// \param target_residual Residual where the solver will stop.
   template <typename marching_type>
-  bool solve(marching_type marching, double target_residual, double frame_time, double gamma, double lambda);
+  bool solve(marching_type marching, double target_residual, double frame_time, double gamma, double lambda, int frames);
 
   template<typename Archive>
   void serialize(Archive& archive) {
     archive(global_solution_vector, current_time, filename, current_frame);
   }
-  void set_new_mf_to_solution_vector(double &lambda, double mf_old, double mf){
+  void set_new_mf_to_solution_vector(double &lambda, double mf_old, double mf, double Q){
     Variable_Vector_Isolator<solution_vector_type> temp_0 = Variable_Vector_Isolator<solution_vector_type>(global_solution_vector[0], 1.4);
     // lambda *= mf_old*mf_old/(mf*mf);
     std::cout << "lambda: " << lambda << " mf: " << mf << std::endl;
@@ -66,6 +67,25 @@ using solution_vector_type = typename global_solution_vector_type::value_type;
       double p    = temp.p()/temp_0.p()*(1.0/(mf*mf*1.4));
       global_solution_vector[i] << rho, rho * u, p / 0.4 + rho * u * u / 2.0, rho*temp.Y();
     }
+  double gamma =1.4;
+  double p_0 = 1/(gamma*mf*mf);
+  double rho_0 = 1.0;
+  double u_0 = 1.0;
+  double zeta =(2*pow(mf,2)*Q + pow(-1 + pow(mf,2),2)*p_0/rho_0*gamma - 2*pow(mf,2)*Q*pow(gamma,2))/(pow(mf,4)*p_0/rho_0*gamma*pow(1 + gamma,2));
+  double p_inf = p_0*((1 + pow(mf,2)*gamma)/(1 + gamma) + pow(mf,2)*gamma*sqrt(zeta));
+  double rho_inf = rho_0/((1 + pow(mf,2)*gamma)/(pow(mf,2)*(1 + gamma)) - sqrt(zeta));
+  double u_inf = u_0*((1 + pow(mf,2)*gamma)/(pow(mf,2)*(1 + gamma)) - sqrt(zeta));
+    std::cout << "zeta:" << zeta << "p:" << p_inf << " rho: " << rho_inf << " u: " << u_inf << std::endl;
+
+      global_solution_vector[0] << 1.0,
+      1.0 * 1.0,
+      (1.0 / (gamma * mf * mf)) /
+      (gamma - 1.0) + 1.0 * 1.0 * 1.0 * 0.5,
+      1.0 * 1.0;
+      global_solution_vector[global_solution_vector.size()-1] << rho_inf,
+      rho_inf * u_inf,
+      p_inf / (gamma - 1.0) + rho_inf * u_inf * u_inf * 0.5,
+      rho_inf * 0;
   }
 
   void set_bound_solution_vector(double &lambda, double &theta, double &Q, double &dx, double &mf){
@@ -73,7 +93,7 @@ using solution_vector_type = typename global_solution_vector_type::value_type;
       global_solution_vector[i] = (global_solution_vector[500]);
     }
     Variable_Vector_Isolator<solution_vector_type> temp_0 = Variable_Vector_Isolator<solution_vector_type>(global_solution_vector[0], 1.4);
-    lambda /= temp_0.rho()*temp_0.u()*temp_0.u();
+    // lambda /= temp_0.rho()*temp_0.u()*temp_0.u();
     theta /= temp_0.u()*temp_0.u();
     Q /= temp_0.u()*temp_0.u();
     dx *= temp_0.rho()*temp_0.u();
@@ -88,36 +108,57 @@ using solution_vector_type = typename global_solution_vector_type::value_type;
     }
   }
 
-  void recenter_solution_plus(){
+  // void recenter_solution_plus(){
+  //   auto global_solution_vector_temp = global_solution_vector;
+  //   for(size_t i = 0; i < 0.05*global_solution_vector.size(); ++i){
+  //     global_solution_vector_temp[i] = global_solution_vector[i];
+  //   }
+  //   for(size_t i = 0.05*global_solution_vector.size(); i < 0.35*global_solution_vector.size(); ++i){
+  //     global_solution_vector_temp[i] = global_solution_vector[0.05*global_solution_vector.size()];
+  //   }
+  //   for(size_t i = 0.35*global_solution_vector.size(); i < global_solution_vector.size(); ++i){
+  //     global_solution_vector_temp[i] = global_solution_vector[0.05*global_solution_vector.size()+i-0.35*global_solution_vector.size()];
+  //   }
+  //   global_solution_vector = global_solution_vector_temp;
+  // }
+  //
+  // void recenter_solution_minus(){
+  //   auto global_solution_vector_temp = global_solution_vector;
+  //   for(size_t i = global_solution_vector.size()-1; i > 0.95*global_solution_vector.size(); --i){
+  //     global_solution_vector_temp[i] = global_solution_vector[i];
+  //   }
+  //   for(size_t i = 0.95*global_solution_vector.size(); i > 0.65*global_solution_vector.size(); --i){
+  //     global_solution_vector_temp[i] = global_solution_vector[0.95*global_solution_vector.size()];
+  //   }
+  //   for(size_t i = 0.65*global_solution_vector.size(); i > 0; --i){
+  //     global_solution_vector_temp[i] = global_solution_vector[0.95*global_solution_vector.size()-(i-0.65*global_solution_vector.size())];
+  //   }
+  //   global_solution_vector = global_solution_vector_temp;
+  // }
+  void recenter_solution_plus(int position){
     auto global_solution_vector_temp = global_solution_vector;
-    for(size_t i = 0; i < 0.05*global_solution_vector.size(); ++i){
-      global_solution_vector_temp[i] = global_solution_vector[i];
+    for(size_t i = 1; i < position; ++i){
+      global_solution_vector_temp[i] = global_solution_vector[0];
     }
-    for(size_t i = 0.05*global_solution_vector.size(); i < 0.35*global_solution_vector.size(); ++i){
-      global_solution_vector_temp[i] = global_solution_vector[0.05*global_solution_vector.size()];
-    }
-    for(size_t i = 0.35*global_solution_vector.size(); i < global_solution_vector.size(); ++i){
-      global_solution_vector_temp[i] = global_solution_vector[0.05*global_solution_vector.size()+i-0.35*global_solution_vector.size()];
+    for(size_t i = position; i < global_solution_vector.size()-1; ++i){
+      global_solution_vector_temp[i] = global_solution_vector[i-position];
     }
     global_solution_vector = global_solution_vector_temp;
   }
 
-  void recenter_solution_minus(){
+  void recenter_solution_minus(int position){
     auto global_solution_vector_temp = global_solution_vector;
-    for(size_t i = global_solution_vector.size()-1; i > 0.95*global_solution_vector.size(); --i){
-      global_solution_vector_temp[i] = global_solution_vector[i];
+    for(size_t i = 1; i < position; ++i){
+      global_solution_vector_temp[i] = global_solution_vector[i+(global_solution_vector.size()-position)];
     }
-    for(size_t i = 0.95*global_solution_vector.size(); i > 0.65*global_solution_vector.size(); --i){
-      global_solution_vector_temp[i] = global_solution_vector[0.95*global_solution_vector.size()];
-    }
-    for(size_t i = 0.65*global_solution_vector.size(); i > 0; --i){
-      global_solution_vector_temp[i] = global_solution_vector[0.95*global_solution_vector.size()-(i-0.65*global_solution_vector.size())];
+    for(size_t i = position; i < global_solution_vector.size()-1; ++i){
+      global_solution_vector_temp[i] = global_solution_vector[global_solution_vector.size()-1];
     }
     global_solution_vector = global_solution_vector_temp;
   }
-
  private:
   global_solution_vector_type global_solution_vector;
+  global_solution_vector_type global_solution_vector_backup;
   std::string filename;
   global_solution_vector_type initial_solution;
   double current_time = 0.0;
@@ -146,7 +187,8 @@ bool Solver<global_solution_vector_type, matrix_type>::solve(marching_type march
                                                              double target_residual,
                                                              double frame_time,
                                                              double gamma,
-                                                             double lambda) {
+                                                             double lambda,
+                                                             int frames) {
 
   std::cout << "//////////////////////" << std::endl;
   std::cout << "Lambda = " << lambda << std::endl;
@@ -160,19 +202,25 @@ bool Solver<global_solution_vector_type, matrix_type>::solve(marching_type march
     plot<global_solution_vector_type>(filename + std::to_string(static_cast<int>(count+100)), global_solution_vector, march.get_dx());
 
   // while (residual > target_residual){
-    while (i < 300){
+    while (i < frames){
     old_position = flame_position_algorithm(gamma);
     auto start = std::chrono::high_resolution_clock::now();
+    global_solution_vector_backup = global_solution_vector;
     residual = march.timemarch(frame_time, global_solution_vector, lambda);
-    current_time += frame_time;
-    std::cout << "Time = " <<  current_time << " : ";
-    plot<global_solution_vector_type>(filename + std::to_string(static_cast<int>(current_frame)+1), global_solution_vector, march.get_dx());
-    current_frame++;
-    serialize_to_file(*this, filename);
-    auto finish = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> elapsed = finish - start;
-    std::cout << "Elapsed time: " << elapsed.count() << "\n";
-    ++i;
+    if(isnan(residual)){
+      global_solution_vector = global_solution_vector_backup;
+      march.reduce_CFL();
+    } else {
+      current_time += frame_time;
+      std::cout << "Time = " <<  current_time << " : ";
+      plot<global_solution_vector_type>(filename + std::to_string(static_cast<int>(current_frame)+1), global_solution_vector, march.get_dx());
+      serialize_to_file(*this, filename + std::to_string(static_cast<int>(current_frame)+1));
+      current_frame++;
+      auto finish = std::chrono::high_resolution_clock::now();
+      std::chrono::duration<double> elapsed = finish - start;
+      std::cout << "Elapsed time: " << elapsed.count() << "\n";
+      ++i;
+    }
   }
   ++count;
 
@@ -187,14 +235,14 @@ bool Solver<global_solution_vector_type, matrix_type>::solve(marching_type march
   var_vec = Variable_Vector_Isolator<solution_vector_type>(global_solution_vector[position], 1.4);
   }
   std::cout << "position: " << position << std::endl;
-  if(position < 0.25*global_solution_vector.size()) {
+  if(position < 0.30*global_solution_vector.size()) {
   std::cout << "moved_plus: " <<  std::endl;
-    recenter_solution_plus();
+    recenter_solution_plus(position);
     plot<global_solution_vector_type>(filename + std::to_string(static_cast<int>(count+1000)), global_solution_vector, march.get_dx());
   }
-  if(position > 0.75*global_solution_vector.size()) {
+  if(position > 0.70*global_solution_vector.size()) {
   std::cout << "moved_minus: " << std::endl;
-    recenter_solution_minus();
+    recenter_solution_minus(position);
     plot<global_solution_vector_type>(filename + std::to_string(static_cast<int>(count+1000)), global_solution_vector, march.get_dx());
   }
   if(position < old_position) {

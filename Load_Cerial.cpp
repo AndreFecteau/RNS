@@ -1,28 +1,37 @@
 #define HYPERBOLIC
 #define VISCOUS
 #define SOURCE
+#define IMPLICIT
+// #define EXPLICIT
+// #define MANUFACTURED
 
+#include <iomanip>
+#include <fenv.h>
 #include "Solver/Solver.h"
 #include "Low_Mach_Solver/RK4_Low_Mach_Solver.h"
 #include "Usefull_Headers/Variable_Vector_Isolator.h"
 #include "Gnuplot_RNS/Gnuplot_Primitive_Variables.h"
 #include "Solver/Implicit_Marching.h"
+// #include "Solver/Implicit_Marching_4th_Order.h"
 #include "Solver/Explicit_Marching.h"
-#include "Eigen/Core"
-#include "Eigen/Dense"
-#include <cmath>
 
-typedef Eigen::Matrix<long double, 4, 1> Vector_type;
-using matrix_type = Eigen::Matrix<long double, 4,4>;
+typedef Eigen::Matrix<double, 4, 1> Vector_type;
+using matrix_type = Eigen::Matrix<double, 4,4>;
 using global_solution_vector_type = std::vector<Vector_type>;
 using solution_vector_type = typename global_solution_vector_type::value_type;
 #include "Usefull_Headers/Initial_Conditions.h"
 
-using implicit_marching_type = Implicit_Marching<global_solution_vector_type, matrix_type>;
-using explicit_marching_type = Explicit_Marching<global_solution_vector_type, matrix_type>;
-
+void bisection_lambda(double& lambda_min, double& lambda_max, double& lambda_run, bool check) {
+  if (check == 1){
+    lambda_min = lambda_run;
+    lambda_run = (lambda_min + lambda_max)*0.5;
+  } else {
+    lambda_max = lambda_run;
+    lambda_run = (lambda_min + lambda_max)*0.5;
+  }
+}
 int main(){
-  feenableexcept(FE_INVALID | FE_OVERFLOW);
+  // feenableexcept(FE_INVALID | FE_OVERFLOW);
   std::cout << std::setprecision(10);
   double Pr = 0.75;
   double Le = 0.3;
@@ -36,7 +45,7 @@ int main(){
   // double Le = 1.0;
   // double Q_low_mach = 6;
   // double theta_low_mach = 30;
-  double mf = 0.002;
+  double mf = 0.1355392856;
   double gamma = 1.4;
   double Q = Q_low_mach/(mf*mf*(gamma-1));
   double theta =theta_low_mach/(gamma*mf*mf);
@@ -53,11 +62,11 @@ int main(){
 
   double Theta = 1.0;
   double zeta = 0.0;
-  double CFL =  1e6;
+  double CFL =  5e7;
   double per_FL = 256.0;
-  double frame_time = 1e1;
+  double frame_time = 1e2;
   double dx = 1.0/per_FL;
-  double domaine_length = 2000;
+  double domaine_length = 500;
   int    number_of_cells;
   global_solution_vector_type initial_solution;
 
@@ -87,10 +96,10 @@ RK4_CJ_point(lambda, number_of_cells, initial_solution, Le, Q_low_mach,
 lambda_max = lambda*1.0001;
 lambda_min = lambda*0.9999;
 lambda_run = lambda;
-  std::string filename = "Movie/Plot9_" + tostring(per_FL) + "_"
+  std::string filename = "Movie/Plot11_" + tostring(per_FL) + "_"
                                         + tostring(domaine_length) + "_";
 auto solver = Solver<global_solution_vector_type, matrix_type>(initial_solution, filename);
-unserialize_to_file(solver, filename);
+unserialize_to_file(solver, filename + std::to_string(45));
 
 while(mf < 1.0) {
   double Q = Q_low_mach/(mf*mf*(gamma-1));
@@ -114,38 +123,15 @@ while(mf < 1.0) {
       initial_solution, (x_max - x_min)/number_of_cells);
 
 
-      solver.solve<marching_type>(march, target_residual, frame_time, gamma, lambda_run);
+      solver.solve<marching_type>(march, target_residual, frame_time, gamma, lambda_run, 1);
+    }
+    solver.set_bound_solution_vector(lambda_run, theta, Q, dx, mf);
 
-  solver.set_bound_solution_vector(lambda_run, theta, Q, dx, mf);
-  lambda_max = lambda_run*1.03;
-  lambda_min = lambda_run*0.97;
-  while(fabs(lambda_min - lambda_max) > 1e2) {
-#if defined(EXPLICIT)
-  using marching_type = Explicit_Marching<global_solution_vector_type, matrix_type>;
-  march = marching_type(Pr, Le, Q, theta, mf, gamma,
-                            number_of_cells, CFL,
-                            dx);
-#endif
-#if defined(IMPLICIT)
-  using marching_type = Implicit_Marching<global_solution_vector_type, matrix_type>;
-  march = marching_type(Pr, Le, Q, theta, mf, gamma,
-                            number_of_cells, CFL,
-                            dx, Theta, zeta);
-#endif
-    bool check = solver.solve<marching_type>(march, target_residual, frame_time, gamma, lambda_run);
-    bisection_lambda(lambda_min, lambda_max, lambda_run, check);
-    // CFL = 5e6;
-  }
-solver.set_bound_solution_vector(lambda_run, theta, Q, dx, mf);
-// CFL = 2e6;
-    double mf_old = mf;
-    mf +=0.02;
-    solver.set_new_mf_to_solution_vector(lambda_run, mf_old, mf);
-    std::cout << "//////////////////////////" << std::endl;
-    std::cout << mf << " : " << lambda_run << std::endl;
-    std::cout << "//////////////////////////" << std::endl;
-  }
-
+     double mf_old = mf;
+     mf +=0.01;
+     Q = Q_low_mach/(mf*mf*(gamma-1));
+     theta =theta_low_mach/(gamma*mf*mf);
+     solver.set_new_mf_to_solution_vector(lambda_run, mf_old, mf, Q);
 };
 
 // int main(){
