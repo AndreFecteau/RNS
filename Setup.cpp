@@ -64,8 +64,8 @@ int main(){
   double Theta = 1.0;
   double zeta = 0.0;
   double CFL = 5e7;
-  double per_FL = 256.0;
-  double frame_time = 1e2;
+  double per_FL = 256.0*4*4;
+  double frame_time = 1e1;
   double dx = 1.0/per_FL;
   double domaine_length = 500;
   int    number_of_cells;
@@ -96,8 +96,8 @@ RK4_CJ_point(lambda, number_of_cells, initial_solution, Le, Q_low_mach,
 #endif
 lambda_max = lambda*1.0001;
 lambda_min = lambda*0.9999;
-lambda_run = lambda;
-  std::string filename = "Movie/Plot11_" + tostring(per_FL) + "_"
+lambda_run = lambda*1.1;
+  std::string filename = "Movie/Plot12_" + tostring(per_FL) + "_"
                                         + tostring(domaine_length) + "_";
 auto solver = Solver<global_solution_vector_type, matrix_type>(initial_solution, filename);
 
@@ -106,7 +106,7 @@ while(mf < 1.0) {
   double theta =theta_low_mach/(gamma*mf*mf);
   // std::cout << "Q: " << Q << "theta: " << theta << std::endl;
 
-for(size_t i = 0; i < 5; ++i){
+for(size_t i = 0; i < 300; ++i){
 #if defined(EXPLICIT)
   using marching_type = Explicit_Marching<global_solution_vector_type, matrix_type>;
   auto march = marching_type(Pr, Le, Q, theta, mf, gamma,
@@ -126,7 +126,7 @@ for(size_t i = 0; i < 5; ++i){
 
       solver.solve<marching_type>(march, target_residual, frame_time, gamma, lambda_run, 1);
 }
-      solver.set_bound_solution_vector(lambda_run, theta, Q, dx, mf);
+      // solver.set_bound_solution_vector(lambda_run, theta, Q, dx, mf);
       // solver.solve<marching_type>(march, target_residual, frame_time, gamma, lambda_run, 1);
 // lambda_max = lambda_run*1.03;
 // lambda_min = lambda_run*0.97;
@@ -149,12 +149,12 @@ for(size_t i = 0; i < 5; ++i){
 //   }
 // solver.set_bound_solution_vector(lambda_run, theta, Q, dx, mf);
 // // CFL = 2e6;
-       double mf_old = mf;
-       mf +=0.01;
-      //  CFL /=2.0;
-       Q = Q_low_mach/(mf*mf*(gamma-1));
-       theta =theta_low_mach/(gamma*mf*mf);
-       solver.set_new_mf_to_solution_vector(lambda_run, mf_old, mf, Q);
+      //  double mf_old = mf;
+      //  mf +=0.01;
+      // //  CFL /=2.0;
+      //  Q = Q_low_mach/(mf*mf*(gamma-1));
+      //  theta =theta_low_mach/(gamma*mf*mf);
+      //  solver.set_new_mf_to_solution_vector(lambda_run, mf_old, mf, Q);
 //     std::cout << "//////////////////////////" << std::endl;
 //     std::cout << mf << " : " << lambda_run << std::endl;
 //     std::cout << "//////////////////////////" << std::endl;

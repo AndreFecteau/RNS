@@ -200,18 +200,21 @@ bool Solver<global_solution_vector_type, matrix_type>::solve(marching_type march
   (void)target_residual;
   int i = 0;
     plot<global_solution_vector_type>(filename + std::to_string(static_cast<int>(count+100)), global_solution_vector, march.get_dx());
+    double frame_time_temp = frame_time;
 
   // while (residual > target_residual){
     while (i < frames){
     old_position = flame_position_algorithm(gamma);
     auto start = std::chrono::high_resolution_clock::now();
     global_solution_vector_backup = global_solution_vector;
-    residual = march.timemarch(frame_time, global_solution_vector, lambda);
-    if(isnan(residual)){
+    residual = march.timemarch(frame_time_temp, global_solution_vector, lambda);
+    if(isnan(residual) || residual > 1e10){
       global_solution_vector = global_solution_vector_backup;
       march.reduce_CFL();
+      frame_time_temp *= 0.5;
+      std::cout << frame_time_temp << std::endl;
     } else {
-      current_time += frame_time;
+      current_time += frame_time_temp;
       std::cout << "Time = " <<  current_time << " : ";
       plot<global_solution_vector_type>(filename + std::to_string(static_cast<int>(current_frame)+1), global_solution_vector, march.get_dx());
       serialize_to_file(*this, filename + std::to_string(static_cast<int>(current_frame)+1));
@@ -220,6 +223,7 @@ bool Solver<global_solution_vector_type, matrix_type>::solve(marching_type march
       std::chrono::duration<double> elapsed = finish - start;
       std::cout << "Elapsed time: " << elapsed.count() << "\n";
       ++i;
+      frame_time_temp = frame_time;
     }
   }
   ++count;

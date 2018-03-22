@@ -141,6 +141,7 @@ void RK4_CJ_point(double &lambda, int &number_of_cells,
                   double domaine_length) {
   RK4_Low_Mach_Solver initial_low_mach = RK4_Low_Mach_Solver(Le, Q, theta, T_ignition);
   lambda = initial_low_mach.get_lambda();
+  mf = 0.148777;
   // mf = 0.01;///*0.99 **/ sqrt(1+Q*(-1+gamma*gamma)/(-1+gamma)-sqrt(-1+(1+Q*(-1+gamma*gamma)/(-1+gamma))*(1+Q*(-1+gamma*gamma)/(-1+gamma))));
   double p_0 = 1/(gamma*mf*mf);
   double rho_0 = 1.0;
@@ -186,7 +187,7 @@ void RK4_CJ_point(double &lambda, int &number_of_cells,
       // p_inf / (gamma - 1.0) + rho_inf * u_inf * u_inf * 0.5,
       // rho_inf * 0;
       // // std::cout << "a:" << i*dx << std::endl;
-      // initial_solution[i] = a+(b-a)/initial_low_mach.length()*(i*dx-domaine_length*0.7);
+      // initial_solution[i] = a+(b-a)/initial_low_mach.length()*(i*dx-domaine_length*0.5);
     // } else if ((
       // initial_solution[i] << make_RK4_solution_vector(initial_low_mach,
       //                                                 (i+1)*dx - domaine_length*0.7, gamma, mf);
