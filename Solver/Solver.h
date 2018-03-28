@@ -14,7 +14,8 @@
 template <typename flow_properties_type, typename grid_type, typename flux_type, typename time_stepping_type>
 class Solver {
 
-using solution_vector_type = typename global_solution_vector_type::value_type;
+using global_solution_vector_type = typename grid_type::global_solution_vector_type;
+using solution_vector_type = typename grid_type::global_solution_vector_type::value_type;
 
  public:
   /////////////////////////////////////////////////////////////////////////
