@@ -45,7 +45,7 @@ int main(){
   // double Le = 1.0;
   // double Q_low_mach = 6;
   // double theta_low_mach = 30;
-  double mf = 0.1355392856;
+  double mf = 0.148777;
   double gamma = 1.4;
   double Q = Q_low_mach/(mf*mf*(gamma-1));
   double theta =theta_low_mach/(gamma*mf*mf);
@@ -61,10 +61,10 @@ int main(){
   double target_residual = 1e-15;
 
   double Theta = 1.0;
-  double zeta = 0.0;
-  double CFL =  5e5;
+  double zeta = 0.5;
+  double CFL =  5e8;
   double per_FL = 256.0;
-  double frame_time = 1e0;
+  double frame_time = 5e4;
   double dx = 1.0/per_FL;
   double domaine_length = 500;
   int    number_of_cells;
@@ -92,21 +92,27 @@ RK4_CJ_point(lambda, number_of_cells, initial_solution, Le, Q_low_mach,
              theta_low_mach, T_ignition, gamma, x_max, mf, dx, domaine_length);
 // RK4_low_mach_initial_conditions(lambda, number_of_cells, initial_solution, Le, Q_low_mach,
 //                                 theta_low_mach, T_ignition, gamma, x_max, mf, dx, domaine_length);
+Q = Q_low_mach/(mf*mf*(gamma-1));
+theta = theta_low_mach/(gamma*mf*mf);
+
 #endif
-lambda_max = lambda*1.0001;
-lambda_min = lambda*0.9999;
-lambda_run = lambda;
+lambda_max = lambda*1.01;
+lambda_min = lambda*0.99;
+lambda_run = 124791;
   std::string filename = "Movie/Plot12_" + tostring(per_FL) + "_"
                                         + tostring(domaine_length) + "_";
 auto solver = Solver<global_solution_vector_type, matrix_type>(initial_solution, filename);
-unserialize_to_file(solver, filename + std::to_string(360));
+unserialize_to_file(solver, filename + std::to_string(928));
+// solver.reset_close_to_bound();
+// solver.set_bound_solution_vector(lambda_run, theta, Q, dx, mf);
+//     std::cout << "theta: " << theta << " Q: " << Q << " mf: " << mf << std::endl;
 
-while(mf < 1.0) {
-  double Q = Q_low_mach/(mf*mf*(gamma-1));
-  double theta =theta_low_mach/(gamma*mf*mf);
+while(fabs(lambda_min - lambda_max) > 1e0) {
+  // double Q = Q_low_mach/(mf*mf*(gamma-1));
+  // double theta = theta_low_mach/(gamma*mf*mf);
   // std::cout << "Q: " << Q << "theta: " << theta << std::endl;
-
-for(size_t i = 0; i < 300; ++i){
+  bool check;
+for(size_t i = 0; i < 10; ++i){
 #if defined(EXPLICIT)
   using marching_type = Explicit_Marching<global_solution_vector_type, matrix_type>;
   auto march = marching_type(Pr, Le, Q, theta, mf, gamma,
@@ -124,9 +130,40 @@ for(size_t i = 0; i < 300; ++i){
       initial_solution, (x_max - x_min)/number_of_cells);
 
 
-      solver.solve<marching_type>(march, target_residual, frame_time, gamma, lambda_run, 1);
+      check = solver.solve<marching_type>(march, target_residual, frame_time, gamma, lambda_run, 1);
 }
+    bisection_lambda(lambda_min, lambda_max, lambda_run, check);
 }
+// lambda_max = lambda_run*1.10;
+// lambda_min = lambda_run*0.90;
+//   while(fabs(lambda_min - lambda_max) > 1e2) {
+// #if defined(EXPLICIT)
+//   using marching_type = Explicit_Marching<global_solution_vector_type, matrix_type>;
+//   march = marching_type(Pr, Le, Q, theta, mf, gamma,
+//                             number_of_cells, CFL,
+//                             dx);
+// #endif
+// #if defined(IMPLICIT)
+//   using marching_type = Implicit_Marching<global_solution_vector_type, matrix_type>;
+//   march = marching_type(Pr, Le, Q, theta, mf, gamma,
+//                             number_of_cells, CFL,
+//                             dx, Theta, zeta);
+// #endif
+//     bool check = solver.solve<marching_type>(march, target_residual, frame_time, gamma, lambda_run, 1);
+//     bisection_lambda(lambda_min, lambda_max, lambda_run, check);
+//     // CFL = 5e6;
+//   }
+// solver.set_bound_solution_vector(lambda_run, theta, Q, dx, mf);
+// // CFL = 2e6;
+//        double mf_old = mf;
+//        mf +=0.01;
+//       //  CFL /=2.0;
+//        Q = Q_low_mach/(mf*mf*(gamma-1));
+//        theta =theta_low_mach/(gamma*mf*mf);
+//        solver.set_new_mf_to_solution_vector(lambda_run, mf_old, mf, Q);
+//     std::cout << "//////////////////////////" << std::endl;
+//     std::cout << mf << " : " << lambda_run << std::endl;
+//     std::cout << "//////////////////////////" << std::endl;
 };
 
 // int main(){

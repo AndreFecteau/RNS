@@ -94,49 +94,26 @@ using solution_vector_type = typename global_solution_vector_type::value_type;
     }
     Variable_Vector_Isolator<solution_vector_type> temp_0 = Variable_Vector_Isolator<solution_vector_type>(global_solution_vector[0], 1.4);
     // lambda /= temp_0.rho()*temp_0.u()*temp_0.u();
-    theta /= temp_0.u()*temp_0.u();
-    Q /= temp_0.u()*temp_0.u();
-    dx *= temp_0.rho()*temp_0.u();
-    mf = temp_0.u()/sqrt(1.4*temp_0.p()/temp_0.rho());
-    std::cout << "theta: " << theta << " Q: " << Q << " mf: " << mf << std::endl;
-    for (int i = 0; i < global_solution_vector.size(); ++i){
-      Variable_Vector_Isolator<solution_vector_type> temp = Variable_Vector_Isolator<solution_vector_type>(global_solution_vector[i], 1.4);
-      double rho  = temp.rho() / temp_0.rho();
-      double u    = temp.u() / temp_0.u();
-      double p    = temp.p() / (temp_0.rho()*temp_0.u()*temp_0.u());
-      global_solution_vector[i] << rho, rho * u, p / 0.4 + rho * u * u / 2.0, rho*temp.Y();
-    }
+    // theta /=  (temp_0.u()*temp_0.u());
+    // Q /=  (temp_0.u()*temp_0.u());
+    // dx *= temp_0.rho()*temp_0.u();
+    // std::cout << "theta: " << theta << " Q: " << Q << " mf: " << mf << std::endl;
+    // std::cout << "rho*u: " << temp_0.rho()*temp_0.u() << std::endl;
+    // for (int i = 0; i < global_solution_vector.size(); ++i){
+    //   Variable_Vector_Isolator<solution_vector_type> temp = Variable_Vector_Isolator<solution_vector_type>(global_solution_vector[i], 1.4);
+    //   double rho  = temp.rho() / temp_0.rho();
+    //   double u    = temp.u() / temp_0.u();
+    //   double p    = temp.p();// / (temp_0.rho()*temp_0.u()*temp_0.u());
+    //   global_solution_vector[i] << rho, rho * u, p / 0.4 + rho * u * u / 2.0, rho*temp.Y();
+    // }
+    // temp_0 = Variable_Vector_Isolator<solution_vector_type>(global_solution_vector[0], 1.4);
+    // mf = temp_0.u()/sqrt(1.4*temp_0.p()/temp_0.rho());
+    // std::cout << "theta: " << theta << " Q: " << Q << " mf: " << mf << std::endl;
   }
 
-  // void recenter_solution_plus(){
-  //   auto global_solution_vector_temp = global_solution_vector;
-  //   for(size_t i = 0; i < 0.05*global_solution_vector.size(); ++i){
-  //     global_solution_vector_temp[i] = global_solution_vector[i];
-  //   }
-  //   for(size_t i = 0.05*global_solution_vector.size(); i < 0.35*global_solution_vector.size(); ++i){
-  //     global_solution_vector_temp[i] = global_solution_vector[0.05*global_solution_vector.size()];
-  //   }
-  //   for(size_t i = 0.35*global_solution_vector.size(); i < global_solution_vector.size(); ++i){
-  //     global_solution_vector_temp[i] = global_solution_vector[0.05*global_solution_vector.size()+i-0.35*global_solution_vector.size()];
-  //   }
-  //   global_solution_vector = global_solution_vector_temp;
-  // }
-  //
-  // void recenter_solution_minus(){
-  //   auto global_solution_vector_temp = global_solution_vector;
-  //   for(size_t i = global_solution_vector.size()-1; i > 0.95*global_solution_vector.size(); --i){
-  //     global_solution_vector_temp[i] = global_solution_vector[i];
-  //   }
-  //   for(size_t i = 0.95*global_solution_vector.size(); i > 0.65*global_solution_vector.size(); --i){
-  //     global_solution_vector_temp[i] = global_solution_vector[0.95*global_solution_vector.size()];
-  //   }
-  //   for(size_t i = 0.65*global_solution_vector.size(); i > 0; --i){
-  //     global_solution_vector_temp[i] = global_solution_vector[0.95*global_solution_vector.size()-(i-0.65*global_solution_vector.size())];
-  //   }
-  //   global_solution_vector = global_solution_vector_temp;
-  // }
   void recenter_solution_plus(int position){
     auto global_solution_vector_temp = global_solution_vector;
+    position = 0.5*global_solution_vector.size()-position;
     for(size_t i = 1; i < position; ++i){
       global_solution_vector_temp[i] = global_solution_vector[0];
     }
@@ -148,10 +125,22 @@ using solution_vector_type = typename global_solution_vector_type::value_type;
 
   void recenter_solution_minus(int position){
     auto global_solution_vector_temp = global_solution_vector;
-    for(size_t i = 1; i < position; ++i){
-      global_solution_vector_temp[i] = global_solution_vector[i+(global_solution_vector.size()-position)];
+    position -= 0.5*global_solution_vector.size();
+    for(size_t i = 1; i < global_solution_vector.size()-position; ++i){
+      global_solution_vector_temp[i] = global_solution_vector[i+position];
     }
-    for(size_t i = position; i < global_solution_vector.size()-1; ++i){
+    for(size_t i = global_solution_vector.size()-position; i < global_solution_vector.size()-1; ++i){
+      global_solution_vector_temp[i] = global_solution_vector[global_solution_vector.size()-1];
+    }
+    global_solution_vector = global_solution_vector_temp;
+  }
+
+  void reset_close_to_bound(){
+    auto global_solution_vector_temp = global_solution_vector;
+    for(size_t i = 1; i < 0.4 * global_solution_vector.size(); ++i){
+      global_solution_vector_temp[i] = global_solution_vector[0];
+    }
+    for(size_t i = global_solution_vector.size()*0.8; i < global_solution_vector.size()-1; ++i){
       global_solution_vector_temp[i] = global_solution_vector[global_solution_vector.size()-1];
     }
     global_solution_vector = global_solution_vector_temp;
@@ -199,7 +188,7 @@ bool Solver<global_solution_vector_type, matrix_type>::solve(marching_type march
   (void)residual;
   (void)target_residual;
   int i = 0;
-    plot<global_solution_vector_type>(filename + std::to_string(static_cast<int>(count+100)), global_solution_vector, march.get_dx());
+    plot<global_solution_vector_type>(filename + std::to_string(static_cast<int>(2000)), global_solution_vector, march.get_dx());
     double frame_time_temp = frame_time;
 
   // while (residual > target_residual){
@@ -208,11 +197,20 @@ bool Solver<global_solution_vector_type, matrix_type>::solve(marching_type march
     auto start = std::chrono::high_resolution_clock::now();
     global_solution_vector_backup = global_solution_vector;
     residual = march.timemarch(frame_time_temp, global_solution_vector, lambda);
+    int position = 0;
+    auto var_vec = Variable_Vector_Isolator<solution_vector_type>(global_solution_vector[position], 1.4);
+    while (var_vec.rho() > 0.5) {
+    ++position;
+    var_vec = Variable_Vector_Isolator<solution_vector_type>(global_solution_vector[position], 1.4);
+    }
     if(isnan(residual) || residual > 1e10){
       global_solution_vector = global_solution_vector_backup;
       march.reduce_CFL();
       frame_time_temp *= 0.5;
       std::cout << frame_time_temp << std::endl;
+    }else if(position < global_solution_vector.size()*0.1 || position > global_solution_vector.size()*0.9) {
+      global_solution_vector = global_solution_vector_backup;
+      frame_time_temp *= 0.5;
     } else {
       current_time += frame_time_temp;
       std::cout << "Time = " <<  current_time << " : ";
@@ -239,12 +237,12 @@ bool Solver<global_solution_vector_type, matrix_type>::solve(marching_type march
   var_vec = Variable_Vector_Isolator<solution_vector_type>(global_solution_vector[position], 1.4);
   }
   std::cout << "position: " << position << std::endl;
-  if(position < 0.30*global_solution_vector.size()) {
+  if(position < 0.50*global_solution_vector.size()) {
   std::cout << "moved_plus: " <<  std::endl;
     recenter_solution_plus(position);
     plot<global_solution_vector_type>(filename + std::to_string(static_cast<int>(count+1000)), global_solution_vector, march.get_dx());
   }
-  if(position > 0.70*global_solution_vector.size()) {
+  if(position > 0.50*global_solution_vector.size()) {
   std::cout << "moved_minus: " << std::endl;
     recenter_solution_minus(position);
     plot<global_solution_vector_type>(filename + std::to_string(static_cast<int>(count+1000)), global_solution_vector, march.get_dx());
