@@ -1,33 +1,37 @@
-#ifndef IMPLICIT_MATRIX_ENTRIES
-#define IMPLICIT_MATRIX_ENTRIES
+#ifndef VARIABLE_IMPLICIT_SCHEME_H
+#define VARIABLE_IMPLICIT_SCHEME_H
 
-template <typename global_solution_vector_type, typename matrix_type>
-class Implicit_Matrix_Entries {
-using solution_vector_type = typename global_solution_vector_type::value_type;
+template <typename grid_type>
+class Variable_Implicit_Scheme {
+
+using scalar_type = typename grid_type::scalar_type;
+using solution_vector_type = typename grid_type::global_solution_vector_type::value_type;
+using matrix_type = typename grid_type::matrix_type;
+
  public:
   /////////////////////////////////////////////////////////////////////////
   /// \brief Default constructor.
-  Implicit_Matrix_Entries() = default;
+  Variable_Implicit_Scheme() = default;
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief Copy constructor.
-  Implicit_Matrix_Entries(const Implicit_Matrix_Entries&) = default;
+  Variable_Implicit_Scheme(const Variable_Implicit_Scheme&) = default;
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief Move constructor.
-  Implicit_Matrix_Entries(Implicit_Matrix_Entries&&) = default;
+  Variable_Implicit_Scheme(Variable_Implicit_Scheme&&) = default;
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief Copy assignment operator.
-  Implicit_Matrix_Entries& operator=(const Implicit_Matrix_Entries&) = default;
+  Variable_Implicit_Scheme& operator=(const Variable_Implicit_Scheme&) = default;
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief Move assignment operator.
-  Implicit_Matrix_Entries& operator=(Implicit_Matrix_Entries&&) = default;
+  Variable_Implicit_Scheme& operator=(Variable_Implicit_Scheme&&) = default;
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief Constructor setting up required inputs.
-  Implicit_Matrix_Entries(const solution_vector_type& solution_vector_mm,
+  Variable_Implicit_Scheme(const solution_vector_type& solution_vector_mm,
                              const solution_vector_type& solution_vector_m,
                              const solution_vector_type& solution_vector,
                              const solution_vector_type& solution_vector_p,
@@ -88,8 +92,8 @@ using solution_vector_type = typename global_solution_vector_type::value_type;
 };
 
 
-template <typename global_solution_vector_type, typename matrix_type>
-matrix_type Implicit_Matrix_Entries<global_solution_vector_type, matrix_type>::mid_matrix() {
+template <typename grid_type>
+typename grid_type::matrix_type Variable_Implicit_Scheme<grid_type>::mid_matrix() {
 
   matrix_type b;
   matrix_type temp;
@@ -159,8 +163,8 @@ matrix_type Implicit_Matrix_Entries<global_solution_vector_type, matrix_type>::m
   return b;
 }
 
-template <typename global_solution_vector_type, typename matrix_type>
-matrix_type Implicit_Matrix_Entries<global_solution_vector_type, matrix_type>::top_matrix() {
+template <typename grid_type>
+typename grid_type::matrix_type Variable_Implicit_Scheme<grid_type>::top_matrix() {
 
   matrix_type c;
   matrix_type temp;
@@ -208,8 +212,8 @@ matrix_type Implicit_Matrix_Entries<global_solution_vector_type, matrix_type>::t
   return c;
 }
 
-template <typename global_solution_vector_type, typename matrix_type>
-matrix_type Implicit_Matrix_Entries<global_solution_vector_type, matrix_type>::bot_matrix() {
+template <typename grid_type>
+typename grid_type::matrix_type Variable_Implicit_Scheme<grid_type>::bot_matrix() {
 
   matrix_type a;
   matrix_type temp;
@@ -256,9 +260,9 @@ matrix_type Implicit_Matrix_Entries<global_solution_vector_type, matrix_type>::b
   return a;
 }
 
-template <typename global_solution_vector_type, typename matrix_type>
-typename global_solution_vector_type::value_type
-Implicit_Matrix_Entries<global_solution_vector_type, matrix_type>::rhs_matrix() {
+template <typename grid_type>
+typename grid_type::global_solution_vector_type::value_type
+Variable_Implicit_Scheme<grid_type>::rhs_matrix() {
 
   solution_vector_type rhs;
   solution_vector_type temp;
@@ -318,4 +322,4 @@ Implicit_Matrix_Entries<global_solution_vector_type, matrix_type>::rhs_matrix() 
   return rhs;
 }
 
-#endif //#ifndef IMPLICIT_MATRIX_ENTRIES_CD
+#endif //#ifndef VARIABLE_IMPLICIT_SCHEME_H
