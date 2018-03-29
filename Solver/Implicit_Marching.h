@@ -179,7 +179,7 @@ double Implicit_Marching<global_solution_vector_type, matrix_type>::timemarch(do
 #pragma omp single
 {
 #if !defined(MANUFACTURED)
-  mid[global_solution_vector.size()-3] += top[global_solution_vector.size()-3];
+  // mid[global_solution_vector.size()-3] += top[global_solution_vector.size()-3];
   // mid[0] += bot[0];
 #endif
 }
@@ -200,7 +200,7 @@ double Implicit_Marching<global_solution_vector_type, matrix_type>::timemarch(do
 #pragma omp single
   {
 #if !defined(MANUFACTURED)
-    global_solution_vector[global_solution_vector.size()-1] = global_solution_vector[global_solution_vector.size()-2];
+    // global_solution_vector[global_solution_vector.size()-1] = global_solution_vector[global_solution_vector.size()-2];
     // global_solution_vector[0] = global_solution_vector[1];
 #endif
   }
