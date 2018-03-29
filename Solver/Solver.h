@@ -213,7 +213,7 @@ solve(int number_of_frames) {
     } else {
       current_time += frame_time_temp;
       std::cout << "Time = " <<  current_time << " : ";
-      plot<global_solution_vector_type>(filename + std::to_string(static_cast<int>(current_frame)+1), grid.global_solution_vector,grid.dx());
+      plot<grid_type>(filename + std::to_string(static_cast<int>(current_frame)+1), grid.global_solution_vector,grid.dx());
       serialize_to_file(*this, filename + std::to_string(static_cast<int>(current_frame)+1));
       current_frame++;
       auto finish = std::chrono::high_resolution_clock::now();

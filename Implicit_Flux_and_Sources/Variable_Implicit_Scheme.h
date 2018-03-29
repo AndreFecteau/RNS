@@ -37,10 +37,10 @@ using matrix_type = typename grid_type::matrix_type;
                              const solution_vector_type& solution_vector_p,
                              const solution_vector_type& solution_vector_pp,
                              const solution_vector_type& DeltaUm,
-                             const double& gamma_in, const double& Pr_in,
-                             const double& Le_in, const double& Q_in, const double& lambda_in,
-                             const double& theta_in, const double& dx_in, const double& dt_in,
-                             const double& zeta_in, const double& Theta_in) :
+                             const scalar_type& gamma_in, const scalar_type& Pr_in,
+                             const scalar_type& Le_in, const scalar_type& Q_in, const scalar_type& lambda_in,
+                             const scalar_type& theta_in, const scalar_type& dx_in, const scalar_type& dt_in,
+                             const scalar_type& zeta_in, const scalar_type& Theta_in) :
                              gamma(gamma_in), Pr(Pr_in), Le(Le_in), Q(Q_in), lambda(lambda_in),
                              theta(theta_in), dx(dx_in), dt(dt_in), zeta(zeta_in),
                              Theta(Theta_in) {
@@ -70,23 +70,23 @@ using matrix_type = typename grid_type::matrix_type;
   solution_vector_type rhs_matrix();
 
  private:
-  double rho, rhom, rhop;
-  double u, um, up;
-  double e, em, ep;
-  double Y, Ym, Yp;
+  scalar_type rho, rhom, rhop;
+  scalar_type u, um, up;
+  scalar_type e, em, ep;
+  scalar_type Y, Ym, Yp;
   char E;
-  double gamma, Pr, Le, Q;
-  double lambda, theta;
-  double dx, dt;
-  double zeta, Theta;
-  double dUm1, dUm2, dUm3, dUm4;
+  scalar_type gamma, Pr, Le, Q;
+  scalar_type lambda, theta;
+  scalar_type dx, dt;
+  scalar_type zeta, Theta;
+  scalar_type dUm1, dUm2, dUm3, dUm4;
 
   template <typename T>
-  double Power(const T num, const int expo) {
+  scalar_type Power(const T num, const int expo) {
     return pow(num, expo);
   }
 
-  double Power(const char num, const double expo) {
+  scalar_type Power(const char num, const scalar_type expo) {
     return exp(expo);
   }
 };

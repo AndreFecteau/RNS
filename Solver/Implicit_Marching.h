@@ -72,12 +72,12 @@ class Implicit_Marching {
   /////////////////////////////////////////////////////////////////////////
   /// \brief Calculates maximum stable timestep.
   /// \param global_solution_vector vector containing cell states from all the cells.
-  double calculate_dt(const global_solution_vector_type &global_solution_vector, scalar_type CFL, grid_type grid);
+  double calculate_dt(const grid_type& grid, const scalar_type CFL);
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief Calculates wavespeed for timestep control.
   /// \param global_solution_vector vector containing cell states from all the cells.
-  double lambda_eigenvalue(const global_solution_vector_type &global_solution_vector, grid_type grid);
+  double lambda_eigenvalue(const global_solution_vector_type &global_solution_vector, const grid_type grid);
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief Calculates the variable for timestep control from second order
@@ -137,22 +137,22 @@ double Implicit_Marching<grid_type, flow_properties_type>::timemarch(flow_proper
 
 #pragma omp single
 {
-  dt = calculate_dt(grid.global_solution_vector, CFL);
+  dt = calculate_dt(grid, CFL);
   if(current_time + dt > frame_time) {
     dt = frame_time - current_time;
   }
 }
 
 #pragma omp for
-  for(int i = 1; i < static_cast<int>(grid.global_solution_vector.size()-1); ++i) {
-    auto matrix_entries = flux_type(grid.global_solution_vector[std::max(i-2,0)],
+  for(size_type i = 1; i < grid.number_of_cells - 1); ++i) {
+    auto matrix_entries = flux_type(grid.global_solution_vector[std::max(i-2,static_cast<size_type>(0))],
                                     grid.global_solution_vector[i-1],
                                     grid.global_solution_vector[i],
                                     grid.global_solution_vector[i+1],
                                     grid.global_solution_vector[std::min(i+2,grid.number_of_cells-1)],
                                     delta_global_solution_vector[i-1],
                                     flow.gamma, flow.Pr, flow.Le, flow.Q, flow.lambda,
-                                    flow.theta, grid.dx(), dt);
+                                    flow.theta, grid.dx(), dt, );
     mid[i-1] = matrix_entries.mid_matrix();
     bot[i-1] = matrix_entries.bot_matrix();
     top[i-1] = matrix_entries.top_matrix();
@@ -214,11 +214,11 @@ double Implicit_Marching<grid_type, flow_properties_type>::timemarch(flow_proper
 // Calculate dt;
 ///////////////////////////////////////////////////////////////////////////////
 template <typename grid_type, typename flow_properties_type>
-double Implicit_Marching<grid_type, flow_properties_type>::calculate_dt(const global_solution_vector_type &global_solution_vector, scalar_type CFL, grid_type grid) {
-  double dt1 = CFL * grid.dx() / lambda_eigenvalue(global_solution_vector);
-  double dt2 = CFL * grid.dx()*grid.dx() / (K_value(global_solution_vector));
+double Implicit_Marching<grid_type, flow_properties_type>::calculate_dt(const grid_type& grid, scalar_type CFL) {
+  double dt1 = CFL * grid.dx() / lambda_eigenvalue(grid.global_solution_vector);
+  double dt2 = CFL * grid.dx()*grid.dx() / (K_value(grid.global_solution_vector));
 
-  if(isnan(global_solution_vector[1][2])){
+  if(isnan(grid.global_solution_vector[1][2])){
     dt1 = 1e4;
     dt2 = 1e4;
   }
