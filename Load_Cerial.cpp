@@ -96,8 +96,8 @@ Q = Q_low_mach/(mf*mf*(gamma-1));
 theta = theta_low_mach/(gamma*mf*mf);
 
 #endif
-lambda_max = lambda*1.0001;
-lambda_min = lambda*0.9999;
+lambda_max = lambda*1.001;
+lambda_min = lambda*0.999;
 lambda_run = 124364.9*1.1;
   std::string filename = "Movie/Plot13_" + tostring(per_FL) + "_"
                                         + tostring(domaine_length) + "_";
@@ -113,7 +113,7 @@ while(fabs(lambda_min - lambda_max) > 1e0) {
   // double theta = theta_low_mach/(gamma*mf*mf);
   // std::cout << "Q: " << Q << "theta: " << theta << std::endl;
   bool check;
-for(size_t i = 0; i < 10; ++i){
+for(size_t i = 0; i < 30; ++i){
 #if defined(EXPLICIT)
   using marching_type = Explicit_Marching<global_solution_vector_type, matrix_type>;
   auto march = marching_type(Pr, Le, Q, theta, mf, gamma,
