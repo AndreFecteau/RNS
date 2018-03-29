@@ -45,7 +45,7 @@ class Implicit_Marching {
   /// \param frame_time Time to stop the time marching.
   /// \param global_solution_vector vector containing cell states from all the cells.
   template <typename flux_type>
-  scalar_type timemarch(flow_properties_type flow, grid_type grid, scalar_type CFL, scalar_type frame_time);
+  scalar_type timemarch(flow_properties_type flow, grid_type& grid, scalar_type CFL, scalar_type frame_time);
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief
@@ -120,7 +120,7 @@ template <typename grid_type, typename flow_properties_type>
 template <typename flux_type>
 typename grid_type::scalar_type Implicit_Marching<grid_type, flow_properties_type>::
 timemarch(flow_properties_type flow,
-          grid_type grid, scalar_type CFL,
+          grid_type& grid, scalar_type CFL,
           scalar_type frame_time) {
 
   scalar_type current_time = 0.0;
@@ -153,8 +153,8 @@ timemarch(flow_properties_type flow,
                                     grid.global_solution_vector[i+1],
                                     grid.global_solution_vector[std::min(i+2,grid.number_of_cells-1)],
                                     delta_global_solution_vector[i-1],
-                                    flow.gamma, flow.Pr, flow.Le, flow.Q, flow.lambda,
-                                    flow.theta, grid.dx(), dt, zeta, Theta);
+                                    flow.gamma, flow.Pr, flow.Le, flow.Q(), flow.lambda,
+                                    flow.theta(), grid.dx(), dt, zeta, Theta);
     mid[i-1] = matrix_entries.mid_matrix();
     bot[i-1] = matrix_entries.bot_matrix();
     top[i-1] = matrix_entries.top_matrix();
@@ -171,7 +171,7 @@ timemarch(flow_properties_type flow,
 #pragma omp single
 {
 #if !defined(MANUFACTURED)
-  mid[grid.global_solution_vector.size()-3] += top[grid.global_solution_vector.size()-3];
+  // mid[grid.global_solution_vector.size()-3] += top[grid.global_solution_vector.size()-3];
   // mid[0] += bot[0];
 #endif
 }
@@ -192,7 +192,7 @@ timemarch(flow_properties_type flow,
 #pragma omp single
   {
 #if !defined(MANUFACTURED)
-    grid.global_solution_vector[grid.global_solution_vector.size()-1] = grid.global_solution_vector[grid.global_solution_vector.size()-2];
+    // grid.global_solution_vector[grid.global_solution_vector.size()-1] = grid.global_solution_vector[grid.global_solution_vector.size()-2];
     // grid.global_solution_vector[0] = grid.global_solution_vector[1];
 #endif
   }
@@ -208,7 +208,7 @@ timemarch(flow_properties_type flow,
     residual += delta_global_solution_vector[i-1].squaredNorm() * grid.dx() / dt;
   }
   }
-  std::cout << "residual: " << residual << " : ";
+  std::cout << "residual: " << residual << " : " << CFL << std::endl;
   return residual;
 }
 
@@ -284,8 +284,8 @@ typename grid_type::global_solution_vector_type::value_type Implicit_Marching<gr
     solution_vector_type man_sol;
     scalar_type Pr = flow.Pr;
     scalar_type Le = flow.Le;
-    scalar_type Q = flow.Q;
-    scalar_type theta = flow.theta;
+    scalar_type Q = flow.Q();
+    scalar_type theta = flow.theta();
     scalar_type gamma = flow.gamma;
 
     man_sol << 0,0,0,0;
@@ -318,9 +318,9 @@ typename grid_type::global_solution_vector_type::value_type Implicit_Marching<gr
     // Source
     ///////////////////////////////////////////////////////////////////////////////
 #if defined(SOURCE)
-    temp << 0.,0.,-(exp((8*theta*(11 + 9*tanh(10 - 4*x)))/
-         ((-1 + gamma)*(-11198669 - 769*tanh(10 - 4*x) - 891*Power(tanh(10 - 4*x),2) + 729*Power(tanh(10 - 4*x),3))))*lambda*Q*(11 + 9*tanh(10 - 4*x))*
-       (1 + tanh(2 - x)))/40.,(exp((8*theta*(11 + 9*tanh(10 - 4*x)))/
+    temp << 0.,0.,-(exp((8*theta()*(11 + 9*tanh(10 - 4*x)))/
+         ((-1 + gamma)*(-11198669 - 769*tanh(10 - 4*x) - 891*Power(tanh(10 - 4*x),2) + 729*Power(tanh(10 - 4*x),3))))*lambda*Q()*(11 + 9*tanh(10 - 4*x))*
+       (1 + tanh(2 - x)))/40.,(exp((8*theta()*(11 + 9*tanh(10 - 4*x)))/
         ((-1 + gamma)*(-11198669 - 769*tanh(10 - 4*x) - 891*Power(tanh(10 - 4*x),2) + 729*Power(tanh(10 - 4*x),3))))*lambda*(11 + 9*tanh(10 - 4*x))*
       (1 + tanh(2 - x)))/40.;
 

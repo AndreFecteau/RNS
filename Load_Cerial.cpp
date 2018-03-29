@@ -77,8 +77,8 @@ int main(){
 //   // double theta_low_mach = 30;
 //   double mf = 0.148777;
 //   double gamma = 1.4;
-//   double Q = Q_low_mach/(mf*mf*(gamma-1));
-//   double theta =theta_low_mach/(gamma*mf*mf);
+//   double Q() = Q_low_mach/(mf*mf*(gamma-1));
+//   double theta() =theta_low_mach/(gamma*mf*mf);
 //
 //
 //   double lambda = 0.0;
@@ -122,8 +122,8 @@ int main(){
 //              theta_low_mach, T_ignition, gamma, x_max, mf, dx, domaine_length);
 // // RK4_low_mach_initial_conditions(lambda, number_of_cells, initial_solution, Le, Q_low_mach,
 // //                                 theta_low_mach, T_ignition, gamma, x_max, mf, dx, domaine_length);
-// Q = Q_low_mach/(mf*mf*(gamma-1));
-// theta = theta_low_mach/(gamma*mf*mf);
+// Q() = Q_low_mach/(mf*mf*(gamma-1));
+// theta() = theta_low_mach/(gamma*mf*mf);
 //
 // #endif
 // lambda_max = lambda*1.01;
@@ -134,24 +134,24 @@ int main(){
 // auto solver = Solver<global_solution_vector_type, matrix_type>(initial_solution, filename);
 // unserialize_to_file(solver, filename + std::to_string(928));
 // // solver.reset_close_to_bound();
-// // solver.set_bound_solution_vector(lambda_run, theta, Q, dx, mf);
-// //     std::cout << "theta: " << theta << " Q: " << Q << " mf: " << mf << std::endl;
+// // solver.set_bound_solution_vector(lambda_run, theta(), Q(), dx, mf);
+// //     std::cout << "theta(): " << theta() << " Q(): " << Q() << " mf: " << mf << std::endl;
 //
 // while(fabs(lambda_min - lambda_max) > 1e0) {
-//   // double Q = Q_low_mach/(mf*mf*(gamma-1));
-//   // double theta = theta_low_mach/(gamma*mf*mf);
-//   // std::cout << "Q: " << Q << "theta: " << theta << std::endl;
+//   // double Q() = Q_low_mach/(mf*mf*(gamma-1));
+//   // double theta() = theta_low_mach/(gamma*mf*mf);
+//   // std::cout << "Q(): " << Q() << "theta(): " << theta() << std::endl;
 //   bool check;
 // for(size_t i = 0; i < 10; ++i){
 // #if defined(EXPLICIT)
 //   using marching_type = Explicit_Marching<global_solution_vector_type, matrix_type>;
-//   auto march = marching_type(Pr, Le, Q, theta, mf, gamma,
+//   auto march = marching_type(Pr, Le, Q(), theta(), mf, gamma,
 //                             number_of_cells, CFL,
 //                             dx);
 // #endif
 // #if defined(IMPLICIT)
 //   using marching_type = Implicit_Marching<global_solution_vector_type, matrix_type>;
-//   auto march = marching_type(Pr, Le, Q, theta, mf, gamma,
+//   auto march = marching_type(Pr, Le, Q(), theta(), mf, gamma,
 //                             number_of_cells, CFL,
 //                             dx, Theta, zeta);
 // #endif
@@ -169,13 +169,13 @@ int main(){
 // //   while(fabs(lambda_min - lambda_max) > 1e2) {
 // // #if defined(EXPLICIT)
 // //   using marching_type = Explicit_Marching<global_solution_vector_type, matrix_type>;
-// //   march = marching_type(Pr, Le, Q, theta, mf, gamma,
+// //   march = marching_type(Pr, Le, Q(), theta(), mf, gamma,
 // //                             number_of_cells, CFL,
 // //                             dx);
 // // #endif
 // // #if defined(IMPLICIT)
 // //   using marching_type = Implicit_Marching<global_solution_vector_type, matrix_type>;
-// //   march = marching_type(Pr, Le, Q, theta, mf, gamma,
+// //   march = marching_type(Pr, Le, Q(), theta(), mf, gamma,
 // //                             number_of_cells, CFL,
 // //                             dx, Theta, zeta);
 // // #endif
@@ -183,14 +183,14 @@ int main(){
 // //     bisection_lambda(lambda_min, lambda_max, lambda_run, check);
 // //     // CFL = 5e6;
 // //   }
-// // solver.set_bound_solution_vector(lambda_run, theta, Q, dx, mf);
+// // solver.set_bound_solution_vector(lambda_run, theta(), Q(), dx, mf);
 // // // CFL = 2e6;
 // //        double mf_old = mf;
 // //        mf +=0.01;
 // //       //  CFL /=2.0;
-// //        Q = Q_low_mach/(mf*mf*(gamma-1));
-// //        theta =theta_low_mach/(gamma*mf*mf);
-// //        solver.set_new_mf_to_solution_vector(lambda_run, mf_old, mf, Q);
+// //        Q() = Q_low_mach/(mf*mf*(gamma-1));
+// //        theta() =theta_low_mach/(gamma*mf*mf);
+// //        solver.set_new_mf_to_solution_vector(lambda_run, mf_old, mf, Q());
 // //     std::cout << "//////////////////////////" << std::endl;
 // //     std::cout << mf << " : " << lambda_run << std::endl;
 // //     std::cout << "//////////////////////////" << std::endl;
@@ -203,8 +203,8 @@ int main(){
 //   // double gamma = 1.4;
 //   // double Q_low_mach = 9.0;
 //   // double theta_low_mach =500.0/9.0;
-//   // double Q = Q_low_mach/(mf*mf*(gamma-1));
-//   // double theta =theta_low_mach/(gamma*mf*mf);
+//   // double Q() = Q_low_mach/(mf*mf*(gamma-1));
+//   // double theta() =theta_low_mach/(gamma*mf*mf);
 //   //
 //   // // int    number_of_cells =400000;
 //   // int    number_of_cells;
@@ -236,9 +236,9 @@ int main(){
 //  // std::cout << number_of_cells << std::endl;
 //  //  auto solver = Solver<global_solution_vector_type, matrix_type>();
 //  //  unserialize_to_file(solver, filename);
-//  //  // // auto explicit_march = explicit_marching_type(Pr, Le, Q, theta, mf, gamma,
+//  //  // // auto explicit_march = explicit_marching_type(Pr, Le, Q(), theta(), mf, gamma,
 //  //  // //                       number_of_cells, CFL, (x_max - x_min)/number_of_cells);
-//  //  auto implicit_march = implicit_marching_type(Pr, Le, Q, theta, mf, gamma,
+//  //  auto implicit_march = implicit_marching_type(Pr, Le, Q(), theta(), mf, gamma,
 //  //                        number_of_cells, CFL, (x_max - x_min)/number_of_cells, Theta, zeta);
 //  //  // solver.expand_solution_vector<implicit_marching_type>(1,implicit_march);
 //  //  solver.solve<implicit_marching_type>(implicit_march, target_residual, frame_time, gamma);

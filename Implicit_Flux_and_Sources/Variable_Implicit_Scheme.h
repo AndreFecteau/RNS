@@ -86,7 +86,7 @@ using matrix_type = typename grid_type::matrix_type;
     return pow(num, expo);
   }
 
-  scalar_type Power(const char num, const scalar_type expo) {
+  scalar_type Power(const char, const scalar_type expo) {
     return exp(expo);
   }
 };

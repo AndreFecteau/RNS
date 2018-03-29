@@ -8,8 +8,6 @@
 template <typename grid_type>
 void plot(std::string file_name, typename grid_type::global_solution_vector_type solution_vector, double dx){
 
-  using solution_vector_type = typename grid_type::global_solution_vector_type::value_type;
-
   std::ofstream gnu_input_file;
   gnu_input_file.open (file_name + ".dat");
   gnu_input_file.precision(40);

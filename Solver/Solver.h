@@ -44,9 +44,9 @@ using size_type = typename grid_type::size_type;
   /// \brief Constructor setting up required inputs.
   Solver(flow_properties_type flow_properties_in, grid_type grid_in, scalar_type frame_time_in,
          scalar_type target_residual_in, scalar_type CFL_in, scalar_type Theta_in,
-         scalar_type zeta_in) : flow(flow_properties_in), grid(grid_in),
+         scalar_type zeta_in, std::string filename_in) : flow(flow_properties_in), grid(grid_in),
          frame_time(frame_time_in), target_residual(target_residual_in), CFL(CFL_in),
-         time_stepping(time_stepping_type(Theta_in, zeta_in)) {}
+         time_stepping(time_stepping_type(Theta_in, zeta_in)), filename(filename_in) {}
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief Runs the simulation. Outputs frames in a folder "../Movie".
@@ -59,18 +59,18 @@ using size_type = typename grid_type::size_type;
     auto global_solution_vector_temp = grid.global_solution_vector;
     int delta_position = 0.5*grid.number_of_cells-position;
     if(delta_position > 0){
-      for(size_t i = 1; i < delta_position; ++i){
+      for(size_type i = 1; i < abs(delta_position); ++i){
         global_solution_vector_temp[i] = grid.global_solution_vector[0];
       }
-      for(size_t i = delta_position; i < grid.number_of_cells-1; ++i){
+      for(size_type i = abs(delta_position); i < grid.number_of_cells-1; ++i){
         global_solution_vector_temp[i] = grid.global_solution_vector[i-delta_position];
       }
       grid.global_solution_vector = global_solution_vector_temp;
     } else {
-      for(size_t i = 1; i < grid.number_of_cells - abs(delta_position); ++i){
+      for(size_type i = 1; i < grid.number_of_cells - abs(delta_position); ++i){
         global_solution_vector_temp[i] = grid.global_solution_vector[i+abs(delta_position)];
       }
-      for(size_t i = grid.number_of_cells - abs(delta_position); i < grid.number_of_cells-1; ++i){
+      for(size_type i = grid.number_of_cells - abs(delta_position); i < grid.number_of_cells-1; ++i){
         global_solution_vector_temp[i] = grid.global_solution_vector[grid.number_of_cells-1];
       }
       grid.global_solution_vector = global_solution_vector_temp;
@@ -78,29 +78,29 @@ using size_type = typename grid_type::size_type;
   }
 
 
-  void recenter_solution_plus(size_type position){
-    auto global_solution_vector_temp = grid.global_solution_vector;
-    position = 0.5*grid.number_of_cells-position;
-    for(size_t i = 1; i < position; ++i){
-      global_solution_vector_temp[i] = grid.global_solution_vector[0];
-    }
-    for(size_t i = position; i < grid.number_of_cells-1; ++i){
-      global_solution_vector_temp[i] = grid.global_solution_vector[i-position];
-    }
-    grid.global_solution_vector = global_solution_vector_temp;
-  }
-
-  void recenter_solution_minus(size_type position){
-    auto global_solution_vector_temp = grid.global_solution_vector;
-    position -= 0.5*grid.number_of_cells;
-    for(size_t i = 1; i < grid.number_of_cells - position; ++i){
-      global_solution_vector_temp[i] = grid.global_solution_vector[i+position];
-    }
-    for(size_t i = grid.number_of_cells - position; i < grid.number_of_cells-1; ++i){
-      global_solution_vector_temp[i] = grid.global_solution_vector[grid.number_of_cells-1];
-    }
-    grid.global_solution_vector = global_solution_vector_temp;
-  }
+  // void recenter_solution_plus(size_type position){
+  //   auto global_solution_vector_temp = grid.global_solution_vector;
+  //   position = 0.5*grid.number_of_cells-position;
+  //   for(size_t i = 1; i < position; ++i){
+  //     global_solution_vector_temp[i] = grid.global_solution_vector[0];
+  //   }
+  //   for(size_t i = position; i < grid.number_of_cells-1; ++i){
+  //     global_solution_vector_temp[i] = grid.global_solution_vector[i-position];
+  //   }
+  //   grid.global_solution_vector = global_solution_vector_temp;
+  // }
+  //
+  // void recenter_solution_minus(size_type position){
+  //   auto global_solution_vector_temp = grid.global_solution_vector;
+  //   position -= 0.5*grid.number_of_cells;
+  //   for(size_t i = 1; i < grid.number_of_cells - position; ++i){
+  //     global_solution_vector_temp[i] = grid.global_solution_vector[i+position];
+  //   }
+  //   for(size_t i = grid.number_of_cells - position; i < grid.number_of_cells-1; ++i){
+  //     global_solution_vector_temp[i] = grid.global_solution_vector[grid.number_of_cells-1];
+  //   }
+  //   grid.global_solution_vector = global_solution_vector_temp;
+  // }
 
   // void reset_close_to_bound(){
   //   auto global_solution_vector_temp = global_solution_vector;
@@ -117,8 +117,8 @@ using size_type = typename grid_type::size_type;
     archive(flow, grid, frame_time, target_residual, CFL, time_stepping, filename);
   }
  private:
-  flow_properties_type flow;
-  grid_type grid;
+   flow_properties_type flow;
+   grid_type grid;
   scalar_type frame_time;
   scalar_type target_residual;
   scalar_type CFL;
@@ -151,7 +151,7 @@ solve(size_type number_of_frames) {
   std::cout << "Lambda = " << flow.lambda << std::endl;
   std::cout << "//////////////////////" << std::endl;
 
-  size_type old_position;
+  size_type old_position = 0;
   double residual = std::numeric_limits<double>::max();
   (void)residual;
   (void)target_residual;
@@ -191,6 +191,15 @@ solve(size_type number_of_frames) {
       ++i;
       frame_time_temp = frame_time;
       frame_CFL = CFL;
+      size_type position = 0;
+      auto var_vec = Variable_Vector_Isolator<grid_type>(grid.global_solution_vector[position], 1.4);
+      while (var_vec.rho() > 0.5) {
+      ++position;
+      var_vec = Variable_Vector_Isolator<grid_type>(grid.global_solution_vector[position], 1.4);
+      }
+      std::cout << "position: " << position << std::endl;
+      recenter_solution(position);
+
     }
   }
 
