@@ -7,10 +7,10 @@ set key title ""
 
 plot \
 "./Movie/Plot12_256_500_0.dat"                   using 1:7    title "Initial Solution " with lines,\
-"./Movie/Plot12_256_500_609.dat"                 using 1:7    title "Initial Solution " with lines,\
-"./Movie/Plot12_256_500_619.dat"                 using 1:7    title "Initial Solution " with lines,\
-"./Movie/Plot12_256_500_629.dat"                 using 1:7    title "Initial Solution " with lines,\
-"./Movie/Plot12_256_500_639.dat"                 using 1:7    title "Initial Solution " with lines,\
+"./Movie/Plot12_256_500_600.dat"                 using 1:7    title "Initial Solution " with lines,\
+"./Movie/Plot12_256_500_630.dat"                 using 1:7    title "Initial Solution " with lines,\
+"./Movie/Plot12_256_500_660.dat"                 using 1:7    title "Initial Solution " with lines,\
+"./Movie/Plot12_256_500_690.dat"                 using 1:7    title "Initial Solution " with lines,\
 "./Movie/Plot12_256_500_2000.dat"                using 1:7    title "Initial Solution " with lines,\
 
 

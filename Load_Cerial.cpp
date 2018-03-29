@@ -64,7 +64,7 @@ int main(){
   double zeta = 0.5;
   double CFL =  5e8;
   double per_FL = 256.0;
-  double frame_time = 5e4;
+  double frame_time = 2e5;
   double dx = 1.0/per_FL;
   double domaine_length = 500;
   int    number_of_cells;
