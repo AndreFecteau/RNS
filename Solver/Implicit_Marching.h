@@ -38,19 +38,19 @@ class Implicit_Marching {
   /// \brief Move assignment operator.
   Implicit_Marching& operator=(Implicit_Marching&&) = default;
 
-  Implicit_Marching(double Theta_in, double zeta_in) : Theta(Theta_in), zeta(zeta_in) {}
+  Implicit_Marching(scalar_type Theta_in, scalar_type zeta_in) : Theta(Theta_in), zeta(zeta_in) {}
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief Execute step in time.
   /// \param frame_time Time to stop the time marching.
   /// \param global_solution_vector vector containing cell states from all the cells.
   template <typename flux_type>
-  double timemarch(flow_properties_type flow, grid_type grid, scalar_type CFL, scalar_type frame_time);
+  scalar_type timemarch(flow_properties_type flow, grid_type grid, scalar_type CFL, scalar_type frame_time);
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief
   /// \param
-  // double get_dx() {return dx;}
+  // scalar_type get_dx() {return dx;}
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief
@@ -60,35 +60,35 @@ class Implicit_Marching {
   /////////////////////////////////////////////////////////////////////////
   /// \brief
   /// \param
-  // template<typename Archive>
-  // void serialize(Archive& archive) {
-  //   archive(Pr, Le, Q, theta, mf, gamma, CFL, number_of_cells, dx, dt, zeta, Theta);
-  // }
+  template<typename Archive>
+  void serialize(Archive& archive) {
+    archive(zeta, Theta);
+  }
 
  private:
-  double Theta;
-  double zeta;
+  scalar_type Theta;
+  scalar_type zeta;
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief Calculates maximum stable timestep.
   /// \param global_solution_vector vector containing cell states from all the cells.
-  double calculate_dt(const grid_type& grid, const scalar_type CFL);
+  scalar_type calculate_dt(const grid_type& grid,  const flow_properties_type& flow, const scalar_type& CFL);
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief Calculates wavespeed for timestep control.
   /// \param global_solution_vector vector containing cell states from all the cells.
-  double lambda_eigenvalue(const global_solution_vector_type &global_solution_vector, const grid_type grid);
+  scalar_type lambda_eigenvalue(const grid_type& grid, const flow_properties_type& flow);
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief Calculates the variable for timestep control from second order
   ///        derivatives.
   /// \param global_solution_vector vector containing cell states from all the cells.
-  double K_value(const global_solution_vector_type& global_solution_vector, grid_type grid, flow_properties_type flow);
+  scalar_type K_value(const grid_type& grid, const flow_properties_type& flow);
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief
   /// \param
-  double squaredNorm(const solution_vector_type solution_vector){
+  scalar_type squaredNorm(const solution_vector_type solution_vector){
     return sqrt(solution_vector[0]*solution_vector[0] +
                 solution_vector[1]*solution_vector[1] +
                 solution_vector[2]*solution_vector[2] +
@@ -98,18 +98,18 @@ class Implicit_Marching {
   /////////////////////////////////////////////////////////////////////////
   /// \brief
   /// \param
-  solution_vector_type numerical_dissipation(const global_solution_vector_type &global_solution_vector, const int i, const double omega, grid_type grid);
+  solution_vector_type numerical_dissipation( const grid_type& grid, const size_type i, const scalar_type omega);
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief
   /// \param
-  solution_vector_type manufactured_residual(const double lambda, const int i, grid_type grid, flow_properties_type flow);
+  solution_vector_type manufactured_residual(const scalar_type lambda, const size_type i, grid_type grid, flow_properties_type flow);
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief
   /// \param
   template <typename T>
-  double Power(const T num, const int expo) {return pow(num, expo);}
+  scalar_type Power(const T num, const size_type expo) {return pow(num, expo);}
 };
 
 
@@ -118,12 +118,14 @@ class Implicit_Marching {
 ///////////////////////////////////////////////////////////////////////////////
 template <typename grid_type, typename flow_properties_type>
 template <typename flux_type>
-double Implicit_Marching<grid_type, flow_properties_type>::timemarch(flow_properties_type flow,
-                                    grid_type grid, scalar_type CFL,
-                                    scalar_type frame_time) {
-  double current_time = 0.0;
-  double dt = 0.0;
-  double residual;
+typename grid_type::scalar_type Implicit_Marching<grid_type, flow_properties_type>::
+timemarch(flow_properties_type flow,
+          grid_type grid, scalar_type CFL,
+          scalar_type frame_time) {
+
+  scalar_type current_time = 0.0;
+  scalar_type dt = 0.0;
+  scalar_type residual;
   std::vector<matrix_type>    mid(grid.global_solution_vector.size()-2);
   std::vector<matrix_type>    top(grid.global_solution_vector.size()-2);
   std::vector<matrix_type>    bot(grid.global_solution_vector.size()-2);
@@ -137,14 +139,14 @@ double Implicit_Marching<grid_type, flow_properties_type>::timemarch(flow_proper
 
 #pragma omp single
 {
-  dt = calculate_dt(grid, CFL);
+  dt = calculate_dt(grid, flow, CFL);
   if(current_time + dt > frame_time) {
     dt = frame_time - current_time;
   }
 }
 
 #pragma omp for
-  for(size_type i = 1; i < grid.number_of_cells - 1); ++i) {
+  for(size_type i = 1; i < grid.number_of_cells - 1; ++i) {
     auto matrix_entries = flux_type(grid.global_solution_vector[std::max(i-2,static_cast<size_type>(0))],
                                     grid.global_solution_vector[i-1],
                                     grid.global_solution_vector[i],
@@ -152,7 +154,7 @@ double Implicit_Marching<grid_type, flow_properties_type>::timemarch(flow_proper
                                     grid.global_solution_vector[std::min(i+2,grid.number_of_cells-1)],
                                     delta_global_solution_vector[i-1],
                                     flow.gamma, flow.Pr, flow.Le, flow.Q, flow.lambda,
-                                    flow.theta, grid.dx(), dt, );
+                                    flow.theta, grid.dx(), dt, zeta, Theta);
     mid[i-1] = matrix_entries.mid_matrix();
     bot[i-1] = matrix_entries.bot_matrix();
     top[i-1] = matrix_entries.top_matrix();
@@ -160,7 +162,7 @@ double Implicit_Marching<grid_type, flow_properties_type>::timemarch(flow_proper
 #if defined(MANUFACTURED)
     rhs[i-1] += manufactured_residual(lambda, i)*dt/(1+zeta);
 #endif
-    rhs[i-1] += numerical_dissipation(grid.global_solution_vector, i, 0.8);
+    rhs[i-1] += numerical_dissipation(grid, i, 0.8);
     // rhs[i-1] += numerical_dissipation(grid.global_solution_vector, i, 0.5);
     // rhs[i-1] += numerical_dissipation(grid.global_solution_vector, i, 0.01);
   }
@@ -178,7 +180,7 @@ double Implicit_Marching<grid_type, flow_properties_type>::timemarch(flow_proper
   delta_global_solution_vector = block_triagonal_matrix_inverse<matrix_type, solution_vector_type>(mid, top, bot, rhs);
 
 #pragma omp for
-  for (int i = 1; i < grid.number_of_cells-1; ++i) {
+  for (size_type i = 1; i < grid.number_of_cells-1; ++i) {
     if(current_time == 0.0) {
       grid.global_solution_vector[i] += delta_global_solution_vector[i-1]*(1.0+zeta);
     } else {
@@ -202,7 +204,7 @@ double Implicit_Marching<grid_type, flow_properties_type>::timemarch(flow_proper
   }
   residual = 0.0;
 #pragma omp for reduction(+: residual)
-  for (int i = 1; i < grid.number_of_cells-1; ++i) {
+  for (size_type i = 1; i < grid.number_of_cells-1; ++i) {
     residual += delta_global_solution_vector[i-1].squaredNorm() * grid.dx() / dt;
   }
   }
@@ -214,9 +216,10 @@ double Implicit_Marching<grid_type, flow_properties_type>::timemarch(flow_proper
 // Calculate dt;
 ///////////////////////////////////////////////////////////////////////////////
 template <typename grid_type, typename flow_properties_type>
-double Implicit_Marching<grid_type, flow_properties_type>::calculate_dt(const grid_type& grid, scalar_type CFL) {
-  double dt1 = CFL * grid.dx() / lambda_eigenvalue(grid.global_solution_vector);
-  double dt2 = CFL * grid.dx()*grid.dx() / (K_value(grid.global_solution_vector));
+typename grid_type::scalar_type Implicit_Marching<grid_type, flow_properties_type>::
+calculate_dt(const grid_type& grid, const flow_properties_type& flow, const scalar_type& CFL) {
+  scalar_type dt1 = CFL * grid.dx() / lambda_eigenvalue(grid, flow);
+  scalar_type dt2 = CFL * grid.dx()*grid.dx() / (K_value(grid, flow));
 
   if(isnan(grid.global_solution_vector[1][2])){
     dt1 = 1e4;
@@ -231,12 +234,13 @@ double Implicit_Marching<grid_type, flow_properties_type>::calculate_dt(const gr
 // WaveSpeed
 ///////////////////////////////////////////////////////////////////////////////
 template <typename grid_type, typename flow_properties_type>
-double Implicit_Marching<grid_type, flow_properties_type>::lambda_eigenvalue(const global_solution_vector_type &global_solution_vector, grid_type grid){
-  double wavespeed = 0.0;
-  for (int i = 0; i < grid.number_of_cells; ++i) {
-    Variable_Vector_Isolator<solution_vector_type> var_vec = Variable_Vector_Isolator<solution_vector_type>(global_solution_vector[i], gamma);
-    if (wavespeed < std::fabs(var_vec.u()) + sqrt(gamma * var_vec.p()/var_vec.rho())) {
-      wavespeed = std::fabs(var_vec.u()) + sqrt(gamma*var_vec.p()/var_vec.rho());
+typename grid_type::scalar_type Implicit_Marching<grid_type, flow_properties_type>::
+lambda_eigenvalue(const grid_type& grid, const flow_properties_type& flow){
+  scalar_type wavespeed = 0.0;
+  for (size_type i = 0; i < grid.number_of_cells; ++i) {
+    Variable_Vector_Isolator<grid_type> var_vec = Variable_Vector_Isolator<grid_type>(grid.global_solution_vector[i], flow.gamma);
+    if (wavespeed < std::fabs(var_vec.u()) + sqrt(flow.gamma * var_vec.p()/var_vec.rho())) {
+      wavespeed = std::fabs(var_vec.u()) + sqrt(flow.gamma*var_vec.p()/var_vec.rho());
     }
   }
   return wavespeed;
@@ -246,10 +250,11 @@ double Implicit_Marching<grid_type, flow_properties_type>::lambda_eigenvalue(con
 // K value
 ///////////////////////////////////////////////////////////////////////////////
 template <typename grid_type, typename flow_properties_type>
-double Implicit_Marching<grid_type, flow_properties_type>::K_value(const global_solution_vector_type &global_solution_vector, grid_type grid, flow_properties_type flow) {
-  double min_rho = std::numeric_limits<double>::max();
-  for (int i = 0; i < grid.number_of_cells; ++i) {
-    Variable_Vector_Isolator<solution_vector_type> var_vec = Variable_Vector_Isolator<solution_vector_type>(global_solution_vector[i], gamma);
+typename grid_type::scalar_type Implicit_Marching<grid_type, flow_properties_type>::
+K_value(const grid_type& grid, const flow_properties_type& flow) {
+  scalar_type min_rho = std::numeric_limits<scalar_type>::max();
+  for (size_type i = 0; i < grid.number_of_cells; ++i) {
+    auto var_vec = Variable_Vector_Isolator<grid_type>(grid.global_solution_vector[i], flow.gamma);
     if (min_rho > var_vec.rho()) {
       min_rho = var_vec.rho();
     }
@@ -262,29 +267,29 @@ double Implicit_Marching<grid_type, flow_properties_type>::K_value(const global_
 ///////////////////////////////////////////////////////////////////////////////
 template <typename grid_type, typename flow_properties_type>
 typename grid_type::global_solution_vector_type::value_type Implicit_Marching<grid_type, flow_properties_type>::
-numerical_dissipation(const global_solution_vector_type &global_solution_vector, const int i, const double omega, grid_type grid) {
-            return -omega/(1.0+zeta)/8.0*(global_solution_vector[std::min(i+2,grid.number_of_cells-1)] -
-                                        4.0*global_solution_vector[std::min(i+1,grid.number_of_cells-1)] +
-                                        6.0*global_solution_vector[i] -
-                                        4.0*global_solution_vector[std::max(i-1,0)] +
-                                        global_solution_vector[std::max(i-2,0)]);
+numerical_dissipation(const grid_type &grid, const size_type i, const scalar_type omega) {
+            return -omega/(1.0+zeta)/8.0*(grid.global_solution_vector[std::min(i+2,grid.number_of_cells-1)] -
+                                        4.0*grid.global_solution_vector[std::min(i+1,grid.number_of_cells-1)] +
+                                        6.0*grid.global_solution_vector[i] -
+                                        4.0*grid.global_solution_vector[std::max(i-1,static_cast<size_type>(0))] +
+                                        grid.global_solution_vector[std::max(i-2,static_cast<size_type>(0))]);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 // Manufactured Solution
 ///////////////////////////////////////////////////////////////////////////////
 template <typename grid_type, typename flow_properties_type>
-typename grid_type::global_solution_vector_type::value_type Implicit_Marching<grid_type, flow_properties_type>::manufactured_residual(const double lambda, const int i, grid_type grid, flow_properties_type flow) {
+typename grid_type::global_solution_vector_type::value_type Implicit_Marching<grid_type, flow_properties_type>::manufactured_residual(const scalar_type lambda, const size_type i, grid_type grid, flow_properties_type flow) {
     solution_vector_type temp;
     solution_vector_type man_sol;
-    double Pr = flow.Pr;
-    double Le = flow.Le;
-    double Q = flow.Q;
-    double theta = flow.theta;
-    double gamma = flow.gamma;
+    scalar_type Pr = flow.Pr;
+    scalar_type Le = flow.Le;
+    scalar_type Q = flow.Q;
+    scalar_type theta = flow.theta;
+    scalar_type gamma = flow.gamma;
 
     man_sol << 0,0,0,0;
-    double x = grid.dx()*(i+0.5);
+    scalar_type x = grid.dx()*(i+0.5);
     ///////////////////////////////////////////////////////////////////////////////
     // Hyperbolic
     ///////////////////////////////////////////////////////////////////////////////

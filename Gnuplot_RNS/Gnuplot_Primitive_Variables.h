@@ -17,7 +17,7 @@ void plot(std::string file_name, typename grid_type::global_solution_vector_type
   gnu_input_file << "#rho u p T Y" << std::endl;
 
   for (size_t i = 0; i < solution_vector.size(); i++) {
-    Variable_Vector_Isolator<solution_vector_type> temp = Variable_Vector_Isolator<solution_vector_type>(solution_vector[i], 1.4);
+    auto temp = Variable_Vector_Isolator<grid_type>(solution_vector[i], 1.4);
     // double mach = temp.u()/sqrt(1.4*temp.p()/temp.rho())
     gnu_input_file << i * dx << " " << temp.rho() << " " << temp.u()  << " " << temp.p() << " " << temp.T() << " " << temp.Y() << " " << temp.u()/sqrt(1.4*temp.p()/temp.rho()) << std::endl;
   }

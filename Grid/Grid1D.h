@@ -43,9 +43,9 @@ struct Grid1D {
   size_type number_of_cells;
   global_solution_vector_type global_solution_vector;
 
-  scalar_type domaine_length() {return x_max - x_min;}
-  scalar_type dx() {return domaine_length() / static_cast<scalar_type>(number_of_cells);}
-  scalar_type per_FL() {return number_of_cells / (x_max - x_min);}
+  scalar_type domaine_length() const {return x_max - x_min;}
+  scalar_type dx() const {return domaine_length() / static_cast<scalar_type>(number_of_cells);}
+  scalar_type per_FL() const {return number_of_cells / (x_max - x_min);}
 
   template<typename Archive>
   void serialize(Archive& archive) {

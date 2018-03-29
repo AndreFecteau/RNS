@@ -55,11 +55,11 @@ using scalar_type = typename grid_type::scalar_type;
   bool solve(int number_of_frames);
 
   // void set_new_mf_to_solution_vector(double &lambda, double mf_old, double mf, double Q){
-  //   Variable_Vector_Isolator<solution_vector_type> temp_0 = Variable_Vector_Isolator<solution_vector_type>(global_solution_vector[0], 1.4);
+  //   Variable_Vector_Isolator<grid_type> temp_0 = Variable_Vector_Isolator<grid_type>(global_solution_vector[0], 1.4);
   //   // lambda *= mf_old*mf_old/(mf*mf);
   //   std::cout << "lambda: " << lambda << " mf: " << mf << std::endl;
   //   for (int i = 0; i < global_solution_vector.size(); ++i){
-  //     Variable_Vector_Isolator<solution_vector_type> temp = Variable_Vector_Isolator<solution_vector_type>(global_solution_vector[i], 1.4);
+  //     Variable_Vector_Isolator<grid_type> temp = Variable_Vector_Isolator<grid_type>(global_solution_vector[i], 1.4);
   //     double rho  = temp.rho();
   //     double u    = temp.u();
   //     double p    = temp.p()/temp_0.p()*(1.0/(mf*mf*1.4));
@@ -90,7 +90,7 @@ using scalar_type = typename grid_type::scalar_type;
   //   for(int i = 0; i < 500; ++i) {
   //     global_solution_vector[i] = (global_solution_vector[500]);
   //   }
-  //   Variable_Vector_Isolator<solution_vector_type> temp_0 = Variable_Vector_Isolator<solution_vector_type>(global_solution_vector[0], 1.4);
+  //   Variable_Vector_Isolator<grid_type> temp_0 = Variable_Vector_Isolator<grid_type>(global_solution_vector[0], 1.4);
   //   // lambda /= temp_0.rho()*temp_0.u()*temp_0.u();
   //   // theta /=  (temp_0.u()*temp_0.u());
   //   // Q /=  (temp_0.u()*temp_0.u());
@@ -98,13 +98,13 @@ using scalar_type = typename grid_type::scalar_type;
   //   // std::cout << "theta: " << theta << " Q: " << Q << " mf: " << mf << std::endl;
   //   // std::cout << "rho*u: " << temp_0.rho()*temp_0.u() << std::endl;
   //   // for (int i = 0; i < global_solution_vector.size(); ++i){
-  //   //   Variable_Vector_Isolator<solution_vector_type> temp = Variable_Vector_Isolator<solution_vector_type>(global_solution_vector[i], 1.4);
+  //   //   Variable_Vector_Isolator<grid_type> temp = Variable_Vector_Isolator<grid_type>(global_solution_vector[i], 1.4);
   //   //   double rho  = temp.rho() / temp_0.rho();
   //   //   double u    = temp.u() / temp_0.u();
   //   //   double p    = temp.p();// / (temp_0.rho()*temp_0.u()*temp_0.u());
   //   //   global_solution_vector[i] << rho, rho * u, p / 0.4 + rho * u * u / 2.0, rho*temp.Y();
   //   // }
-  //   // temp_0 = Variable_Vector_Isolator<solution_vector_type>(global_solution_vector[0], 1.4);
+  //   // temp_0 = Variable_Vector_Isolator<grid_type>(global_solution_vector[0], 1.4);
   //   // mf = temp_0.u()/sqrt(1.4*temp_0.p()/temp_0.rho());
   //   // std::cout << "theta: " << theta << " Q: " << Q << " mf: " << mf << std::endl;
   // }
@@ -198,10 +198,10 @@ solve(int number_of_frames) {
     global_solution_vector_backup = grid.global_solution_vector;
     residual = time_stepping.template timemarch<flux_type>(flow_properties, grid, frame_CFL, frame_time_temp);
     int position = 0;
-    auto var_vec = Variable_Vector_Isolator<solution_vector_type>(grid.global_solution_vector[position], flow_properties.gamma);
+    auto var_vec = Variable_Vector_Isolator<grid_type>(grid.global_solution_vector[position], flow_properties.gamma);
     while (var_vec.rho() > 0.5) {
     ++position;
-    var_vec = Variable_Vector_Isolator<solution_vector_type>(grid.global_solution_vector[position], flow_properties.gamma);
+    var_vec = Variable_Vector_Isolator<grid_type>(grid.global_solution_vector[position], flow_properties.gamma);
     }
     if(isnan(residual) || residual > 1e10){
       grid.global_solution_vector = global_solution_vector_backup;
@@ -229,10 +229,10 @@ solve(int number_of_frames) {
   manufactured_solution_residual<marching_type>(march);
 #endif
   int position = 0;
-  auto var_vec = Variable_Vector_Isolator<solution_vector_type>(grid.global_solution_vector[position], 1.4);
+  auto var_vec = Variable_Vector_Isolator<grid_type>(grid.global_solution_vector[position], 1.4);
   while (var_vec.rho() > 0.5) {
   ++position;
-  var_vec = Variable_Vector_Isolator<solution_vector_type>(grid.global_solution_vector[position], 1.4);
+  var_vec = Variable_Vector_Isolator<grid_type>(grid.global_solution_vector[position], 1.4);
   }
   std::cout << "position: " << position << std::endl;
   if(position < 0.50*grid.number_of_cells) {
@@ -286,10 +286,10 @@ template <typename flow_properties_type, typename grid_type, typename flux_type,
 int Solver<flow_properties_type, grid_type, flux_type, time_stepping_type>::
 flame_position_algorithm(double gamma) {
   int i = 0;
-  auto var_vec = Variable_Vector_Isolator<solution_vector_type>(grid.global_solution_vector[0], gamma);
+  auto var_vec = Variable_Vector_Isolator<grid_type>(grid.global_solution_vector[0], gamma);
   while (var_vec.rho() > 0.5) {
   ++i;
-  var_vec = Variable_Vector_Isolator<solution_vector_type>(grid.global_solution_vector[i], gamma);
+  var_vec = Variable_Vector_Isolator<grid_type>(grid.global_solution_vector[i], gamma);
   }
   return i;
 }

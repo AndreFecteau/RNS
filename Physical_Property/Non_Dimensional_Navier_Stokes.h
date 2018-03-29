@@ -50,7 +50,7 @@ struct Non_Dimensional_Navier_Stokes {
 
   template<typename Archive>
   void serialize(Archive& archive) {
-    archive(Pr, Le, Q, theta, mf, gamma);
+    archive(Pr, Le, Q, theta, mf, gamma, lambda, T_ignition);
   }
 
 };
