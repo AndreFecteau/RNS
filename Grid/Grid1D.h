@@ -1,7 +1,7 @@
 #ifndef GRID1D_H
 #define GRID1D_H
 
-template <typename scalar_type_in, typename size_type_in, typename global_solution_vector_type_in, typename grid_type_in>
+template <typename scalar_type_in, typename size_type_in, typename global_solution_vector_type_in, typename matrix_type_in>
 struct Grid1D {
 
  public:
@@ -9,7 +9,7 @@ struct Grid1D {
   using scalar_type = scalar_type_in;
   using size_type = size_type_in;
   using global_solution_vector_type = global_solution_vector_type_in;
-  using grid_type = grid_type_in;
+  using matrix_type = matrix_type_in;
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief Default constructor.

@@ -45,7 +45,7 @@ class Implicit_Marching {
   /// \param frame_time Time to stop the time marching.
   /// \param global_solution_vector vector containing cell states from all the cells.
   template <typename flux_type>
-  double timemarch(flow_properties_type flow, grid_type grid, flux_type flux, scalar_type CFL, scalar_type frame_time);
+  double timemarch(flow_properties_type flow, grid_type grid, scalar_type CFL, scalar_type frame_time);
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief
@@ -119,7 +119,7 @@ class Implicit_Marching {
 template <typename grid_type, typename flow_properties_type>
 template <typename flux_type>
 double Implicit_Marching<grid_type, flow_properties_type>::timemarch(flow_properties_type flow,
-                                    grid_type grid, flux_type flux, scalar_type CFL,
+                                    grid_type grid, scalar_type CFL,
                                     scalar_type frame_time) {
   double current_time = 0.0;
   double dt = 0.0;
