@@ -98,12 +98,12 @@ theta = theta_low_mach/(gamma*mf*mf);
 #endif
 lambda_max = lambda*1.0001;
 lambda_min = lambda*0.9999;
-lambda_run = 124364.9;
+lambda_run = 124364.9*1.1;
   std::string filename = "Movie/Plot13_" + tostring(per_FL) + "_"
                                         + tostring(domaine_length) + "_";
 auto solver = Solver<global_solution_vector_type, matrix_type>(initial_solution, filename);
 unserialize_to_file(solver, "Movie/Plot12_" + tostring(per_FL) + "_"
-                                      + tostring(domaine_length) + "_" + std::to_string(928));
+                                      + tostring(domaine_length) + "_" + std::to_string(600));
 // solver.reset_close_to_bound();
 // solver.set_bound_solution_vector(lambda_run, theta, Q, dx, mf);
 //     std::cout << "theta: " << theta << " Q: " << Q << " mf: " << mf << std::endl;
