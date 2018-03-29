@@ -35,7 +35,7 @@ int main(){
   using time_stepping_type = Implicit_Marching<grid_type, flow_properties_type>;
   using solver_type = Solver<flow_properties_type, grid_type, flux_type, time_stepping_type>;
 
-  flow_properties_type flow_properties;
+  flow_properties_type flow;
 {
   scalar_type Pr              = 0.75;
   scalar_type Le              = 0.3;
@@ -48,7 +48,7 @@ int main(){
   scalar_type theta_low_mach  = beta*(1+Q_low_mach)*(1+Q_low_mach)/Q_low_mach;
   scalar_type Q               = Q_low_mach/(mf*mf*(gamma-1));
   scalar_type theta           = theta_low_mach/(gamma*mf*mf);
-  flow_properties = flow_properties_type(Pr, Le, Q, theta, mf, gamma, lambda, T_ignition);
+  flow = flow_properties_type(Pr, Le, Q, theta, mf, gamma, lambda, T_ignition);
 }
 //
   grid_type grid;
@@ -70,7 +70,7 @@ int main(){
   scalar_type target_residual = 1e-15;
   scalar_type CFL = 5e5;
   scalar_type frame_time = 1e0;
-  solver= solver_type(flow_properties, grid, frame_time, target_residual, CFL, Theta, zeta);
+  solver= solver_type(flow, grid, frame_time, target_residual, CFL, Theta, zeta);
 }
 
   scalar_type lambda_max;
@@ -89,15 +89,15 @@ int main(){
 //   gnu_input_file << "#number_of_cells residual time" << std::endl;
 //   manufactured_solution<grid_type>(grid);
 // #else
-  RK4_CJ_point(flow_properties, grid);
+  RK4_CJ_point(flow, grid);
   // RK4_low_mach_initial_conditions(lambda, number_of_cells, initial_solution, Le, Q_low_mach,
   //                                 theta_low_mach, T_ignition, gamma, x_max, mf, dx, domaine_length);
   plot<grid_type>(filename+"0", grid.global_solution_vector, (grid.x_max - grid.x_min)/grid.number_of_cells);
 // #endif
 
-  lambda_max = flow_properties.lambda*1.0001;
-  lambda_min = flow_properties.lambda*0.9999;
-  lambda_run = flow_properties.lambda*1.1;
+  lambda_max = flow.lambda*1.0001;
+  lambda_min = flow.lambda*0.9999;
+  lambda_run = flow.lambda*1.1;
   int number_of_frames = 10;
   while(fabs(lambda_min - lambda_max) > 1e0) {
     solver.solve(number_of_frames);
