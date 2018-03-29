@@ -31,19 +31,32 @@ using matrix_type = typename grid_type::matrix_type;
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief Constructor setting up required inputs.
-  Variable_Implicit_Scheme(const solution_vector_type& solution_vector_mm,
-                             const solution_vector_type& solution_vector_m,
-                             const solution_vector_type& solution_vector,
-                             const solution_vector_type& solution_vector_p,
-                             const solution_vector_type& solution_vector_pp,
-                             const solution_vector_type& DeltaUm,
-                             const scalar_type& gamma_in, const scalar_type& Pr_in,
-                             const scalar_type& Le_in, const scalar_type& Q_in, const scalar_type& lambda_in,
-                             const scalar_type& theta_in, const scalar_type& dx_in, const scalar_type& dt_in,
-                             const scalar_type& zeta_in, const scalar_type& Theta_in) :
-                             gamma(gamma_in), Pr(Pr_in), Le(Le_in), Q(Q_in), lambda(lambda_in),
-                             theta(theta_in), dx(dx_in), dt(dt_in), zeta(zeta_in),
-                             Theta(Theta_in) {
+  Variable_Implicit_Scheme(scalar_type zeta_in, scalar_type Theta_in) :
+                           zeta(zeta_in), Theta(Theta_in) {}
+
+  void calculate_flux(const grid_type& grid, const flow_properties_type flow, size_type location) {
+    gamma = flow.gamma;
+    Pr    = flow.Pr;
+    Le    = flow.Le;
+    Q     = flow.Q;
+    lambda= flow.lambda;
+    theta = flow.theta;
+     
+
+  }
+    const solution_vector_type& solution_vector_mm,
+                      const solution_vector_type& solution_vector_m,
+                      const solution_vector_type& solution_vector,
+                      const solution_vector_type& solution_vector_p,
+                      const solution_vector_type& solution_vector_pp,
+                      const solution_vector_type& DeltaUm,
+                      const scalar_type& gamma_in, const scalar_type& Pr_in,
+                      const scalar_type& Le_in, const scalar_type& Q_in, const scalar_type& lambda_in,
+                      const scalar_type& theta_in, const scalar_type& dx_in, const scalar_type& dt_in,
+                      const scalar_type& zeta_in, const scalar_type& Theta_in) :
+                      gamma(gamma_in), Pr(Pr_in), Le(Le_in), Q(Q_in), lambda(lambda_in),
+                      theta(theta_in), dx(dx_in), dt(dt_in), zeta(zeta_in),
+                      Theta(Theta_in) {
   rho = solution_vector[0];
   rhom = solution_vector_m[0];
   rhop = solution_vector_p[0];
