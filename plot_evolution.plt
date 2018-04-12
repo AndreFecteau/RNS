@@ -6,13 +6,18 @@ set key title ""
 #set xrange [-10:100]
 
 plot \
-"./Movie/aPlot_4074_100_0.dat"                   using 1:3    title "Initial Solution " with lines,\
-"./Movie/aPlot_4074_100_1.dat"                   using 1:3    title "Initial Solution " with lines,\
-"./Movie/aPlot_4074_100_2.dat"                   using 1:3    title "Initial Solution " with lines,\
-"./Movie/aPlot_4074_100_3.dat"                   using 1:3    title "Initial Solution " with lines,\
-"./Movie/aPlot_4074_100_4.dat"                   using 1:3    title "Initial Solution " with lines,\
+"./Movie/Plot12_256_500_1030.dat"                using ($1):7    title "Initial Solution " with lines,\
+#"./Movie/bPlot_256_100_0.dat"                   using 1:4    title "Initial Solution " with lines,\
+"./Movie/bPlot_256_100_110.dat"                   using 1:4    title "Initial Solution " with lines,\
+"./Movie/bPlot_256_100_120.dat"                   using 1:4    title "Initial Solution " with lines,\
+"./Movie/bPlot_256_100_130.dat"                   using 1:4    title "Initial Solution " with lines,\
+"./Movie/bPlot_256_100_140.dat"                   using 1:4    title "Initial Solution " with lines,\
+"./Movie/bPlot_256_100_150.dat"                   using 1:4    title "Initial Solution " with lines,\
+"./Movie/bPlot_256_100_160.dat"                   using 1:4    title "Initial Solution " with lines,\
+"./Movie/bPlot_256_100_170.dat"                   using 1:4    title "Initial Solution " with lines,\
+"./Movie/bPlot_256_100_180.dat"                   using 1:4    title "Initial Solution " with lines,\
+"./Movie/bPlot_256_100_190.dat"                   using 1:4    title "Initial Solution " with lines,\
 #"./Movie/Plot13_256_500_0.dat"                   using 1:2    title "Initial Solution " with lines,\
-"./Movie/Plot12_256_500_1019.dat"                using ($1):7    title "Initial Solution " with lines,\
 "./Movie/Plot12_256_500_1195.dat"                using ($1):7    title "Initial Solution " with lines,\
 "./Movie/Plot12_256_500_1395.dat"                using ($1):7    title "Initial Solution " with lines,\
 "./Movie/Plot12_256_500_1495.dat"                using ($1):7    title "Initial Solution " with lines,\

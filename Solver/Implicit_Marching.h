@@ -98,7 +98,7 @@ class Implicit_Marching {
   /////////////////////////////////////////////////////////////////////////
   /// \brief
   /// \param
-  solution_vector_type numerical_dissipation( const grid_type& grid, const size_type i, const scalar_type omega);
+  solution_vector_type numerical_dissipation(const grid_type& grid, const size_type i, const scalar_type omega);
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief
@@ -162,11 +162,10 @@ timemarch(flow_properties_type flow,
 #if defined(MANUFACTURED)
     rhs[i-1] += manufactured_residual(flow.lambda, i, grid, flow)*dt/(1+zeta);
 #endif
-    rhs[i-1] += numerical_dissipation(grid, i, 0.9);
+    rhs[i-1] += numerical_dissipation(grid, i, 0.8);
     // rhs[i-1] += numerical_dissipation(grid.global_solution_vector, i, 0.5);
     // rhs[i-1] += numerical_dissipation(grid.global_solution_vector, i, 0.01);
   }
-
 // Implicit Boundary Conditions
 #pragma omp single
 {
@@ -275,8 +274,8 @@ numerical_dissipation(const grid_type &grid, const size_type i, const scalar_typ
             return -omega/(1.0+zeta)/8.0*(grid.global_solution_vector[std::min(i+2,grid.number_of_cells-1)] -
                                         4.0*grid.global_solution_vector[std::min(i+1,grid.number_of_cells-1)] +
                                         6.0*grid.global_solution_vector[i] -
-                                        4.0*grid.global_solution_vector[std::max(i-1,static_cast<size_type>(0))] +
-                                        grid.global_solution_vector[std::max(i-2,static_cast<size_type>(0))]);
+                                        4.0*grid.global_solution_vector[std::max(static_cast<int>(i)-1,0)] +
+                                        grid.global_solution_vector[std::max(static_cast<int>(i)-2,0)]);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
