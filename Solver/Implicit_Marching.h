@@ -154,7 +154,7 @@ timemarch(flow_properties_type flow,
                                     grid.global_solution_vector[std::min(i+2,grid.number_of_cells-1)],
                                     delta_global_solution_vector[i-1],
                                     flow.gamma, flow.Pr, flow.Le, flow.Q(), flow.lambda,
-                                    flow.theta(), grid.dx(), dt, zeta, Theta);
+                                    flow.theta(), grid.dx(), dt, zeta, Theta, flow.mf, flow.T_ignition());
     mid[i-1] = matrix_entries.mid_matrix();
     bot[i-1] = matrix_entries.bot_matrix();
     top[i-1] = matrix_entries.top_matrix();
@@ -162,7 +162,7 @@ timemarch(flow_properties_type flow,
 #if defined(MANUFACTURED)
     rhs[i-1] += manufactured_residual(lambda, i)*dt/(1+zeta);
 #endif
-    rhs[i-1] += numerical_dissipation(grid, i, 0.8);
+    rhs[i-1] += numerical_dissipation(grid, i, 0.9);
     // rhs[i-1] += numerical_dissipation(grid.global_solution_vector, i, 0.5);
     // rhs[i-1] += numerical_dissipation(grid.global_solution_vector, i, 0.01);
   }

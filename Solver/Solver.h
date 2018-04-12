@@ -55,6 +55,10 @@ using size_type = typename grid_type::size_type;
   /// \param target_residual Residual where the solver will stop.
   bool solve(size_type number_of_frames);
 
+  const double get_lambda(){return flow.lambda;}
+
+  double set_lambda(scalar_type lambda) {flow.lambda = lambda;}
+
   void recenter_solution(size_type position) {
     auto global_solution_vector_temp = grid.global_solution_vector;
     int delta_position = 0.5*grid.number_of_cells-position;
@@ -77,41 +81,6 @@ using size_type = typename grid_type::size_type;
     }
   }
 
-
-  // void recenter_solution_plus(size_type position){
-  //   auto global_solution_vector_temp = grid.global_solution_vector;
-  //   position = 0.5*grid.number_of_cells-position;
-  //   for(size_t i = 1; i < position; ++i){
-  //     global_solution_vector_temp[i] = grid.global_solution_vector[0];
-  //   }
-  //   for(size_t i = position; i < grid.number_of_cells-1; ++i){
-  //     global_solution_vector_temp[i] = grid.global_solution_vector[i-position];
-  //   }
-  //   grid.global_solution_vector = global_solution_vector_temp;
-  // }
-  //
-  // void recenter_solution_minus(size_type position){
-  //   auto global_solution_vector_temp = grid.global_solution_vector;
-  //   position -= 0.5*grid.number_of_cells;
-  //   for(size_t i = 1; i < grid.number_of_cells - position; ++i){
-  //     global_solution_vector_temp[i] = grid.global_solution_vector[i+position];
-  //   }
-  //   for(size_t i = grid.number_of_cells - position; i < grid.number_of_cells-1; ++i){
-  //     global_solution_vector_temp[i] = grid.global_solution_vector[grid.number_of_cells-1];
-  //   }
-  //   grid.global_solution_vector = global_solution_vector_temp;
-  // }
-
-  // void reset_close_to_bound(){
-  //   auto global_solution_vector_temp = global_solution_vector;
-  //   for(size_t i = 1; i < 0.4 * global_solution_vector.size(); ++i){
-  //     global_solution_vector_temp[i] = global_solution_vector[0];
-  //   }
-  //   for(size_t i = global_solution_vector.size()*0.8; i < global_solution_vector.size()-1; ++i){
-  //     global_solution_vector_temp[i] = global_solution_vector[global_solution_vector.size()-1];
-  //   }
-  //   global_solution_vector = global_solution_vector_temp;
-  // }
   template<typename Archive>
   void serialize(Archive& archive) {
     archive(flow, grid, frame_time, target_residual, CFL, time_stepping, filename);
@@ -182,12 +151,12 @@ solve(size_type number_of_frames) {
     } else {
       current_time += frame_time_temp;
       std::cout << "Time = " <<  current_time << " : ";
-      plot<grid_type>(filename + std::to_string(static_cast<size_type>(current_frame)+1), grid.global_solution_vector,grid.dx());
-      serialize_to_file(*this, filename + std::to_string(static_cast<size_type>(current_frame)+1));
       current_frame++;
+      plot<grid_type>(filename + std::to_string(static_cast<size_type>(current_frame)), grid.global_solution_vector,grid.dx());
+      serialize_to_file(*this, filename + std::to_string(static_cast<size_type>(current_frame)));
       auto finish = std::chrono::high_resolution_clock::now();
       std::chrono::duration<double> elapsed = finish - start;
-      std::cout << "Elapsed time: " << elapsed.count() << "\n";
+      std::cout << "Elapsed time: " << elapsed.count() << "Frame:" << current_frame << "\n";
       ++i;
       frame_time_temp = frame_time;
       frame_CFL = CFL;
@@ -222,7 +191,8 @@ solve(size_type number_of_frames) {
   // std::cout << "moved_minus: " << std::endl;
   //   recenter_solution_minus(position);
   // }
-  if(position < old_position) {
+  // if(position < old_position) {
+  if(grid.global_solution_vector[grid.global_solution_vector.size()*0.05][1] / grid.global_solution_vector[grid.global_solution_vector.size()*0.05][0] < 1.0) {
     return 0;
   } else {
     return 1;

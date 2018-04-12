@@ -40,10 +40,10 @@ using matrix_type = typename grid_type::matrix_type;
                              const scalar_type& gamma_in, const scalar_type& Pr_in,
                              const scalar_type& Le_in, const scalar_type& Q_in, const scalar_type& lambda_in,
                              const scalar_type& theta_in, const scalar_type& dx_in, const scalar_type& dt_in,
-                             const scalar_type& zeta_in, const scalar_type& Theta_in) :
+                             const scalar_type& zeta_in, const scalar_type& Theta_in, const scalar_type& mf_in, const scalar_type& T_ignition_in) :
                              gamma(gamma_in), Pr(Pr_in), Le(Le_in), Q(Q_in), lambda(lambda_in),
                              theta(theta_in), dx(dx_in), dt(dt_in), zeta(zeta_in),
-                             Theta(Theta_in) {
+                             Theta(Theta_in), mf(mf_in), T_ignition(T_ignition_in) {
   rho = solution_vector[0];
   rhom = solution_vector_m[0];
   rhop = solution_vector_p[0];
@@ -80,6 +80,7 @@ using matrix_type = typename grid_type::matrix_type;
   scalar_type dx, dt;
   scalar_type zeta, Theta;
   scalar_type dUm1, dUm2, dUm3, dUm4;
+  scalar_type mf, T_ignition;
 
   template <typename T>
   scalar_type Power(const T num, const int expo) {
@@ -154,9 +155,9 @@ typename grid_type::matrix_type Variable_Implicit_Scheme<grid_type>::mid_matrix(
    (4*dt*Power(E,(2*rho*theta)/((-1 + gamma)*(-2*e + rho*Power(u,2))))*lambda*Power(rho,2)*theta*Theta*Y)/
     ((-1 + gamma)*Power(-2*e + rho*Power(u,2),2)*(1 + zeta)),(dt*Power(E,(2*rho*theta)/((-1 + gamma)*(-2*e + rho*Power(u,2))))*lambda*Theta)/(1 + zeta);
 
-  //  if((gamma-1.0)/ rho * (e-0.5*rho*u*u) > 1.1/(gamma*0.005*0.005)){
+   if((gamma-1.0)/ rho * (e-0.5*rho*u*u) > T_ignition){
     b += temp;
-  // }
+  }
 
 #endif
 
@@ -308,9 +309,9 @@ Variable_Implicit_Scheme<grid_type>::rhs_matrix() {
   temp << 0.,0.,(dt*lambda*Q*rho*Y)/(Power(E,(rho*theta)/((-1 + gamma)*(e - (rho*Power(u,2))/2.)))*(1 + zeta)),
    -((dt*lambda*rho*Y)/(Power(E,(rho*theta)/((-1 + gamma)*(e - (rho*Power(u,2))/2.)))*(1 + zeta)));
 
-  //  if((gamma-1.0)/ rho * (e-0.5*rho*u*u) > 1.1/(gamma*0.005*0.005)){
+   if((gamma-1.0)/ rho * (e-0.5*rho*u*u) > T_ignition){
      rhs += temp;
-  //  }
+   }
 
 #endif
   // auto var_vec_l = Variable_Vector_Isolator<grid_type>(solution_vector_m, gamma);
