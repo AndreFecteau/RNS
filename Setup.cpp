@@ -48,7 +48,7 @@ int main(){
   scalar_type Le                = 0.3;
   scalar_type Q_low_mach        = 9.0;
   scalar_type beta              = 5;
-  scalar_type lambda            = 0.0;
+  scalar_type lambda            = 124888.0302;
   scalar_type mf                = 0.005;
   scalar_type T_ignition_scalar = 1.02;
   scalar_type gamma             = 1.4;
@@ -72,9 +72,9 @@ int main(){
   scalar_type Theta = 1.0;
   scalar_type zeta = 0.0;
   scalar_type target_residual = 1e-15;
-  scalar_type CFL = 5e7;
+  scalar_type CFL = 5e8;
   scalar_type frame_time = 3e3;
-  // RK4_mf_point(flow, grid);
+  RK4_CJ_point(flow, grid);
   load_from_file(flow, grid, "Movie/Plot12_" + tostring(grid.per_FL()) + "_"
   + tostring(500) + "_1031.dat");
   filename = "Movie/cPlot_" + tostring(grid.per_FL()) + "_"
@@ -90,7 +90,7 @@ int main(){
   int number_of_frames = 20;
   solver.solve(number_of_frames);
 
-  while(fabs(lambda_min - lambda_max) > 1e-2) {
+  while(fabs(lambda_min - lambda_max) > 1e-8) {
     bool check;
     number_of_frames = 10;
     check = solver.solve(number_of_frames);

@@ -18,7 +18,7 @@ void plot(std::string file_name, typename grid_type::global_solution_vector_type
     if(i%(solution_vector.size()/3000) == 0 || i == solution_vector.size()-1){
     auto temp = Variable_Vector_Isolator<grid_type>(solution_vector[i], 1.4);
     // double mach = temp.u()/sqrt(1.4*temp.p()/temp.rho())
-    gnu_input_file << i * dx << " " << temp.rho() << " " << temp.u()  << " " << temp.p() << " " << temp.T() << " " << temp.Y() << " " << temp.u()/sqrt(1.4*temp.p()/temp.rho()) << std::endl;
+    gnu_input_file << (i+0.5) * dx << " " << temp.rho() << " " << temp.u()  << " " << temp.p() << " " << temp.T() << " " << temp.Y() << " " << temp.u()/sqrt(1.4*temp.p()/temp.rho()) << std::endl;
     }
   }
   gnu_input_file.close();

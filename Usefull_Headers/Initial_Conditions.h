@@ -67,7 +67,7 @@ void load_from_file(flow_properties_type& flow, grid_type& grid, std::string fil
   using solution_vector_type = typename grid_type::global_solution_vector_type::value_type;
 
   global_solution_vector_type primitive_variable;
-  // double old_x, dx;
+  double old_x, dx;
   solution_vector_type temp;
   std::ifstream fin;
   std::string line;
@@ -81,26 +81,28 @@ void load_from_file(flow_properties_type& flow, grid_type& grid, std::string fil
     grid.x_min = x;
     temp << rho, u, T, Y;
     primitive_variable.push_back(temp);
-  while(!fin.eof()){
+  while(fin >> x >> rho >> u >> garb >> T >> Y >> garb){
     // std::getline(fin, line);
     // double  rho, u, T, Y, garb;
-    fin >> x >> rho >> u >> garb >> T >> Y >> garb;
+    // fin >> x >> rho >> u >> garb >> T >> Y >> garb;
+    // std::getline(fin, line);
     // std::cout << x << std::endl;
+    dx = (x-old_x);
+    old_x = x;
     temp << rho, u, T, Y;
     primitive_variable.push_back(temp);
   }
-  grid.global_solution_vector.resize(primitive_variable.size());
+  // grid.global_solution_vector.resize(primitive_variable.size());
   // int i = 0;
-  for(int i = 0; i < primitive_variable.size(); ++i){
+  for(int i = 0; i < primitive_variable.size()-100; ++i){
     grid.global_solution_vector[i] << primitive_variable[i][0],
                                       primitive_variable[i][0] * primitive_variable[i][1],
                                       primitive_variable[i][0] * primitive_variable[i][2] / (flow.gamma-1) +
-                                      primitive_variable[i][0] * primitive_variable[i][1] * primitive_variable[i][1] *0.5,
+                                      primitive_variable[i][0] * primitive_variable[i][1] * primitive_variable[i][1] * 0.5,
                                       primitive_variable[i][0] * primitive_variable[i][3];
   }
   grid.number_of_cells = grid.global_solution_vector.size();
-  // std::cout << x << std::endl;
-  grid.x_max = x;
+  grid.x_max = x+dx;
 }
 
 
@@ -108,8 +110,8 @@ template <typename flow_properties_type, typename grid_type>
 void RK4_CJ_point(flow_properties_type& flow, grid_type& grid) {
   using scalar_type = typename grid_type::scalar_type;
   using size_type = typename grid_type::size_type;
-  RK4_Low_Mach_Solver initial_low_mach = RK4_Low_Mach_Solver(flow.Le, flow.Q_low_mach, flow.theta_low_mach, flow.T_ignition());
-  flow.lambda = initial_low_mach.get_lambda();
+  RK4_Low_Mach_Solver initial_low_mach = RK4_Low_Mach_Solver(flow.Le, flow.Q_low_mach, flow.theta_low_mach, flow.T_ignition_scalar);
+  // flow.lambda = initial_low_mach.get_lambda();
   scalar_type safety_factor = 0.999999999999;
   flow.mf = safety_factor*sqrt(1 + flow.Q_low_mach + flow.Q_low_mach*flow.gamma - sqrt(flow.Q_low_mach*(1 + flow.gamma)*(2 + flow.Q_low_mach + flow.Q_low_mach*flow.gamma)));
   scalar_type p_0 = 1/(flow.gamma*flow.mf*flow.mf);

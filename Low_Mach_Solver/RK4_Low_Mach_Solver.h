@@ -57,7 +57,9 @@ public:
     if (Le < 0.3 || Le > 1.8) {
       std::cout << "Make sure that Le: " << Le << " is the correct value" << std::endl;
     }
-
+    if (T_ignition < 1 || T_ignition > 2) {
+      std::cout << "Make sure that T_ignition: " << T_ignition << " is the correct value" << std::endl;
+    }
     resize_arrays();
     T_final = 1.0 + Q;
     delta_T = (T_initial-T_final)/(number_of_nodes-1);

@@ -83,7 +83,7 @@ using size_type = typename grid_type::size_type;
 
   template<typename Archive>
   void serialize(Archive& archive) {
-    archive(flow, grid, frame_time, target_residual, CFL, time_stepping, filename);
+    archive(flow, grid, frame_time, target_residual, CFL, time_stepping, filename, current_time, current_frame);
   }
  private:
    flow_properties_type flow;
@@ -131,6 +131,7 @@ solve(size_type number_of_frames) {
 
   // while (residual > target_residual){
     while (i < number_of_frames){
+    std::cout << "Frame: " << current_frame << std::endl;
     old_position = flame_position_algorithm(flow.gamma);
     auto start = std::chrono::high_resolution_clock::now();
     global_solution_vector_backup = grid.global_solution_vector;
@@ -152,13 +153,13 @@ solve(size_type number_of_frames) {
 #endif
     } else {
       current_time += frame_time_temp;
-      std::cout << "Time = " <<  current_time << " : ";
+      std::cout << "Current time = " <<  current_time << " : ";
       current_frame++;
       plot<grid_type>(filename + std::to_string(static_cast<size_type>(current_frame)), grid.global_solution_vector,grid.dx());
       serialize_to_file(*this, filename + std::to_string(static_cast<size_type>(current_frame)));
       auto finish = std::chrono::high_resolution_clock::now();
       std::chrono::duration<double> elapsed = finish - start;
-      std::cout << "Elapsed time: " << elapsed.count() << "Frame:" << current_frame << "\n";
+      std::cout << "Elapsed time: " << elapsed.count() << "\n";
       ++i;
       frame_time_temp = frame_time;
       frame_CFL = CFL;
