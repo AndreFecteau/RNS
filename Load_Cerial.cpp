@@ -101,13 +101,13 @@ theta = theta_low_mach/(gamma*mf*mf);
 
 #endif
 lambda_max = 124900;
-lambda_min = 124700;
+lambda_min = 124850;
 lambda_run = 124884.0403;
   std::string filename = "Movie/Plot12_" + tostring(per_FL) + "_"
                                         + tostring(domaine_length) + "_";
 auto solver = Solver<global_solution_vector_type, matrix_type>(initial_solution, filename);
 unserialize_to_file(solver, "Movie/Plot12_" + tostring(per_FL) + "_"
-                                      + tostring(500) + "_" + std::to_string(1020));
+                                      + tostring(500) + "_" + std::to_string(1030));
 // solver.add_more_space_back(2000.0, dx);
 // solver.reset_close_to_bound();
 // solver.set_bound_solution_vector(lambda_run, theta, Q, dx, mf);
@@ -115,7 +115,7 @@ unserialize_to_file(solver, "Movie/Plot12_" + tostring(per_FL) + "_"
 // solver.set_new_mf_to_solution_vector(lambda_run, 0.148777, mf, Q);
 while(fabs(lambda_min - lambda_max) > 1e-2) {
   bool check;
-for(size_t i = 0; i < 500; ++i){
+for(size_t i = 0; i < 5; ++i){
 #if defined(EXPLICIT)
   using marching_type = Explicit_Marching<global_solution_vector_type, matrix_type>;
   auto march = marching_type(Pr, Le, Q, theta, mf, gamma,
