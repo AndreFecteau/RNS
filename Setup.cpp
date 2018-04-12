@@ -76,9 +76,10 @@ int main(){
   scalar_type frame_time = 3e3;
   // RK4_mf_point(flow, grid);
   load_from_file(flow, grid, "Movie/Plot12_" + tostring(grid.per_FL()) + "_"
-  + tostring(500) + "_1030.dat");
-  filename = "Movie/bPlot_" + tostring(grid.per_FL()) + "_"
-  + tostring(100) + "_";
+  + tostring(500) + "_1031.dat");
+  filename = "Movie/cPlot_" + tostring(grid.per_FL()) + "_"
+  + tostring(500) + "_";
+  std::cout << filename << std::endl;
   plot<grid_type>(filename+"0", grid.global_solution_vector, (grid.x_max - grid.x_min)/grid.number_of_cells);
   solver= solver_type(flow, grid, frame_time, target_residual, CFL, Theta, zeta, filename);
 }

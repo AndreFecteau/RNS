@@ -82,9 +82,10 @@ void load_from_file(flow_properties_type& flow, grid_type& grid, std::string fil
     temp << rho, u, T, Y;
     primitive_variable.push_back(temp);
   while(!fin.eof()){
-    std::getline(fin, line);
-    double x, rho, u, T, Y, garb;
+    // std::getline(fin, line);
+    // double  rho, u, T, Y, garb;
     fin >> x >> rho >> u >> garb >> T >> Y >> garb;
+    // std::cout << x << std::endl;
     temp << rho, u, T, Y;
     primitive_variable.push_back(temp);
   }
@@ -98,6 +99,7 @@ void load_from_file(flow_properties_type& flow, grid_type& grid, std::string fil
                                       primitive_variable[i][0] * primitive_variable[i][3];
   }
   grid.number_of_cells = grid.global_solution_vector.size();
+  // std::cout << x << std::endl;
   grid.x_max = x;
 }
 
