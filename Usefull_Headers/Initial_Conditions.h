@@ -1,5 +1,7 @@
 #ifndef INITIAL_CONDITIONS_H
 #define INITIAL_CONDITIONS_H
+#include <fstream>
+
 
 template <typename T>
 std::string tostring(T name) {
@@ -57,6 +59,48 @@ make_RK4_solution_vector(RK4_Low_Mach_Solver low_mach_solution,
 //   }
 //   // std::cout << "here" << std::endl;
 // }
+template <typename flow_properties_type, typename grid_type>
+void load_from_file(flow_properties_type& flow, grid_type& grid, std::string filename) {
+  using scalar_type = typename grid_type::scalar_type;
+  using size_type = typename grid_type::size_type;
+  using global_solution_vector_type = typename grid_type::global_solution_vector_type;
+  using solution_vector_type = typename grid_type::global_solution_vector_type::value_type;
+
+  global_solution_vector_type primitive_variable;
+  // double old_x, dx;
+  solution_vector_type temp;
+  std::ifstream fin;
+  std::string line;
+  fin.open(filename.c_str());
+  if (!fin) {
+    throw std::runtime_error("Could not load input file " + filename);
+  }
+    std::getline(fin, line);
+    double x, rho, u, T, Y, garb;
+    fin >> x >> rho >> u >> garb >> T >> Y >> garb;
+    grid.x_min = x;
+    temp << rho, u, T, Y;
+    primitive_variable.push_back(temp);
+  while(!fin.eof()){
+    std::getline(fin, line);
+    double x, rho, u, T, Y, garb;
+    fin >> x >> rho >> u >> garb >> T >> Y >> garb;
+    temp << rho, u, T, Y;
+    primitive_variable.push_back(temp);
+  }
+  grid.global_solution_vector.resize(primitive_variable.size());
+  // int i = 0;
+  for(int i = 0; i < primitive_variable.size(); ++i){
+    grid.global_solution_vector[i] << primitive_variable[i][0],
+                                      primitive_variable[i][0] * primitive_variable[i][1],
+                                      primitive_variable[i][0] * primitive_variable[i][2] / (flow.gamma-1) +
+                                      primitive_variable[i][0] * primitive_variable[i][1] * primitive_variable[i][1] *0.5,
+                                      primitive_variable[i][0] * primitive_variable[i][3];
+  }
+  grid.number_of_cells = grid.global_solution_vector.size();
+  grid.x_max = x;
+}
+
 
 template <typename flow_properties_type, typename grid_type>
 void RK4_CJ_point(flow_properties_type& flow, grid_type& grid) {

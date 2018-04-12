@@ -59,7 +59,7 @@ int main(){
   grid_type grid;
 {
   scalar_type x_min = 0.0;
-  scalar_type domaine_length = 100;
+  scalar_type domaine_length = 2500;
   scalar_type x_max = x_min + domaine_length;
   scalar_type per_FL = 256.0;
   size_type number_of_cells = domaine_length * per_FL;
@@ -74,7 +74,9 @@ int main(){
   scalar_type target_residual = 1e-15;
   scalar_type CFL = 5e7;
   scalar_type frame_time = 3e3;
-  RK4_mf_point(flow, grid);
+  // RK4_mf_point(flow, grid);
+  load_from_file(flow, grid, "Movie/Plot12_" + tostring(grid.per_FL()) + "_"
+  + tostring(500) + "_1030.dat");
   filename = "Movie/bPlot_" + tostring(grid.per_FL()) + "_"
   + tostring(100) + "_";
   plot<grid_type>(filename+"0", grid.global_solution_vector, (grid.x_max - grid.x_min)/grid.number_of_cells);
