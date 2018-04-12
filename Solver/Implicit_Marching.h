@@ -162,7 +162,7 @@ timemarch(flow_properties_type flow,
 #if defined(MANUFACTURED)
     rhs[i-1] += manufactured_residual(flow.lambda, i, grid, flow)*dt/(1+zeta);
 #endif
-    // rhs[i-1] += numerical_dissipation(grid, i, 0.1);
+    rhs[i-1] += numerical_dissipation(grid, i, 0.9);
     // rhs[i-1] += numerical_dissipation(grid.global_solution_vector, i, 0.5);
     // rhs[i-1] += numerical_dissipation(grid.global_solution_vector, i, 0.01);
   }

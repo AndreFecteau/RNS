@@ -2,6 +2,7 @@
 #define VISCOUS
 #define SOURCE
 #define MANUFACTURED
+// #define RECENTER_FLAME
 // #define IMPLICIT
 // #define EXPLICIT
 

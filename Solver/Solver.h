@@ -145,9 +145,11 @@ solve(size_type number_of_frames) {
       grid.global_solution_vector = global_solution_vector_backup;
       frame_CFL *= 0.5;
       frame_time_temp *= 0.5;
+#if defined(RECENTER_FLAME)
     }else if(position < grid.number_of_cells*0.1 || position > grid.number_of_cells*0.9) {
       grid.global_solution_vector = global_solution_vector_backup;
       frame_time_temp *= 0.5;
+#endif
     } else {
       current_time += frame_time_temp;
       std::cout << "Time = " <<  current_time << " : ";
@@ -167,7 +169,9 @@ solve(size_type number_of_frames) {
       var_vec = Variable_Vector_Isolator<grid_type>(grid.global_solution_vector[position], 1.4);
       }
       std::cout << "position: " << position << std::endl;
+#if defined(RECENTER_FLAME)
       recenter_solution(position);
+#endif
 
     }
   }
