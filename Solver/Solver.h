@@ -191,8 +191,8 @@ solve(size_type number_of_frames) {
   // std::cout << "moved_minus: " << std::endl;
   //   recenter_solution_minus(position);
   // }
-  // if(position < old_position) {
-  if(grid.global_solution_vector[grid.global_solution_vector.size()*0.05][1] / grid.global_solution_vector[grid.global_solution_vector.size()*0.05][0] < 1.0) {
+  if(position < old_position) {
+  // if(grid.global_solution_vector[grid.global_solution_vector.size()*0.05][1] / grid.global_solution_vector[grid.global_solution_vector.size()*0.05][0] < 1.0) {
     return 0;
   } else {
     return 1;
