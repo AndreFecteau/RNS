@@ -1,9 +1,9 @@
 #define HYPERBOLIC
 #define VISCOUS
 #define SOURCE
+#define MANUFACTURED
 // #define IMPLICIT
 // #define EXPLICIT
-// #define MANUFACTURED
 
 #include <iomanip>
 #include <fenv.h>
@@ -49,7 +49,7 @@ int main(){
   scalar_type beta              = 5;
   scalar_type lambda            = 0.0;
   scalar_type mf                = 0.005;
-  scalar_type T_ignition_scalar = 1.02;
+  scalar_type T_ignition_scalar = 0*1.02;
   scalar_type gamma             = 1.4;
   scalar_type theta_low_mach    = beta*(1+Q_low_mach)*(1+Q_low_mach)/Q_low_mach;
   flow = flow_properties_type(Pr, Le, Q_low_mach, theta_low_mach, mf, gamma, lambda, T_ignition_scalar);
@@ -69,19 +69,17 @@ int main(){
 
 {
   scalar_type Theta = 1.0;
-  scalar_type zeta = 0.5;
+  scalar_type zeta = 0.0;
   scalar_type target_residual = 1e-15;
-  scalar_type CFL = 5e7;
-  scalar_type frame_time = 3e2;
-  RK4_mf_point(flow, grid);
-  filename = "Movie/Plot_" + tostring(grid.per_FL()) + "_"
-  + tostring(grid.domaine_length()) + "_";
+  scalar_type CFL = 5e4;
+  scalar_type frame_time = 3e-4;
+  manufactured_solution(flow, grid);
+  filename = "Movie/aPlot_" + tostring(grid.per_FL()) + "_"
+  + tostring(100) + "_";
   plot<grid_type>(filename+"0", grid.global_solution_vector, (grid.x_max - grid.x_min)/grid.number_of_cells);
   solver= solver_type(flow, grid, frame_time, target_residual, CFL, Theta, zeta, filename);
 }
 }
-  std::cout << "in Flow" << std::endl;
-
   scalar_type lambda_max = solver.get_lambda()*1.01;
   scalar_type lambda_min = solver.get_lambda()*0.99;
 

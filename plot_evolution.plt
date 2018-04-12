@@ -6,16 +6,11 @@ set key title ""
 #set xrange [-10:100]
 
 plot \
-"./Movie/Plot_256_100_0.dat"                    using 1:3    title "Initial Solution " with lines,\
-"./Movie/Plot_256_100_10.dat"                   using 1:3    title "Initial Solution " with lines,\
-"./Movie/Plot_256_100_20.dat"                   using 1:3    title "Initial Solution " with lines,\
-"./Movie/Plot_256_100_30.dat"                   using 1:3    title "Initial Solution " with lines,\
-"./Movie/Plot_256_100_40.dat"                   using 1:3    title "Initial Solution " with lines,\
-"./Movie/Plot_256_100_50.dat"                   using 1:3    title "Initial Solution " with lines,\
-"./Movie/Plot_256_100_60.dat"                   using 1:3    title "Initial Solution " with lines,\
-"./Movie/Plot_256_100_70.dat"                   using 1:3    title "Initial Solution " with lines,\
-"./Movie/Plot_256_100_80.dat"                   using 1:3    title "Initial Solution " with lines,\
-"./Movie/Plot_256_100_90.dat"                   using 1:3    title "Initial Solution " with lines,\
+"./Movie/aPlot_4074_100_0.dat"                   using 1:3    title "Initial Solution " with lines,\
+"./Movie/aPlot_4074_100_1.dat"                   using 1:3    title "Initial Solution " with lines,\
+"./Movie/aPlot_4074_100_2.dat"                   using 1:3    title "Initial Solution " with lines,\
+"./Movie/aPlot_4074_100_3.dat"                   using 1:3    title "Initial Solution " with lines,\
+"./Movie/aPlot_4074_100_4.dat"                   using 1:3    title "Initial Solution " with lines,\
 #"./Movie/Plot13_256_500_0.dat"                   using 1:2    title "Initial Solution " with lines,\
 "./Movie/Plot12_256_500_1019.dat"                using ($1):7    title "Initial Solution " with lines,\
 "./Movie/Plot12_256_500_1195.dat"                using ($1):7    title "Initial Solution " with lines,\

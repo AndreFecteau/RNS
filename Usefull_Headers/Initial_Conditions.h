@@ -163,26 +163,27 @@ void RK4_mf_point(flow_properties_type& flow, grid_type& grid) {
 // }
 //
 //
-// void manufactured_solution(int &number_of_cells, global_solution_vector_type &initial_solution, double &x_max, double &x_min, double dx){
-// x_min = 0.0;
-// x_max = 2.0*atan(1.0)*4.0;
-// number_of_cells = x_max/dx;
+template <typename flow_properties_type, typename grid_type>
+void manufactured_solution(flow_properties_type& flow, grid_type& grid){
+grid.x_min = 0.0;
+grid.x_max = 2.0*atan(1.0)*4.0;
+// grid.number_of_cells = ;
 // std::cout << dx << std::endl;
-// initial_solution.resize(number_of_cells);
-// // double dx = (x_max-x_min) / number_of_cells;
-//   for (size_t i = 0; i < number_of_cells; ++i) {
-//     double x = (i+0.5)*dx;
-//     initial_solution[i] << (-0.45*tanh(4.0 * x - 10.0) + 0.55),
-//                           (-0.45*tanh(4.0 * x - 10.0) + 0.55)*(4.5*tanh(4.0 * x - 10.0) + 5.5),
-//                           2.0*tanh(4.0*x - 10.0) + 70000,
-//                           (-0.45*tanh(4.0 * x - 10.0) + 0.55)*(-0.5*tanh(x - 8.0/4.0) + 0.5);
-//     // initial_solution[i] << cos(x)+10, (cos(x)+10)*(cos(x)+10), cos(x)+10000, (cos(x)+10)*(cos(x)+10);
-//   }
-//   // for (int i = 1; i < number_of_cells-1; ++i) {
-//   //   double x = x_min + (i+0.5)*dx;
-//   //   initial_solution[i] << 0.5*cos(x)+10, 0.5*(cos(x)+10)*(cos(x)+10), 0.5*cos(x)+10000, 0.5*(cos(x)+10)*(cos(x)+10);
-//   // }
-// }
+grid.global_solution_vector.resize(grid.number_of_cells);
+// double dx = (x_max-x_min) / number_of_cells;
+  for (size_t i = 0; i < grid.number_of_cells; ++i) {
+    double x = (i+0.5)*grid.dx();
+    grid.global_solution_vector[i] << (-0.45*tanh(4.0 * x - 10.0) + 0.55),
+                          (-0.45*tanh(4.0 * x - 10.0) + 0.55)*(4.5*tanh(4.0 * x - 10.0) + 5.5),
+                          2.0*tanh(4.0*x - 10.0) + 70000,
+                          (-0.45*tanh(4.0 * x - 10.0) + 0.55)*(-0.5*tanh(x - 8.0/4.0) + 0.5);
+    // initial_solution[i] << cos(x)+10, (cos(x)+10)*(cos(x)+10), cos(x)+10000, (cos(x)+10)*(cos(x)+10);
+  }
+  // for (int i = 1; i < number_of_cells-1; ++i) {
+  //   double x = x_min + (i+0.5)*dx;
+  //   initial_solution[i] << 0.5*cos(x)+10, 0.5*(cos(x)+10)*(cos(x)+10), 0.5*cos(x)+10000, 0.5*(cos(x)+10)*(cos(x)+10);
+  // }
+}
 //
 // void case_1(double &final_time, int number_of_cells, global_solution_vector_type &initial_solution, double gamma, double &x_max, double &x_min) {
 //   // // ------------ Problem 1 ----------- //

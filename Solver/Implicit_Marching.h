@@ -160,7 +160,7 @@ timemarch(flow_properties_type flow,
     top[i-1] = matrix_entries.top_matrix();
     rhs[i-1] = matrix_entries.rhs_matrix();
 #if defined(MANUFACTURED)
-    rhs[i-1] += manufactured_residual(lambda, i)*dt/(1+zeta);
+    rhs[i-1] += manufactured_residual(flow.lambda, i, grid, flow)*dt/(1+zeta);
 #endif
     rhs[i-1] += numerical_dissipation(grid, i, 0.8);
     // rhs[i-1] += numerical_dissipation(grid.global_solution_vector, i, 0.5);
@@ -318,9 +318,9 @@ typename grid_type::global_solution_vector_type::value_type Implicit_Marching<gr
     // Source
     ///////////////////////////////////////////////////////////////////////////////
 #if defined(SOURCE)
-    temp << 0.,0.,-(exp((8*theta()*(11 + 9*tanh(10 - 4*x)))/
-         ((-1 + gamma)*(-11198669 - 769*tanh(10 - 4*x) - 891*Power(tanh(10 - 4*x),2) + 729*Power(tanh(10 - 4*x),3))))*lambda*Q()*(11 + 9*tanh(10 - 4*x))*
-       (1 + tanh(2 - x)))/40.,(exp((8*theta()*(11 + 9*tanh(10 - 4*x)))/
+    temp << 0.,0.,-(exp((8*theta*(11 + 9*tanh(10 - 4*x)))/
+         ((-1 + gamma)*(-11198669 - 769*tanh(10 - 4*x) - 891*Power(tanh(10 - 4*x),2) + 729*Power(tanh(10 - 4*x),3))))*lambda*Q*(11 + 9*tanh(10 - 4*x))*
+       (1 + tanh(2 - x)))/40.,(exp((8*theta*(11 + 9*tanh(10 - 4*x)))/
         ((-1 + gamma)*(-11198669 - 769*tanh(10 - 4*x) - 891*Power(tanh(10 - 4*x),2) + 729*Power(tanh(10 - 4*x),3))))*lambda*(11 + 9*tanh(10 - 4*x))*
       (1 + tanh(2 - x)))/40.;
 

@@ -61,7 +61,7 @@ using size_type = typename grid_type::size_type;
 
   void recenter_solution(size_type position) {
     auto global_solution_vector_temp = grid.global_solution_vector;
-    int delta_position = 0.5*grid.number_of_cells-position;
+    int delta_position = 0.3*grid.number_of_cells-position;
     if(delta_position > 0){
       for(size_type i = 1; i < abs(delta_position); ++i){
         global_solution_vector_temp[i] = grid.global_solution_vector[0];
@@ -172,12 +172,9 @@ solve(size_type number_of_frames) {
     }
   }
 
-#if defined(MANUFACTURED)
-  manufactured_solution_residual<marching_type>(march);
-#endif
   size_type position = 0;
   auto var_vec = Variable_Vector_Isolator<grid_type>(grid.global_solution_vector[position], 1.4);
-  while (var_vec.rho() > 0.5) {
+  while (var_vec.rho() > 0.3) {
   ++position;
   var_vec = Variable_Vector_Isolator<grid_type>(grid.global_solution_vector[position], 1.4);
   }
@@ -191,8 +188,8 @@ solve(size_type number_of_frames) {
   // std::cout << "moved_minus: " << std::endl;
   //   recenter_solution_minus(position);
   // }
-  if(position < old_position) {
-  // if(grid.global_solution_vector[grid.global_solution_vector.size()*0.05][1] / grid.global_solution_vector[grid.global_solution_vector.size()*0.05][0] < 1.0) {
+  // if(position < old_position) {
+  if(grid.global_solution_vector[grid.global_solution_vector.size()*0.05][1] / grid.global_solution_vector[grid.global_solution_vector.size()*0.05][0] < 1.0) {
     return 0;
   } else {
     return 1;
