@@ -162,7 +162,7 @@ double Implicit_Marching<global_solution_vector_type, matrix_type>::timemarch(do
                                         global_solution_vector[std::min(i+2,number_of_cells-1)],
                                         delta_global_solution_vector[i-1],
                                         gamma, Pr, Le, Q, lambda,
-                                        theta, dx, dt, zeta, Theta);
+                                        theta, dx, dt, zeta, Theta, mf);
     mid[i-1] = matrix_entries.mid_matrix();
     bot[i-1] = matrix_entries.bot_matrix();
     top[i-1] = matrix_entries.top_matrix();
@@ -178,9 +178,11 @@ double Implicit_Marching<global_solution_vector_type, matrix_type>::timemarch(do
 // Implicit Boundary Conditions
 #pragma omp single
 {
-#if !defined(MANUFACTURED)
-  // mid[global_solution_vector.size()-3] += top[global_solution_vector.size()-3];
-  // mid[0] += bot[0];
+#if defined(RIGHT_CST_EXTR)
+  mid[global_solution_vector.size()-3] += top[global_solution_vector.size()-3];
+#endif
+#if defined(LEFT_CST_EXTR)
+  mid[0] += bot[0];
 #endif
 }
 
@@ -199,9 +201,11 @@ double Implicit_Marching<global_solution_vector_type, matrix_type>::timemarch(do
 // Explicit Boundary Conditions
 #pragma omp single
   {
-#if !defined(MANUFACTURED)
-    // global_solution_vector[global_solution_vector.size()-1] = global_solution_vector[global_solution_vector.size()-2];
-    // global_solution_vector[0] = global_solution_vector[1];
+#if defined(RIGHT_CST_EXTR)
+    global_solution_vector[global_solution_vector.size()-1] = global_solution_vector[global_solution_vector.size()-2];
+#endif
+#if defined(LEFT_CST_EXTR)
+    global_solution_vector[0] = global_solution_vector[1];
 #endif
   }
 

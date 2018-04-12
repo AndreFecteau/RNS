@@ -36,10 +36,10 @@ using solution_vector_type = typename global_solution_vector_type::value_type;
                              const double& gamma_in, const double& Pr_in,
                              const double& Le_in, const double& Q_in, const double& lambda_in,
                              const double& theta_in, const double& dx_in, const double& dt_in,
-                             const double& zeta_in, const double& Theta_in) :
+                             const double& zeta_in, const double& Theta_in, const double& mf_in) :
                              gamma(gamma_in), Pr(Pr_in), Le(Le_in), Q(Q_in), lambda(lambda_in),
                              theta(theta_in), dx(dx_in), dt(dt_in), zeta(zeta_in),
-                             Theta(Theta_in) {
+                             Theta(Theta_in), mf(mf_in) {
   rho = solution_vector[0];
   rhom = solution_vector_m[0];
   rhop = solution_vector_p[0];
@@ -76,6 +76,7 @@ using solution_vector_type = typename global_solution_vector_type::value_type;
   double dx, dt;
   double zeta, Theta;
   double dUm1, dUm2, dUm3, dUm4;
+  double mf;
 
   template <typename T>
   double Power(const T num, const int expo) {
@@ -150,9 +151,9 @@ matrix_type Implicit_Matrix_Entries<global_solution_vector_type, matrix_type>::m
    (4*dt*Power(E,(2*rho*theta)/((-1 + gamma)*(-2*e + rho*Power(u,2))))*lambda*Power(rho,2)*theta*Theta*Y)/
     ((-1 + gamma)*Power(-2*e + rho*Power(u,2),2)*(1 + zeta)),(dt*Power(E,(2*rho*theta)/((-1 + gamma)*(-2*e + rho*Power(u,2))))*lambda*Theta)/(1 + zeta);
 
-  //  if((gamma-1.0)/ rho * (e-0.5*rho*u*u) > 1.1/(gamma*0.005*0.005)){
+   if((gamma-1.0)/ rho * (e-0.5*rho*u*u) > 1.02/(gamma*mf*mf)){
     b += temp;
-  // }
+  }
 
 #endif
 
@@ -304,9 +305,9 @@ Implicit_Matrix_Entries<global_solution_vector_type, matrix_type>::rhs_matrix() 
   temp << 0.,0.,(dt*lambda*Q*rho*Y)/(Power(E,(rho*theta)/((-1 + gamma)*(e - (rho*Power(u,2))/2.)))*(1 + zeta)),
    -((dt*lambda*rho*Y)/(Power(E,(rho*theta)/((-1 + gamma)*(e - (rho*Power(u,2))/2.)))*(1 + zeta)));
 
-  //  if((gamma-1.0)/ rho * (e-0.5*rho*u*u) > 1.1/(gamma*0.005*0.005)){
+   if((gamma-1.0)/ rho * (e-0.5*rho*u*u) > 1.02/(gamma*mf*mf)){
      rhs += temp;
-  //  }
+   }
 
 #endif
   // auto var_vec_l = Variable_Vector_Isolator<solution_vector_type>(solution_vector_m, gamma);

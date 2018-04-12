@@ -141,7 +141,76 @@ void RK4_CJ_point(double &lambda, int &number_of_cells,
                   double domaine_length) {
   RK4_Low_Mach_Solver initial_low_mach = RK4_Low_Mach_Solver(Le, Q, theta, T_ignition);
   lambda = initial_low_mach.get_lambda();
-  mf = 0.148777;
+  // mf = 0.1487774624325237;
+  // mf = 0.01;///*0.99 **/ sqrt(1+Q*(-1+gamma*gamma)/(-1+gamma)-sqrt(-1+(1+Q*(-1+gamma*gamma)/(-1+gamma))*(1+Q*(-1+gamma*gamma)/(-1+gamma))));
+  mf = 0.99999999999*sqrt(1 + Q + Q*gamma - sqrt(Q*(1 + gamma)*(2 + Q + Q*gamma)));
+  double p_0 = 1/(gamma*mf*mf);
+  double rho_0 = 1.0;
+  double u_0 = 1.0;
+   Q = Q/(mf*mf*(gamma-1));
+   theta =theta/(gamma*mf*mf);
+  double zeta =(2*pow(mf,2)*Q + pow(-1 + pow(mf,2),2)*p_0/rho_0*gamma - 2*pow(mf,2)*Q*pow(gamma,2))/(pow(mf,4)*p_0/rho_0*gamma*pow(1 + gamma,2));
+  double p_inf = p_0*((1 + pow(mf,2)*gamma)/(1 + gamma) + pow(mf,2)*gamma*sqrt(zeta));
+  double rho_inf = rho_0/((1 + pow(mf,2)*gamma)/(pow(mf,2)*(1 + gamma)) - sqrt(zeta));
+  double u_inf = u_0*((1 + pow(mf,2)*gamma)/(pow(mf,2)*(1 + gamma)) - sqrt(zeta));
+  std::cout << "zeta:" << zeta << "p:" << p_inf << " rho: " << rho_inf << " u: " << u_inf << std::endl;
+  x_max = domaine_length;
+  number_of_cells = x_max/dx;
+  initial_solution.resize(number_of_cells);
+// #pragma omp parallel for
+  double flame_location = 0.5;
+  for (int i = 0; i < number_of_cells; ++i) {
+    if (i*dx < domaine_length*flame_location) {
+      initial_solution[i] << 1.0,
+      1.0 * 1.0,
+      (1.0 / (gamma * mf * mf)) /
+      (gamma - 1.0) + 1.0 * 1.0 * 1.0 * 0.5,
+      1.0 * 1.0;
+    } else if ((i+1)*dx > domaine_length*flame_location + initial_low_mach.length()) {
+      initial_solution[i] << rho_inf,
+      rho_inf * u_inf,
+      p_inf / (gamma - 1.0) + rho_inf * u_inf * u_inf * 0.5,
+      rho_inf * 0;
+      // initial_solution[i] << initial_solution[(i-1)];
+  // std::cout << "back" << std::endl;
+    } else {
+        initial_solution[i] << make_RK4_solution_vector(initial_low_mach,
+                                                        (i+1)*dx - domaine_length*flame_location, gamma, mf);
+      // solution_vector_type a;
+      // solution_vector_type b;
+      // a  << 1.0,
+      // 1.0 * 1.0,
+      // (1.0 / (gamma * mf * mf)) /
+      // (gamma - 1.0) + 1.0 * 1.0 * 1.0 * 0.5,
+      // 1.0 * 1.0;
+      // b << rho_inf,
+      // rho_inf * u_inf,
+      // p_inf / (gamma - 1.0) + rho_inf * u_inf * u_inf * 0.5,
+      // rho_inf * 0;
+      // // std::cout << "a:" << i*dx << std::endl;
+      // initial_solution[i] = a+(b-a)/initial_low_mach.length()*(i*dx-domaine_length*0.5);
+    // } else if ((
+      // initial_solution[i] << make_RK4_solution_vector(initial_low_mach,
+      //                                                 (i+1)*dx - domaine_length*0.7, gamma, mf);
+    }
+    // std::cout << "sol" << std::endl;
+    // initial_solution[i][1] = -fabs(initial_solution[number_of_cells-i][1]);
+  }
+  // initial_solution[initial_solution.size()-1] << rho_inf,
+  // rho_inf * u_inf,
+  // p_inf / (gamma - 1.0) + rho_inf * u_inf * u_inf * 0.5,
+  // 0.0;
+  // std::cout << "here" << std::endl;
+}
+
+void RK4_mf_point(double &lambda, int &number_of_cells,
+                  global_solution_vector_type &initial_solution,
+                  double Le, double Q, double theta, double T_ignition,
+                  double gamma, double &x_max, double &mf, double dx,
+                  double domaine_length) {
+  RK4_Low_Mach_Solver initial_low_mach = RK4_Low_Mach_Solver(Le, Q, theta, T_ignition);
+  lambda = initial_low_mach.get_lambda();
+  // mf = 0.1487774624325237;
   // mf = 0.01;///*0.99 **/ sqrt(1+Q*(-1+gamma*gamma)/(-1+gamma)-sqrt(-1+(1+Q*(-1+gamma*gamma)/(-1+gamma))*(1+Q*(-1+gamma*gamma)/(-1+gamma))));
   double p_0 = 1/(gamma*mf*mf);
   double rho_0 = 1.0;
@@ -200,6 +269,46 @@ void RK4_CJ_point(double &lambda, int &number_of_cells,
   // p_inf / (gamma - 1.0) + rho_inf * u_inf * u_inf * 0.5,
   // 0.0;
   // std::cout << "here" << std::endl;
+}
+
+
+void shock(double &lambda, int &number_of_cells,
+                  global_solution_vector_type &initial_solution,
+                  double Le, double Q, double theta, double T_ignition,
+                  double gamma, double &x_max, double &mf, double dx,
+                  double domaine_length) {
+  // RK4_Low_Mach_Solver initial_low_mach = RK4_Low_Mach_Solver(Le, Q, theta, T_ignition);
+  // lambda = initial_low_mach.get_lambda();
+  // mf = 0.1487774624325237;
+  // mf = 0.01;///*0.99 **/ sqrt(1+Q*(-1+gamma*gamma)/(-1+gamma)-sqrt(-1+(1+Q*(-1+gamma*gamma)/(-1+gamma))*(1+Q*(-1+gamma*gamma)/(-1+gamma))));
+  double p_0 = 1/(gamma*mf*mf);
+  double rho_0 = 1.0;
+  double u_0 = 1.0;
+   Q = Q/(mf*mf*(gamma-1));
+   theta =theta/(gamma*mf*mf);
+  double p_inf = p_0 * (1-gamma+2*pow(mf,2)*gamma) / (1+gamma) ;
+  double rho_inf = rho_0*(gamma+1)*pow(mf,2)/((gamma -1)*pow(mf,2)+2);
+  double u_inf = u_0/((gamma+1)*pow(mf,2)/((gamma -1)*pow(mf,2)+2));
+  std::cout << "p:" << p_inf << " rho: " << rho_inf << " u: " << u_inf << std::endl;
+  x_max = domaine_length;
+  number_of_cells = x_max/dx;
+  initial_solution.resize(number_of_cells);
+// #pragma omp parallel for
+  double flame_location = 0.5;
+  for (int i = 0; i < number_of_cells; ++i) {
+    if (i*dx < domaine_length*flame_location) {
+      initial_solution[i] << 1.0,
+      1.0 * 1.0,
+      (1.0 / (gamma * mf * mf)) /
+      (gamma - 1.0) + 1.0 * 1.0 * 1.0 * 0.5,
+      0.0;
+    } else {
+      initial_solution[i] << rho_inf,
+      rho_inf * u_inf,
+      p_inf / (gamma - 1.0) + rho_inf * u_inf * u_inf * 0.5,
+      0.0;
+    }
+  }
 }
 
 void straight_line(int number_of_cells, global_solution_vector_type &initial_solution, double &x_max, double &x_min,
