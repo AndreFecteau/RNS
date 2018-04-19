@@ -111,7 +111,7 @@ void RK4_CJ_point(flow_properties_type& flow, grid_type& grid) {
   using scalar_type = typename grid_type::scalar_type;
   using size_type = typename grid_type::size_type;
   RK4_Low_Mach_Solver initial_low_mach = RK4_Low_Mach_Solver(flow.Le, flow.Q_low_mach, flow.theta_low_mach, flow.T_ignition_scalar);
-  // flow.lambda = initial_low_mach.get_lambda();
+  flow.lambda = initial_low_mach.get_lambda();
   scalar_type safety_factor = 0.999999999999;
   flow.mf = safety_factor*sqrt(1 + flow.Q_low_mach + flow.Q_low_mach*flow.gamma - sqrt(flow.Q_low_mach*(1 + flow.gamma)*(2 + flow.Q_low_mach + flow.Q_low_mach*flow.gamma)));
   scalar_type p_0 = 1/(flow.gamma*flow.mf*flow.mf);

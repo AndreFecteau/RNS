@@ -57,7 +57,10 @@ using size_type = typename grid_type::size_type;
 
   const double get_lambda(){return flow.lambda;}
 
-  double set_lambda(scalar_type lambda) {flow.lambda = lambda;}
+  double set_lambda(scalar_type lambda) {
+    flow.lambda = lambda;
+    std::cout << "lambda changed to: " << flow.lambda << std::endl;
+  }
 
   void recenter_solution(size_type position) {
     auto global_solution_vector_temp = grid.global_solution_vector;
@@ -81,16 +84,33 @@ using size_type = typename grid_type::size_type;
     }
   }
 
+  void add_space_in_back(double space) {
+    grid.global_solution_vector.resize(grid.number_of_cells + space/grid.dx());
+    grid.number_of_cells = grid.global_solution_vector.size();
+    grid.x_max += space;
+    for(size_t i = grid.number_of_cells - space/grid.dx(); i < grid.number_of_cells; ++i) {
+      grid.global_solution_vector[i] = grid.global_solution_vector[i-1];
+    }
+    std::cout << "Added space in domaine, New domaine size: " << grid.domaine_length() << std::endl;
+  }
+
+  void print_stats() {
+      std::cout << "Pr: " << flow.Pr << " Le: " << flow.Le << " gamma: " << flow.gamma << std::endl;
+      std::cout << "mf: " << flow.mf << " Q_low_mach: " << flow.Q_low_mach << " theta_low_mach: " << flow.theta_low_mach << std::endl;
+      std::cout << "T_ignition: " << flow.T_ignition_scalar << " lambda: " << flow.lambda  << std::endl;
+      std::cout << "x_min: " << grid.x_min << " x_max: " << grid.x_max << " number_of_cells: " << grid.number_of_cells << std::endl;
+  }
+
   template<typename Archive>
   void serialize(Archive& archive) {
     archive(flow, grid, frame_time, target_residual, CFL, time_stepping, filename, current_time, current_frame);
   }
+  scalar_type frame_time;
+  scalar_type CFL;
  private:
    flow_properties_type flow;
    grid_type grid;
-  scalar_type frame_time;
   scalar_type target_residual;
-  scalar_type CFL;
   time_stepping_type time_stepping;
   global_solution_vector_type global_solution_vector_backup;
   std::string filename;
@@ -131,7 +151,6 @@ solve(size_type number_of_frames) {
 
   // while (residual > target_residual){
     while (i < number_of_frames){
-    std::cout << "Frame: " << current_frame << std::endl;
     old_position = flame_position_algorithm(flow.gamma);
     auto start = std::chrono::high_resolution_clock::now();
     global_solution_vector_backup = grid.global_solution_vector;
@@ -152,6 +171,7 @@ solve(size_type number_of_frames) {
       frame_time_temp *= 0.5;
 #endif
     } else {
+      std::cout << "Frame: " << current_frame << std::endl;
       current_time += frame_time_temp;
       std::cout << "Current time = " <<  current_time << " : ";
       current_frame++;
@@ -193,8 +213,8 @@ solve(size_type number_of_frames) {
   // std::cout << "moved_minus: " << std::endl;
   //   recenter_solution_minus(position);
   // }
-  // if(position < old_position) {
-  if(grid.global_solution_vector[grid.global_solution_vector.size()*0.05][1] / grid.global_solution_vector[grid.global_solution_vector.size()*0.05][0] < 1.0) {
+  if(position < old_position) {
+  // if(grid.global_solution_vector[grid.global_solution_vector.size()*0.05][1] / grid.global_solution_vector[grid.global_solution_vector.size()*0.05][0] < 1.0) {
     return 0;
   } else {
     return 1;

@@ -1,9 +1,10 @@
 #define HYPERBOLIC
 #define VISCOUS
 #define SOURCE
+// #define MANUFACTURED
+#define RECENTER_FLAME
 // #define IMPLICIT
 // #define EXPLICIT
-// #define MANUFACTURED
 
 #include <iomanip>
 #include <fenv.h>
@@ -39,18 +40,24 @@ int main(){
   std::cout << "Setting Initial Conditions " << std::endl;
   std::cout << "//////////////////////////" << std::endl;
   solver_type solver;
+  unserialize_to_file(solver, "Movie/Plot_250");
+  std::cout << "Restarting Simulation With:" << std::endl;
+  solver.print_stats();
 
-  unserialize_to_file(solver, "Movie/cPlot_256_500_1");
+  // solver.add_space_in_back(10000);
+  // solver.frame_time = 1e4;
+  // solver.CFL = 5e8;
 
-  scalar_type lambda_max = solver.get_lambda()*1.01;
-  scalar_type lambda_min = solver.get_lambda()*0.99;
-
-  int number_of_frames = 20;
+  // scalar_type lambda_run = solver.get_lambda();
+  // solver.set_lambda(lambda_run*1.1);
+  int number_of_frames = 40;
   solver.solve(number_of_frames);
+  scalar_type lambda_max = solver.get_lambda()*1.05;
+  scalar_type lambda_min = solver.get_lambda()*0.95;
 
   while(fabs(lambda_min - lambda_max) > 1e-8) {
     bool check;
-    number_of_frames = 10;
+    int number_of_frames = 40;
     check = solver.solve(number_of_frames);
     scalar_type lambda_run = solver.get_lambda();
     bisection_lambda(lambda_min, lambda_max, lambda_run, check);
