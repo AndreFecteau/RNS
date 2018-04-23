@@ -33,23 +33,23 @@ struct Grid1D {
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief Constructor setting up required inputs.
-  Grid1D(scalar_type x_min_in, scalar_type x_max_in, size_type number_of_cells_in,
+  Grid1D(scalar_type x_min_in, scalar_type x_max_in,
           global_solution_vector_type global_solution_vector_in) :
-          x_min(x_min_in), x_max(x_max_in), number_of_cells(number_of_cells_in),
+          x_min(x_min_in), x_max(x_max_in),
           global_solution_vector(global_solution_vector_in) {}
 
   scalar_type x_min;
   scalar_type x_max;
-  size_type number_of_cells;
   global_solution_vector_type global_solution_vector;
 
+  size_type number_of_cells() const {return global_solution_vector.size();}
   scalar_type domaine_length() const {return x_max - x_min;}
-  scalar_type dx() const {return domaine_length() / static_cast<scalar_type>(number_of_cells);}
-  scalar_type per_FL() const {return number_of_cells / (x_max - x_min);}
+  scalar_type dx() const {return domaine_length() / static_cast<scalar_type>(number_of_cells());}
+  scalar_type per_FL() const {return number_of_cells() / (x_max - x_min);}
 
   template<typename Archive>
   void serialize(Archive& archive) {
-    archive(x_min, x_max, number_of_cells, global_solution_vector);
+    archive(x_min, x_max, global_solution_vector);
   }
 
 };

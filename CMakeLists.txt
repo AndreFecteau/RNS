@@ -1,7 +1,7 @@
 # Set the minimum version of CMake that can be used
 # To find the cmake version run
 # $ cmake --version
-cmake_minimum_required (VERSION 3.5)
+cmake_minimum_required (VERSION 3.2)
 
 
 # Set the project name
@@ -18,8 +18,8 @@ endif()
 
 # try conditional compilation
 include(CheckCXXCompilerFlag)
-CHECK_CXX_COMPILER_FLAG("-std=c++14" COMPILER_SUPPORTS_CXX14)
 CHECK_CXX_COMPILER_FLAG("-std=c++17" COMPILER_SUPPORTS_CXX17)
+CHECK_CXX_COMPILER_FLAG("-std=c++14" COMPILER_SUPPORTS_CXX14)
 
 # check results and add flag
 if(COMPILER_SUPPORTS_CXX17)#
@@ -33,16 +33,18 @@ else()
 endif()
 
 # find a Eigen install
-find_package (Eigen3 3.3.4 REQUIRED NO_MODULE)
+# find_package (Eigen3 3.3.4 REQUIRED NO_MODULE)
+include_directories ( "/usr/include/eigen3" )
 
 # find a Cereal install
-find_package (Cereal REQUIRED)
+# find_package (Cereal REQUIRED)
+include_directories ( "/usr/include/cereal" )
 
 # find a OpenMP install
 find_package (OpenMP)
 
 # Set a default C++ compile flag
-set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -isystem /usr/include/eigen3/")
 
 # Add OpenMP Flags if found
 #if(OpenMP_FOUND)
@@ -54,23 +56,23 @@ set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
 #  message (FATAL_ERROR "Cannot find OpenMP")
 #endif()
 
-if(Cereal_FOUND)
-  message ("Cereal found")
-else()
-  message (FATAL_ERROR "Cannot find Cereal")
-endif()
-
-if(Eigen3_FOUND)
-  message ("Eigen3 found")
-else()
-  message (FATAL_ERROR "Cannot find Eigen3")
-endif()
+# if(Cereal_FOUND)
+#   message ("Cereal found")
+# else()
+#   message (FATAL_ERROR "Cannot find Cereal")
+# endif()
+#
+# if(Eigen3_FOUND)
+#   message ("Eigen3 found")
+# else()
+#   message (FATAL_ERROR "Cannot find Eigen3")
+# endif()
 
 # Add an executable
 add_executable (RNS_Solver Setup.cpp)
 
 # Link Eigen librairies
-target_link_libraries (RNS_Solver Eigen3::Eigen)
+# target_link_libraries (RNS_Solver Eigen3::Eigen)
 
 # Add an executable
 add_executable (RNS_Solver_restart Load_Cerial.cpp)
@@ -78,7 +80,7 @@ add_executable (RNS_Solver_restart Load_Cerial.cpp)
 # Add an executable
 
 # Link Eigen librairies
-target_link_libraries (RNS_Solver_restart Eigen3::Eigen)
+# target_link_libraries (RNS_Solver_restart Eigen3::Eigen)
 
 add_executable (RNS_Solver_test Block_Triagonal_Matrix_Inverse_Test.cpp)
-target_link_libraries (RNS_Solver_test Eigen3::Eigen)
+# target_link_libraries (RNS_Solver_test Eigen3::Eigen)

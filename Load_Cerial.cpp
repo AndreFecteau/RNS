@@ -40,27 +40,149 @@ int main(){
   std::cout << "Setting Initial Conditions " << std::endl;
   std::cout << "//////////////////////////" << std::endl;
   solver_type solver;
-  unserialize_to_file(solver, "Movie/Plot_250");
+  unserialize_to_file(solver, "Movie/Plot_case_2_1");
   std::cout << "Restarting Simulation With:" << std::endl;
   solver.print_stats();
 
   // solver.add_space_in_back(10000);
-  // solver.frame_time = 1e4;
+  solver.frame_time = 5e4;
   // solver.CFL = 5e8;
 
   // scalar_type lambda_run = solver.get_lambda();
   // solver.set_lambda(lambda_run*1.1);
-  int number_of_frames = 40;
-  solver.solve(number_of_frames);
-  scalar_type lambda_max = solver.get_lambda()*1.05;
-  scalar_type lambda_min = solver.get_lambda()*0.95;
-
-  while(fabs(lambda_min - lambda_max) > 1e-8) {
+  // int number_of_frames = 1;
+  // solver.solve(number_of_frames);
+{
+  solver.rename_file("Movie/Case_2_D500_L250_R64_");
+  solver.reset_frame_number();
+  scalar_type lambda_max = solver.get_lambda()*1.005;
+  scalar_type lambda_min = solver.get_lambda()*0.995;
+//
+  while(fabs(lambda_min - lambda_max) > 1e2) {
     bool check;
-    int number_of_frames = 40;
+    int number_of_frames = 20;
     check = solver.solve(number_of_frames);
     scalar_type lambda_run = solver.get_lambda();
     bisection_lambda(lambda_min, lambda_max, lambda_run, check);
     solver.set_lambda(lambda_run);
+}
+  while(fabs(lambda_min - lambda_max) > 1e-2) {
+    bool check;
+    int number_of_frames = 20;
+    check = solver.solve(number_of_frames);
+    scalar_type lambda_run = solver.get_lambda();
+    bisection_lambda(lambda_min, lambda_max, lambda_run, check);
+    solver.set_lambda(lambda_run);
+}
+  while(fabs(lambda_min - lambda_max) > 1e-8) {
+    bool check;
+    int number_of_frames = 10;
+    check = solver.solve(number_of_frames);
+    scalar_type lambda_run = solver.get_lambda();
+    bisection_lambda(lambda_min, lambda_max, lambda_run, check);
+    solver.set_lambda(lambda_run);
+}
+}
+///////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
+{
+  solver.add_space_in_back(500);
+  solver.rename_file("Movie/Case_1_D1000_L250_R256_");
+  solver.reset_frame_number();
+  scalar_type lambda_max = solver.get_lambda()*1.005;
+  scalar_type lambda_min = solver.get_lambda()*0.995;
+//
+  while(fabs(lambda_min - lambda_max) > 1e2) {
+    bool check;
+    int number_of_frames = 20;
+    check = solver.solve(number_of_frames);
+    scalar_type lambda_run = solver.get_lambda();
+    bisection_lambda(lambda_min, lambda_max, lambda_run, check);
+    solver.set_lambda(lambda_run);
+}
+  while(fabs(lambda_min - lambda_max) > 1e-2) {
+    bool check;
+    int number_of_frames = 20;
+    check = solver.solve(number_of_frames);
+    scalar_type lambda_run = solver.get_lambda();
+    bisection_lambda(lambda_min, lambda_max, lambda_run, check);
+    solver.set_lambda(lambda_run);
+}
+  while(fabs(lambda_min - lambda_max) > 1e-8) {
+    bool check;
+    int number_of_frames = 10;
+    check = solver.solve(number_of_frames);
+    scalar_type lambda_run = solver.get_lambda();
+    bisection_lambda(lambda_min, lambda_max, lambda_run, check);
+    solver.set_lambda(lambda_run);
+}
+}
+///////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
+{
+  solver.add_space_in_back(1000);
+  solver.rename_file("Movie/Case_1_D2000_L250_R256_");
+  solver.reset_frame_number();
+  scalar_type lambda_max = solver.get_lambda()*1.005;
+  scalar_type lambda_min = solver.get_lambda()*0.995;
+//
+  while(fabs(lambda_min - lambda_max) > 1e2) {
+    bool check;
+    int number_of_frames = 20;
+    check = solver.solve(number_of_frames);
+    scalar_type lambda_run = solver.get_lambda();
+    bisection_lambda(lambda_min, lambda_max, lambda_run, check);
+    solver.set_lambda(lambda_run);
+}
+  while(fabs(lambda_min - lambda_max) > 1e-2) {
+    bool check;
+    int number_of_frames = 20;
+    check = solver.solve(number_of_frames);
+    scalar_type lambda_run = solver.get_lambda();
+    bisection_lambda(lambda_min, lambda_max, lambda_run, check);
+    solver.set_lambda(lambda_run);
+}
+  while(fabs(lambda_min - lambda_max) > 1e-8) {
+    bool check;
+    int number_of_frames = 10;
+    check = solver.solve(number_of_frames);
+    scalar_type lambda_run = solver.get_lambda();
+    bisection_lambda(lambda_min, lambda_max, lambda_run, check);
+    solver.set_lambda(lambda_run);
+}
+}
+///////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
+{
+  solver.add_space_in_back(1000);
+  solver.rename_file("Movie/Case_1_D3000_L250_R256_");
+  solver.reset_frame_number();
+  scalar_type lambda_max = solver.get_lambda()*1.005;
+  scalar_type lambda_min = solver.get_lambda()*0.995;
+//
+  while(fabs(lambda_min - lambda_max) > 1e2) {
+    bool check;
+    int number_of_frames = 20;
+    check = solver.solve(number_of_frames);
+    scalar_type lambda_run = solver.get_lambda();
+    bisection_lambda(lambda_min, lambda_max, lambda_run, check);
+    solver.set_lambda(lambda_run);
+}
+  while(fabs(lambda_min - lambda_max) > 1e-2) {
+    bool check;
+    int number_of_frames = 20;
+    check = solver.solve(number_of_frames);
+    scalar_type lambda_run = solver.get_lambda();
+    bisection_lambda(lambda_min, lambda_max, lambda_run, check);
+    solver.set_lambda(lambda_run);
+}
+  while(fabs(lambda_min - lambda_max) > 1e-8) {
+    bool check;
+    int number_of_frames = 10;
+    check = solver.solve(number_of_frames);
+    scalar_type lambda_run = solver.get_lambda();
+    bisection_lambda(lambda_min, lambda_max, lambda_run, check);
+    solver.set_lambda(lambda_run);
+}
 }
 };

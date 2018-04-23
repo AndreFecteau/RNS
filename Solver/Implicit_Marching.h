@@ -146,12 +146,12 @@ timemarch(flow_properties_type flow,
 }
 
 #pragma omp for
-  for(size_type i = 1; i < grid.number_of_cells - 1; ++i) {
+  for(size_type i = 1; i < grid.number_of_cells() - 1; ++i) {
     auto matrix_entries = flux_type(grid.global_solution_vector[std::max(i-2,static_cast<size_type>(0))],
                                     grid.global_solution_vector[i-1],
                                     grid.global_solution_vector[i],
                                     grid.global_solution_vector[i+1],
-                                    grid.global_solution_vector[std::min(i+2,grid.number_of_cells-1)],
+                                    grid.global_solution_vector[std::min(i+2,grid.number_of_cells()-1)],
                                     delta_global_solution_vector[i-1],
                                     flow.gamma, flow.Pr, flow.Le, flow.Q(), flow.lambda,
                                     flow.theta(), grid.dx(), dt, zeta, Theta, flow.mf, flow.T_ignition());
@@ -181,7 +181,7 @@ timemarch(flow_properties_type flow,
   delta_global_solution_vector = block_triagonal_matrix_inverse<matrix_type, solution_vector_type>(mid, top, bot, rhs);
 
 #pragma omp for
-  for (size_type i = 1; i < grid.number_of_cells-1; ++i) {
+  for (size_type i = 1; i < grid.number_of_cells()-1; ++i) {
     if(current_time == 0.0) {
       grid.global_solution_vector[i] += delta_global_solution_vector[i-1]*(1.0+zeta);
     } else {
@@ -207,7 +207,7 @@ timemarch(flow_properties_type flow,
   }
   residual = 0.0;
 #pragma omp for reduction(+: residual)
-  for (size_type i = 1; i < grid.number_of_cells-1; ++i) {
+  for (size_type i = 1; i < grid.number_of_cells()-1; ++i) {
     residual += delta_global_solution_vector[i-1].squaredNorm() * grid.dx() / dt;
   }
   }
@@ -244,7 +244,7 @@ template <typename grid_type, typename flow_properties_type>
 typename grid_type::scalar_type Implicit_Marching<grid_type, flow_properties_type>::
 lambda_eigenvalue(const grid_type& grid, const flow_properties_type& flow){
   scalar_type wavespeed = 0.0;
-  for (size_type i = 0; i < grid.number_of_cells; ++i) {
+  for (size_type i = 0; i < grid.number_of_cells(); ++i) {
     Variable_Vector_Isolator<grid_type> var_vec = Variable_Vector_Isolator<grid_type>(grid.global_solution_vector[i], flow.gamma);
     if (wavespeed < std::fabs(var_vec.u()) + sqrt(flow.gamma * var_vec.p()/var_vec.rho())) {
       wavespeed = std::fabs(var_vec.u()) + sqrt(flow.gamma*var_vec.p()/var_vec.rho());
@@ -260,7 +260,7 @@ template <typename grid_type, typename flow_properties_type>
 typename grid_type::scalar_type Implicit_Marching<grid_type, flow_properties_type>::
 K_value(const grid_type& grid, const flow_properties_type& flow) {
   scalar_type min_rho = std::numeric_limits<scalar_type>::max();
-  for (size_type i = 0; i < grid.number_of_cells; ++i) {
+  for (size_type i = 0; i < grid.number_of_cells(); ++i) {
     auto var_vec = Variable_Vector_Isolator<grid_type>(grid.global_solution_vector[i], flow.gamma);
     if (min_rho > var_vec.rho()) {
       min_rho = var_vec.rho();
@@ -275,8 +275,8 @@ K_value(const grid_type& grid, const flow_properties_type& flow) {
 template <typename grid_type, typename flow_properties_type>
 typename grid_type::global_solution_vector_type::value_type Implicit_Marching<grid_type, flow_properties_type>::
 numerical_dissipation(const grid_type &grid, const size_type i, const scalar_type omega) {
-            return -omega/(1.0+zeta)/8.0*(grid.global_solution_vector[std::min(i+2,grid.number_of_cells-1)] -
-                                        4.0*grid.global_solution_vector[std::min(i+1,grid.number_of_cells-1)] +
+            return -omega/(1.0+zeta)/8.0*(grid.global_solution_vector[std::min(i+2,grid.number_of_cells()-1)] -
+                                        4.0*grid.global_solution_vector[std::min(i+1,grid.number_of_cells()-1)] +
                                         6.0*grid.global_solution_vector[i] -
                                         4.0*grid.global_solution_vector[std::max(static_cast<int>(i)-1,0)] +
                                         grid.global_solution_vector[std::max(static_cast<int>(i)-2,0)]);

@@ -45,8 +45,8 @@ int main(){
   flow_properties_type flow;
 {
   scalar_type Pr                = 0.75;
-  scalar_type Le                = 1.0;
-  scalar_type Q_low_mach        = 5.0;
+  scalar_type Le                = 0.3;
+  scalar_type Q_low_mach        = 9.0;
   scalar_type beta              = 5;
   scalar_type lambda            = 0.0;
   scalar_type mf                = 0.005;
@@ -61,33 +61,33 @@ int main(){
   scalar_type x_min = 0.0;
   scalar_type domaine_length = 500;
   scalar_type x_max = x_min + domaine_length;
-  scalar_type per_FL = 64.0;
+  scalar_type per_FL = 256.0;
   size_type number_of_cells = domaine_length * per_FL;
   global_solution_vector_type initial_solution = global_solution_vector_type(number_of_cells,
                                                                              Vector_type::Zero());
-  grid = grid_type(x_min, x_max, number_of_cells, initial_solution);
+  grid = grid_type(x_min, x_max, initial_solution);
 }
 
 {
   scalar_type Theta = 1.0;
   scalar_type zeta = 0.0;
   scalar_type target_residual = 1e-15;
-  scalar_type CFL = 5e7;
-  scalar_type frame_time = 5e5;
+  scalar_type CFL = 5e8;
+  scalar_type frame_time = 5e3;
   RK4_CJ_point(flow, grid);
-  // load_from_file(flow, grid, "Movie/Plot12_" + tostring(grid.per_FL()) + "_"
-  // + tostring(500) + "_1031.dat");
-  filename = "Movie/Plot_";
+  load_from_file(flow, grid, "Movie/Plot12_256_500_1260.dat");
+  filename = "Movie/Plot_case_1_";
   std::cout << filename << std::endl;
-  plot<grid_type>(filename+"0", grid.global_solution_vector, (grid.x_max - grid.x_min)/grid.number_of_cells);
-  solver= solver_type(flow, grid, frame_time, target_residual, CFL, Theta, zeta, filename);
+  plot<grid_type>(filename+"0", grid.global_solution_vector, (grid.x_max - grid.x_min)/grid.number_of_cells());
+  scalar_type flame_location = 250;
+  solver= solver_type(flow, grid, frame_time, target_residual, CFL, Theta, zeta, filename, flame_location);
 }
 }
   scalar_type lambda_max = solver.get_lambda()*1.1;
   scalar_type lambda_min = solver.get_lambda()*0.9;
   solver.print_stats();
   scalar_type lambda_run = solver.get_lambda();
-  solver.set_lambda(lambda_run*1.25);
+  solver.set_lambda(124889);
   int number_of_frames = 400;
   solver.solve(number_of_frames);
 

@@ -61,8 +61,8 @@ make_RK4_solution_vector(RK4_Low_Mach_Solver low_mach_solution,
 // }
 template <typename flow_properties_type, typename grid_type>
 void load_from_file(flow_properties_type& flow, grid_type& grid, std::string filename) {
-  using scalar_type = typename grid_type::scalar_type;
-  using size_type = typename grid_type::size_type;
+  // using scalar_type = typename grid_type::scalar_type;
+  // using size_type = typename grid_type::size_type;
   using global_solution_vector_type = typename grid_type::global_solution_vector_type;
   using solution_vector_type = typename grid_type::global_solution_vector_type::value_type;
 
@@ -101,7 +101,7 @@ void load_from_file(flow_properties_type& flow, grid_type& grid, std::string fil
                                       primitive_variable[i][0] * primitive_variable[i][1] * primitive_variable[i][1] * 0.5,
                                       primitive_variable[i][0] * primitive_variable[i][3];
   }
-  grid.number_of_cells = grid.global_solution_vector.size();
+  // grid.number_of_cells() = grid.global_solution_vector.size();
   grid.x_max = x+dx;
 }
 
@@ -124,7 +124,7 @@ void RK4_CJ_point(flow_properties_type& flow, grid_type& grid) {
 
   std::cout << "zeta:" << zeta << "p:" << p_inf << " rho: " << rho_inf << " u: " << u_inf << std::endl;
   scalar_type flame_location = 0.5;
-  for (size_type i = 0; i < grid.number_of_cells; ++i) {
+  for (size_type i = 0; i < grid.number_of_cells(); ++i) {
     if (i*grid.dx() < grid.domaine_length()*flame_location) {
       grid.global_solution_vector[i] << 1.0,
       1.0 * 1.0,
@@ -160,7 +160,7 @@ void RK4_mf_point(flow_properties_type& flow, grid_type& grid) {
 
   std::cout << "zeta:" << zeta << "p:" << p_inf << " rho: " << rho_inf << " u: " << u_inf << std::endl;
   scalar_type flame_location = 0.5;
-  for (size_type i = 0; i < grid.number_of_cells; ++i) {
+  for (size_type i = 0; i < grid.number_of_cells(); ++i) {
     if (i*grid.dx() < grid.domaine_length()*flame_location) {
       grid.global_solution_vector[i] << 1.0,
       1.0 * 1.0,
@@ -215,11 +215,11 @@ template <typename flow_properties_type, typename grid_type>
 void manufactured_solution(flow_properties_type& flow, grid_type& grid){
 grid.x_min = 0.0;
 grid.x_max = 2.0*atan(1.0)*4.0;
-// grid.number_of_cells = ;
+// grid.number_of_cells() = ;
 // std::cout << dx << std::endl;
-grid.global_solution_vector.resize(grid.number_of_cells);
+grid.global_solution_vector.resize(grid.number_of_cells());
 // double dx = (x_max-x_min) / number_of_cells;
-  for (size_t i = 0; i < grid.number_of_cells; ++i) {
+  for (size_t i = 0; i < grid.number_of_cells(); ++i) {
     double x = (i+0.5)*grid.dx();
     grid.global_solution_vector[i] << (-0.45*tanh(4.0 * x - 10.0) + 0.55),
                           (-0.45*tanh(4.0 * x - 10.0) + 0.55)*(4.5*tanh(4.0 * x - 10.0) + 5.5),
