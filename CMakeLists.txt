@@ -18,14 +18,14 @@ endif()
 
 # try conditional compilation
 include(CheckCXXCompilerFlag)
-CHECK_CXX_COMPILER_FLAG("-std=c++17" COMPILER_SUPPORTS_CXX17)
+# CHECK_CXX_COMPILER_FLAG("-std=c++17" COMPILER_SUPPORTS_CXX17)
 CHECK_CXX_COMPILER_FLAG("-std=c++14" COMPILER_SUPPORTS_CXX14)
 
 # check results and add flag
-if(COMPILER_SUPPORTS_CXX17)#
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
-    set(CMAKE_CXX_STANDARD 17)
-elseif(COMPILER_SUPPORTS_CXX14)#
+# if(COMPILER_SUPPORTS_CXX17)#
+#     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
+#     set(CMAKE_CXX_STANDARD 17)
+if(COMPILER_SUPPORTS_CXX14)#
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
     set(CMAKE_CXX_STANDARD 14)
 else()
@@ -44,7 +44,7 @@ include_directories ( "/usr/include/cereal" )
 find_package (OpenMP)
 
 # Set a default C++ compile flag
-set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -isystem /usr/include/eigen3/")
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -isystem /usr/include/eigen3")
 
 # Add OpenMP Flags if found
 #if(OpenMP_FOUND)
