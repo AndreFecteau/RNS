@@ -85,21 +85,10 @@ using size_type = typename grid_type::size_type;
 
   void refine(size_type per_flame_length);
 
-  // template<typename Archive>
-  // void serialize(Archive& archive) {
-  //   archive(flow, grid, frame_time, target_residual, CFL, time_stepping, filename, current_time, current_frame, flame_location);
-  // }
-
   template<typename Archive>
-  void load(Archive& archive) {
-    archive(flow, grid, frame_time, target_residual, CFL, time_stepping, filename, current_time, current_frame);
-  }
-
-  template<typename Archive>
-  void save(Archive& archive) const {
+  void serialize(Archive& archive) {
     archive(flow, grid, frame_time, target_residual, CFL, time_stepping, filename, current_time, current_frame, flame_location);
   }
-
 
   scalar_type frame_time;
   scalar_type CFL;
@@ -112,7 +101,7 @@ using size_type = typename grid_type::size_type;
   scalar_type current_time = 0.0;
   size_type current_frame = 0;
   std::string filename;
-  scalar_type flame_location = 250;
+  scalar_type flame_location;
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief
@@ -273,7 +262,7 @@ recenter_solution(scalar_type flame_location) {
   var_vec = Variable_Vector_Isolator<grid_type>(grid.global_solution_vector[position], 1.4);
   }
   std::cout << "position: " << position << std::endl;
-  int delta_position = flame_location-position;
+  int delta_position = flame_location/grid.per_FL()-position;
   if(delta_position > 0){
     for(size_type i = 1; i < abs(delta_position); ++i){
       global_solution_vector_temp[i] = grid.global_solution_vector[0];
