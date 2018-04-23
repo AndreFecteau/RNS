@@ -262,7 +262,7 @@ recenter_solution(scalar_type flame_location) {
   var_vec = Variable_Vector_Isolator<grid_type>(grid.global_solution_vector[position], 1.4);
   }
   std::cout << "position: " << position << std::endl;
-  int delta_position = flame_location/grid.per_FL()-position;
+  int delta_position = flame_location*grid.per_FL()-position;
   if(delta_position > 0){
     for(size_type i = 1; i < abs(delta_position); ++i){
       global_solution_vector_temp[i] = grid.global_solution_vector[0];
