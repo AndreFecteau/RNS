@@ -73,10 +73,9 @@ int main(){
   scalar_type zeta = 0.0;
   scalar_type target_residual = 1e-15;
   scalar_type CFL = 5e8;
-  scalar_type frame_time = 5e3;
+  scalar_type frame_time = 5e7;
   RK4_CJ_point(flow, grid);
-  load_from_file(flow, grid, "Movie/Plot12_256_500_1260.dat");
-  filename = "Movie/Plot_case_1_";
+  filename = "Movie/Case_3_D500_L250_R256_";
   std::cout << filename << std::endl;
   plot<grid_type>(filename+"0", grid.global_solution_vector, (grid.x_max - grid.x_min)/grid.number_of_cells());
   scalar_type flame_location = 250;
@@ -88,7 +87,7 @@ int main(){
   bool old_check3 = 0;
   solver.print_stats();
   scalar_type lambda_run = solver.get_lambda();
-  // solver.set_lambda(124889);
+  solver.set_lambda(124889);
   scalar_type lambda_max = solver.get_lambda()*1.1;
   scalar_type lambda_min = solver.get_lambda()*0.9;
   int number_of_frames = 400;

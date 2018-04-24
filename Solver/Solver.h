@@ -161,12 +161,13 @@ solve(size_type number_of_frames) {
     } else {
       current_time += frame_time_temp;
       std::cout << "Frame: " << current_frame << " Frame_time = " <<  frame_time_temp << " Residual: " << residual << std::endl;
+      std::cout << "position: " << position - flame_location;
       current_frame++;
       plot<grid_type>(filename + std::to_string(static_cast<size_type>(current_frame)), grid.global_solution_vector,grid.dx());
       serialize_to_file(*this, filename + std::to_string(static_cast<size_type>(current_frame)));
       auto finish = std::chrono::high_resolution_clock::now();
       std::chrono::duration<double> elapsed = finish - start;
-      std::cout << "Elapsed time: " << elapsed.count() << "\n";
+      std::cout << " Elapsed time: " << elapsed.count() << "\n";
       ++i;
       frame_time_temp = frame_time;
       frame_CFL = CFL;
@@ -183,7 +184,7 @@ solve(size_type number_of_frames) {
   ++position;
   var_vec = Variable_Vector_Isolator<grid_type>(grid.global_solution_vector[position], 1.4);
   }
-  std::cout << "position: " << position - flame_location << std::endl;
+  // std::cout << "position: " << position - flame_location << std::endl;
   recenter_solution(flame_location);
   if(grid.global_solution_vector[grid.global_solution_vector.size()*0.05][1] / grid.global_solution_vector[grid.global_solution_vector.size()*0.05][0] < 1.0) {
     return 0;
