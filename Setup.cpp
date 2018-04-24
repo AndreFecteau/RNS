@@ -83,11 +83,14 @@ int main(){
   solver= solver_type(flow, grid, frame_time, target_residual, CFL, Theta, zeta, filename, flame_location);
 }
 }
-  scalar_type lambda_max = solver.get_lambda()*1.1;
-  scalar_type lambda_min = solver.get_lambda()*0.9;
+  bool old_check1 = 0;
+  bool old_check2 = 0;
+  bool old_check3 = 0;
   solver.print_stats();
   scalar_type lambda_run = solver.get_lambda();
-  solver.set_lambda(124889);
+  // solver.set_lambda(124889);
+  scalar_type lambda_max = solver.get_lambda()*1.1;
+  scalar_type lambda_min = solver.get_lambda()*0.9;
   int number_of_frames = 400;
   solver.solve(number_of_frames);
 
@@ -97,6 +100,7 @@ int main(){
     check = solver.solve(number_of_frames);
     scalar_type lambda_run = solver.get_lambda();
     bisection_lambda(lambda_min, lambda_max, lambda_run, check);
+    add_lambda_gap(check, old_check1, old_check2, old_check3, lambda_min, lambda_max);
     solver.set_lambda(lambda_run);
   }
 
@@ -106,6 +110,7 @@ int main(){
     check = solver.solve(number_of_frames);
     scalar_type lambda_run = solver.get_lambda();
     bisection_lambda(lambda_min, lambda_max, lambda_run, check);
+    add_lambda_gap(check, old_check1, old_check2, old_check3, lambda_min, lambda_max);
     solver.set_lambda(lambda_run);
   }
 
@@ -115,6 +120,7 @@ int main(){
     check = solver.solve(number_of_frames);
     scalar_type lambda_run = solver.get_lambda();
     bisection_lambda(lambda_min, lambda_max, lambda_run, check);
+    add_lambda_gap(check, old_check1, old_check2, old_check3, lambda_min, lambda_max);
     solver.set_lambda(lambda_run);
   }
 };
