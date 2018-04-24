@@ -211,11 +211,11 @@ timemarch(flow_properties_type flow,
     residual += delta_global_solution_vector[i-1].squaredNorm() * grid.dx() / dt;
   }
   }
-  if(!isnan(residual) && residual < 1e10){
-    std::cout << std::endl << "residual: " << residual << " CFL: " << CFL << std::endl;
-  } else {
-    std::cout << "." << std::flush;
-  }
+  // if(!isnan(residual) && residual < 1e10){
+  //   std::cout << std::endl << "residual: " << residual << " CFL: " << CFL << std::endl;
+  // } else {
+  //   std::cout << "." << std::flush;
+  // }
   return residual;
 }
 

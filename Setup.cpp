@@ -84,7 +84,7 @@ int main(){
 }
 }
   bool old_check1 = 0;
-  bool old_check2 = 0;
+  bool old_check2 = 1;
   bool old_check3 = 0;
   solver.print_stats();
   scalar_type lambda_run = solver.get_lambda();

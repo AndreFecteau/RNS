@@ -151,15 +151,16 @@ solve(size_type number_of_frames) {
       grid.global_solution_vector = global_solution_vector_backup;
       frame_CFL *= 0.5;
       frame_time_temp *= 0.5;
+      std::cout << "." << std::flush;
 #if defined(RECENTER_FLAME)
     }else if(position < 100*grid.per_FL() || position > grid.number_of_cells()*0.9) {
       grid.global_solution_vector = global_solution_vector_backup;
       frame_time_temp *= 0.5;
+      std::cout << ":" << std::flush;
 #endif
     } else {
-      std::cout << "Frame: " << current_frame << std::endl;
       current_time += frame_time_temp;
-      std::cout << "Current time = " <<  current_time << " : ";
+      std::cout << "Frame: " << current_frame << " Frame_time = " <<  frame_time_temp << " Residual: " << residual << std::endl;
       current_frame++;
       plot<grid_type>(filename + std::to_string(static_cast<size_type>(current_frame)), grid.global_solution_vector,grid.dx());
       serialize_to_file(*this, filename + std::to_string(static_cast<size_type>(current_frame)));
@@ -169,13 +170,6 @@ solve(size_type number_of_frames) {
       ++i;
       frame_time_temp = frame_time;
       frame_CFL = CFL;
-      // size_type position = 0;
-      // auto var_vec = Variable_Vector_Isolator<grid_type>(grid.global_solution_vector[position], 1.4);
-      // while (var_vec.rho() > 0.5) {
-      // ++position;
-      // var_vec = Variable_Vector_Isolator<grid_type>(grid.global_solution_vector[position], 1.4);
-      // }
-      // std::cout << "position: " << position << std::endl;
 #if defined(RECENTER_FLAME)
       recenter_solution(flame_location);
 #endif
@@ -189,17 +183,8 @@ solve(size_type number_of_frames) {
   ++position;
   var_vec = Variable_Vector_Isolator<grid_type>(grid.global_solution_vector[position], 1.4);
   }
-  std::cout << "position: " << position << std::endl;
+  std::cout << "position: " << position - flame_location << std::endl;
   recenter_solution(flame_location);
-  // if(position < 0.50*grid.number_of_cells()) {
-  // std::cout << "moved_plus: " <<  std::endl;
-  //   recenter_solution_plus(position);
-  // }
-  // if(position > 0.50*grid.number_of_cells()) {
-  // std::cout << "moved_minus: " << std::endl;
-  //   recenter_solution_minus(position);
-  // }
-  // if(position < old_position) {
   if(grid.global_solution_vector[grid.global_solution_vector.size()*0.05][1] / grid.global_solution_vector[grid.global_solution_vector.size()*0.05][0] < 1.0) {
     return 0;
   } else {
@@ -261,7 +246,6 @@ recenter_solution(scalar_type flame_location) {
   ++position;
   var_vec = Variable_Vector_Isolator<grid_type>(grid.global_solution_vector[position], 1.4);
   }
-  std::cout << "position: " << position << std::endl;
   int delta_position = flame_location*grid.per_FL()-position;
   if(delta_position > 0){
     for(size_type i = 1; i < abs(delta_position); ++i){
