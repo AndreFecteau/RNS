@@ -17,8 +17,10 @@ void add_lambda_gap(bool& check, bool& old_check1, bool& old_check2, bool& old_c
   if(old_check1 == old_check2 == old_check3 == check){
     if (check == 0) {
       lambda_min -= (lambda_max-lambda_min);
+      std::cout << "added min" << std::endl;
     } else {
       lambda_max += (lambda_max-lambda_min);
+      std::cout << "added max" << std::endl;
     }
   }
   old_check3 = old_check2;

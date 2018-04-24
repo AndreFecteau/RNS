@@ -134,6 +134,7 @@ solve(size_type number_of_frames) {
     plot<grid_type>(filename + std::to_string(static_cast<size_type>(2000)), grid.global_solution_vector, grid.dx());
     double frame_time_temp = frame_time;
     double frame_CFL = CFL;
+    size_type position = 0;
 
   // while (residual > target_residual){
     while (i < number_of_frames){
@@ -141,7 +142,7 @@ solve(size_type number_of_frames) {
     auto start = std::chrono::high_resolution_clock::now();
     global_solution_vector_backup = grid.global_solution_vector;
     residual = time_stepping.template timemarch<flux_type>(flow, grid, frame_CFL, frame_time_temp);
-    size_type position = 0;
+    // size_type position = 0;
     auto var_vec = Variable_Vector_Isolator<grid_type>(grid.global_solution_vector[position], flow.gamma);
     while (var_vec.rho() > 0.5) {
     ++position;
@@ -178,15 +179,16 @@ solve(size_type number_of_frames) {
     }
   }
 
-  size_type position = 0;
-  auto var_vec = Variable_Vector_Isolator<grid_type>(grid.global_solution_vector[position], 1.4);
-  while (var_vec.rho() > 0.5) {
-  ++position;
-  var_vec = Variable_Vector_Isolator<grid_type>(grid.global_solution_vector[position], 1.4);
-  }
+  // size_type position = 0;
+  // auto var_vec = Variable_Vector_Isolator<grid_type>(grid.global_solution_vector[position], 1.4);
+  // while (var_vec.rho() > 0.5) {
+  // ++position;
+  // var_vec = Variable_Vector_Isolator<grid_type>(grid.global_solution_vector[position], 1.4);
+  // }
   // std::cout << "position: " << position - flame_location << std::endl;
   // recenter_solution(flame_location);
 #if defined(LAMBDABYSECTIONRHO)
+std::cout << "in lambdasectionrho" << std::endl;
 if(position < flame_location*grid.per_FL()) {
   return 0;
 } else {
@@ -195,6 +197,7 @@ if(position < flame_location*grid.per_FL()) {
 #endif
 
 #if defined(LAMBDABYSECTIONU)
+std::cout << "in lambdasectionu" << std::endl;
 if(grid.global_solution_vector[grid.global_solution_vector.size()*0.05][1] / grid.global_solution_vector[grid.global_solution_vector.size()*0.05][0] < 1.0) {
   return 0;
 } else {
