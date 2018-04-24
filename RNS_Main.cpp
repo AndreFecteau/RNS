@@ -1,8 +1,10 @@
 #define HYPERBOLIC
 #define VISCOUS
 #define SOURCE
-// #define MANUFACTURED
 #define RECENTER_FLAME
+#define LAMBDABYSECTIONRHO
+// #define LAMBDABYSECTIONU
+// #define MANUFACTURED
 // #define IMPLICIT
 // #define EXPLICIT
 
@@ -61,7 +63,7 @@ int main(){
   scalar_type x_min = 0.0;
   scalar_type domaine_length = 500;
   scalar_type x_max = x_min + domaine_length;
-  scalar_type per_FL = 256.0;
+  scalar_type per_FL = 16.0;
   size_type number_of_cells = domaine_length * per_FL;
   global_solution_vector_type initial_solution = global_solution_vector_type(number_of_cells,
                                                                              Vector_type::Zero());
@@ -75,7 +77,7 @@ int main(){
   scalar_type CFL = 5e8;
   scalar_type frame_time = 5e7;
   RK4_CJ_point(flow, grid);
-  filename = "Movie/Case_3_D500_L250_R256_";
+  filename = "Movie/Case_3_D500_L250_R16_";
   std::cout << filename << std::endl;
   plot<grid_type>(filename+"0", grid.global_solution_vector, (grid.x_max - grid.x_min)/grid.number_of_cells());
   scalar_type flame_location = 250;
@@ -88,31 +90,22 @@ int main(){
   solver.print_stats();
   scalar_type lambda_run = solver.get_lambda();
   solver.set_lambda(124889);
-  scalar_type lambda_max = solver.get_lambda()*1.1;
-  scalar_type lambda_min = solver.get_lambda()*0.9;
-  int number_of_frames = 400;
-  solver.solve(number_of_frames);
+  scalar_type lambda_max = solver.get_lambda()*1.01;
+  scalar_type lambda_min = solver.get_lambda()*0.99;
+  int number_of_frames = 10;
+  // solver.solve(number_of_frames);
 
-  while(fabs(lambda_min - lambda_max) > 1e2) {
+  while(fabs(lambda_min - lambda_max) > 1e1) {
     bool check;
-    number_of_frames = 100;
+    number_of_frames = 10;
     check = solver.solve(number_of_frames);
     scalar_type lambda_run = solver.get_lambda();
     bisection_lambda(lambda_min, lambda_max, lambda_run, check);
     add_lambda_gap(check, old_check1, old_check2, old_check3, lambda_min, lambda_max);
     solver.set_lambda(lambda_run);
   }
-
-  while(fabs(lambda_min - lambda_max) > 1e-2) {
-    bool check;
-    number_of_frames = 40;
-    check = solver.solve(number_of_frames);
-    scalar_type lambda_run = solver.get_lambda();
-    bisection_lambda(lambda_min, lambda_max, lambda_run, check);
-    add_lambda_gap(check, old_check1, old_check2, old_check3, lambda_min, lambda_max);
-    solver.set_lambda(lambda_run);
-  }
-
+#undef LAMBDABYSECTIONRHO
+#define LAMBDABYSECTIONU
   while(fabs(lambda_min - lambda_max) > 1e-8) {
     bool check;
     number_of_frames = 10;

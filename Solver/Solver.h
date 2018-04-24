@@ -161,7 +161,7 @@ solve(size_type number_of_frames) {
     } else {
       current_time += frame_time_temp;
       std::cout << "Frame: " << current_frame << " Frame_time = " <<  frame_time_temp << " Residual: " << residual << std::endl;
-      std::cout << "position: " << position - flame_location;
+      std::cout << "position: " << position - flame_location*grid.per_FL();
       current_frame++;
       plot<grid_type>(filename + std::to_string(static_cast<size_type>(current_frame)), grid.global_solution_vector,grid.dx());
       serialize_to_file(*this, filename + std::to_string(static_cast<size_type>(current_frame)));
@@ -185,12 +185,22 @@ solve(size_type number_of_frames) {
   var_vec = Variable_Vector_Isolator<grid_type>(grid.global_solution_vector[position], 1.4);
   }
   // std::cout << "position: " << position - flame_location << std::endl;
-  recenter_solution(flame_location);
-  if(grid.global_solution_vector[grid.global_solution_vector.size()*0.05][1] / grid.global_solution_vector[grid.global_solution_vector.size()*0.05][0] < 1.0) {
-    return 0;
-  } else {
-    return 1;
-  }
+  // recenter_solution(flame_location);
+#if defined(LAMBDABYSECTIONRHO)
+if(position < flame_location*grid.per_FL()) {
+  return 0;
+} else {
+  return 1;
+}
+#endif
+
+#if defined(LAMBDABYSECTIONU)
+if(grid.global_solution_vector[grid.global_solution_vector.size()*0.05][1] / grid.global_solution_vector[grid.global_solution_vector.size()*0.05][0] < 1.0) {
+  return 0;
+} else {
+  return 1;
+}
+#endif
 }
 
 ///////////////////////////////////////////////////////////////////////////////
