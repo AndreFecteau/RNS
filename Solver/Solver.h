@@ -179,32 +179,12 @@ solve(size_type number_of_frames) {
     }
   }
 
-  // size_type position = 0;
-  // auto var_vec = Variable_Vector_Isolator<grid_type>(grid.global_solution_vector[position], 1.4);
-  // while (var_vec.rho() > 0.5) {
-  // ++position;
-  // var_vec = Variable_Vector_Isolator<grid_type>(grid.global_solution_vector[position], 1.4);
-  // }
-  // std::cout << "position: " << position - flame_location << std::endl;
-  // recenter_solution(flame_location);
-// #if defined(LAMBDABYSECTIONRHO)
-// std::cout << "in lambdasectionrho" << std::endl;
-// if(position < flame_location*grid.per_FL()) {
-//   return 0;
-// } else {
-//   return 1;
-// }
-// #endif
-
-// #if defined(LAMBDABYSECTIONU)
-// std::cout << "in lambdasectionu" << std::endl;
-// if(grid.global_solution_vector[grid.global_solution_vector.size()*0.05][1] / grid.global_solution_vector[grid.global_solution_vector.size()*0.05][0] < 1.0) {
-if(grid.global_solution_vector[std::max(static_cast<int>(0),-static_cast<int>(position - flame_location*grid.per_FL()))+grid.global_solution_vector.size()*0.05][1] / grid.global_solution_vector[std::max(static_cast<int>(0),-static_cast<int>(position - flame_location*grid.per_FL()))+grid.global_solution_vector.size()*0.05][0] < 1.0) {
+int h = std::max(static_cast<int>(5*grid.per_FL()), static_cast<int>(5*grid.per_FL()-(position - flame_location*grid.per_FL())));
+if(grid.global_solution_vector[h][1] / grid.global_solution_vector[h][0] < 1.0) {
   return 0;
 } else {
   return 1;
 }
-// #endif
 }
 
 ///////////////////////////////////////////////////////////////////////////////
