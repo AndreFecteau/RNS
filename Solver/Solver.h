@@ -187,23 +187,24 @@ solve(size_type number_of_frames) {
   // }
   // std::cout << "position: " << position - flame_location << std::endl;
   // recenter_solution(flame_location);
-#if defined(LAMBDABYSECTIONRHO)
-std::cout << "in lambdasectionrho" << std::endl;
-if(position < flame_location*grid.per_FL()) {
-  return 0;
-} else {
-  return 1;
-}
-#endif
+// #if defined(LAMBDABYSECTIONRHO)
+// std::cout << "in lambdasectionrho" << std::endl;
+// if(position < flame_location*grid.per_FL()) {
+//   return 0;
+// } else {
+//   return 1;
+// }
+// #endif
 
-#if defined(LAMBDABYSECTIONU)
-std::cout << "in lambdasectionu" << std::endl;
-if(grid.global_solution_vector[grid.global_solution_vector.size()*0.05][1] / grid.global_solution_vector[grid.global_solution_vector.size()*0.05][0] < 1.0) {
+// #if defined(LAMBDABYSECTIONU)
+// std::cout << "in lambdasectionu" << std::endl;
+// if(grid.global_solution_vector[grid.global_solution_vector.size()*0.05][1] / grid.global_solution_vector[grid.global_solution_vector.size()*0.05][0] < 1.0) {
+if(grid.global_solution_vector[std::max(static_cast<int>(0),-static_cast<int>(position - flame_location*grid.per_FL()))+grid.global_solution_vector.size()*0.05][1] / grid.global_solution_vector[std::max(static_cast<int>(0),-static_cast<int>(position - flame_location*grid.per_FL()))+grid.global_solution_vector.size()*0.05][0] < 1.0) {
   return 0;
 } else {
   return 1;
 }
-#endif
+// #endif
 }
 
 ///////////////////////////////////////////////////////////////////////////////

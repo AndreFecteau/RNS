@@ -14,7 +14,7 @@ void bisection_lambda(double& lambda_min, double& lambda_max, double& lambda_run
 
 void add_lambda_gap(bool& check, bool& old_check1, bool& old_check2, bool& old_check3,
                     double& lambda_min, double& lambda_max) {
-  if(old_check1 == old_check2 == old_check3 == check){
+  if(check == old_check1 && check == old_check2 && check == old_check3){
     if (check == 0) {
       lambda_min -= (lambda_max-lambda_min);
       std::cout << "added min" << std::endl;
