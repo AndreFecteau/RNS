@@ -142,7 +142,7 @@ solve(size_type number_of_frames) {
     auto start = std::chrono::high_resolution_clock::now();
     global_solution_vector_backup = grid.global_solution_vector;
     residual = time_stepping.template timemarch<flux_type>(flow, grid, frame_CFL, frame_time_temp);
-    // size_type position = 0;
+    position = 0;
     auto var_vec = Variable_Vector_Isolator<grid_type>(grid.global_solution_vector[position], flow.gamma);
     while (var_vec.rho() > 0.5) {
     ++position;
@@ -180,6 +180,7 @@ solve(size_type number_of_frames) {
   }
 
 int h = std::max(static_cast<int>(5*grid.per_FL()), static_cast<int>(5*grid.per_FL()-(position - flame_location*grid.per_FL())));
+std::cout << h << std::endl;
 if(grid.global_solution_vector[h][1] / grid.global_solution_vector[h][0] < 1.0) {
   return 0;
 } else {
