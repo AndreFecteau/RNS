@@ -202,8 +202,6 @@ timemarch(flow_properties_type flow,
 
 #pragma omp single
   current_time += dt;
-// #pragma omp single
-//   std::cout << current_time << std::endl;
   }
   residual = 0.0;
 #pragma omp for reduction(+: residual)
@@ -211,11 +209,6 @@ timemarch(flow_properties_type flow,
     residual += delta_global_solution_vector[i-1].squaredNorm() * grid.dx() / dt;
   }
   }
-  // if(!isnan(residual) && residual < 1e10){
-  //   std::cout << std::endl << "residual: " << residual << " CFL: " << CFL << std::endl;
-  // } else {
-  //   std::cout << "." << std::flush;
-  // }
   return residual;
 }
 

@@ -2,8 +2,6 @@
 #define VISCOUS
 #define SOURCE
 #define RECENTER_FLAME
-#define LAMBDABYSECTIONRHO
-// #define LAMBDABYSECTIONU
 // #define MANUFACTURED
 // #define IMPLICIT
 // #define EXPLICIT
@@ -85,10 +83,10 @@ int main(){
 }
 }
   bool old_check1 = 1;
-  bool old_check2 = 1;
+  bool old_check2 = 0;
   bool old_check3 = 1;
   solver.print_stats();
-  scalar_type lambda_run = solver.get_lambda();
+  // scalar_type lambda_run = solver.get_lambda();
   solver.set_lambda(124889);
   scalar_type lambda_max = solver.get_lambda()*1.01;
   scalar_type lambda_min = solver.get_lambda()*0.99;
@@ -97,18 +95,16 @@ int main(){
 
   while(fabs(lambda_min - lambda_max) > 1e1) {
     bool check;
-    number_of_frames = 10;
+    number_of_frames = 3;
     check = solver.solve(number_of_frames);
     scalar_type lambda_run = solver.get_lambda();
     bisection_lambda(lambda_min, lambda_max, lambda_run, check);
     add_lambda_gap(check, old_check1, old_check2, old_check3, lambda_min, lambda_max);
     solver.set_lambda(lambda_run);
   }
-#undef LAMBDABYSECTIONRHO
-#define LAMBDABYSECTIONU
   while(fabs(lambda_min - lambda_max) > 1e-8) {
     bool check;
-    number_of_frames = 10;
+    number_of_frames = 3;
     check = solver.solve(number_of_frames);
     scalar_type lambda_run = solver.get_lambda();
     bisection_lambda(lambda_min, lambda_max, lambda_run, check);
