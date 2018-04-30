@@ -1,45 +1,49 @@
-#ifndef IMPLICIT_MATRIX_ENTRIES
-#define IMPLICIT_MATRIX_ENTRIES
+#ifndef VARIABLE_IMPLICIT_SCHEME_H
+#define VARIABLE_IMPLICIT_SCHEME_H
 
-template <typename global_solution_vector_type, typename matrix_type>
-class Implicit_Matrix_Entries {
-using solution_vector_type = typename global_solution_vector_type::value_type;
+template <typename grid_type>
+class Variable_Implicit_Scheme {
+
+using scalar_type = typename grid_type::scalar_type;
+using solution_vector_type = typename grid_type::global_solution_vector_type::value_type;
+using matrix_type = typename grid_type::matrix_type;
+
  public:
   /////////////////////////////////////////////////////////////////////////
   /// \brief Default constructor.
-  Implicit_Matrix_Entries() = default;
+  Variable_Implicit_Scheme() = default;
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief Copy constructor.
-  Implicit_Matrix_Entries(const Implicit_Matrix_Entries&) = default;
+  Variable_Implicit_Scheme(const Variable_Implicit_Scheme&) = default;
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief Move constructor.
-  Implicit_Matrix_Entries(Implicit_Matrix_Entries&&) = default;
+  Variable_Implicit_Scheme(Variable_Implicit_Scheme&&) = default;
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief Copy assignment operator.
-  Implicit_Matrix_Entries& operator=(const Implicit_Matrix_Entries&) = default;
+  Variable_Implicit_Scheme& operator=(const Variable_Implicit_Scheme&) = default;
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief Move assignment operator.
-  Implicit_Matrix_Entries& operator=(Implicit_Matrix_Entries&&) = default;
+  Variable_Implicit_Scheme& operator=(Variable_Implicit_Scheme&&) = default;
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief Constructor setting up required inputs.
-  Implicit_Matrix_Entries(const solution_vector_type& solution_vector_mm,
+  Variable_Implicit_Scheme(  const solution_vector_type& solution_vector_mm,
                              const solution_vector_type& solution_vector_m,
                              const solution_vector_type& solution_vector,
                              const solution_vector_type& solution_vector_p,
                              const solution_vector_type& solution_vector_pp,
                              const solution_vector_type& DeltaUm,
-                             const double& gamma_in, const double& Pr_in,
-                             const double& Le_in, const double& Q_in, const double& lambda_in,
-                             const double& theta_in, const double& dx_in, const double& dt_in,
-                             const double& zeta_in, const double& Theta_in, const double& mf_in) :
+                             const scalar_type& gamma_in, const scalar_type& Pr_in,
+                             const scalar_type& Le_in, const scalar_type& Q_in, const scalar_type& lambda_in,
+                             const scalar_type& theta_in, const scalar_type& dx_in, const scalar_type& dt_in,
+                             const scalar_type& zeta_in, const scalar_type& Theta_in, const scalar_type& mf_in, const scalar_type& T_ignition_in) :
                              gamma(gamma_in), Pr(Pr_in), Le(Le_in), Q(Q_in), lambda(lambda_in),
                              theta(theta_in), dx(dx_in), dt(dt_in), zeta(zeta_in),
-                             Theta(Theta_in), mf(mf_in) {
+                             Theta(Theta_in), mf(mf_in), T_ignition(T_ignition_in) {
   rho = solution_vector[0];
   rhom = solution_vector_m[0];
   rhop = solution_vector_p[0];
@@ -66,31 +70,31 @@ using solution_vector_type = typename global_solution_vector_type::value_type;
   solution_vector_type rhs_matrix();
 
  private:
-  double rho, rhom, rhop;
-  double u, um, up;
-  double e, em, ep;
-  double Y, Ym, Yp;
+  scalar_type rho, rhom, rhop;
+  scalar_type u, um, up;
+  scalar_type e, em, ep;
+  scalar_type Y, Ym, Yp;
   char E;
-  double gamma, Pr, Le, Q;
-  double lambda, theta;
-  double dx, dt;
-  double zeta, Theta;
-  double dUm1, dUm2, dUm3, dUm4;
-  double mf;
+  scalar_type gamma, Pr, Le, Q;
+  scalar_type lambda, theta;
+  scalar_type dx, dt;
+  scalar_type zeta, Theta;
+  scalar_type dUm1, dUm2, dUm3, dUm4;
+  scalar_type mf, T_ignition;
 
   template <typename T>
-  double Power(const T num, const int expo) {
+  scalar_type Power(const T num, const int expo) {
     return pow(num, expo);
   }
 
-  double Power(const char num, const double expo) {
+  scalar_type Power(const char, const scalar_type expo) {
     return exp(expo);
   }
 };
 
 
-template <typename global_solution_vector_type, typename matrix_type>
-matrix_type Implicit_Matrix_Entries<global_solution_vector_type, matrix_type>::mid_matrix() {
+template <typename grid_type>
+typename grid_type::matrix_type Variable_Implicit_Scheme<grid_type>::mid_matrix() {
 
   matrix_type b;
   matrix_type temp;
@@ -151,7 +155,7 @@ matrix_type Implicit_Matrix_Entries<global_solution_vector_type, matrix_type>::m
    (4*dt*Power(E,(2*rho*theta)/((-1 + gamma)*(-2*e + rho*Power(u,2))))*lambda*Power(rho,2)*theta*Theta*Y)/
     ((-1 + gamma)*Power(-2*e + rho*Power(u,2),2)*(1 + zeta)),(dt*Power(E,(2*rho*theta)/((-1 + gamma)*(-2*e + rho*Power(u,2))))*lambda*Theta)/(1 + zeta);
 
-   if((gamma-1.0)/ rho * (e-0.5*rho*u*u) > 1.02/(gamma*mf*mf)){
+   if((gamma-1.0)/ rho * (e-0.5*rho*u*u) > T_ignition){
     b += temp;
   }
 
@@ -160,8 +164,8 @@ matrix_type Implicit_Matrix_Entries<global_solution_vector_type, matrix_type>::m
   return b;
 }
 
-template <typename global_solution_vector_type, typename matrix_type>
-matrix_type Implicit_Matrix_Entries<global_solution_vector_type, matrix_type>::top_matrix() {
+template <typename grid_type>
+typename grid_type::matrix_type Variable_Implicit_Scheme<grid_type>::top_matrix() {
 
   matrix_type c;
   matrix_type temp;
@@ -209,8 +213,8 @@ matrix_type Implicit_Matrix_Entries<global_solution_vector_type, matrix_type>::t
   return c;
 }
 
-template <typename global_solution_vector_type, typename matrix_type>
-matrix_type Implicit_Matrix_Entries<global_solution_vector_type, matrix_type>::bot_matrix() {
+template <typename grid_type>
+typename grid_type::matrix_type Variable_Implicit_Scheme<grid_type>::bot_matrix() {
 
   matrix_type a;
   matrix_type temp;
@@ -257,9 +261,9 @@ matrix_type Implicit_Matrix_Entries<global_solution_vector_type, matrix_type>::b
   return a;
 }
 
-template <typename global_solution_vector_type, typename matrix_type>
-typename global_solution_vector_type::value_type
-Implicit_Matrix_Entries<global_solution_vector_type, matrix_type>::rhs_matrix() {
+template <typename grid_type>
+typename grid_type::global_solution_vector_type::value_type
+Variable_Implicit_Scheme<grid_type>::rhs_matrix() {
 
   solution_vector_type rhs;
   solution_vector_type temp;
@@ -305,18 +309,18 @@ Implicit_Matrix_Entries<global_solution_vector_type, matrix_type>::rhs_matrix() 
   temp << 0.,0.,(dt*lambda*Q*rho*Y)/(Power(E,(rho*theta)/((-1 + gamma)*(e - (rho*Power(u,2))/2.)))*(1 + zeta)),
    -((dt*lambda*rho*Y)/(Power(E,(rho*theta)/((-1 + gamma)*(e - (rho*Power(u,2))/2.)))*(1 + zeta)));
 
-   if((gamma-1.0)/ rho * (e-0.5*rho*u*u) > 1.02/(gamma*mf*mf)){
+   if((gamma-1.0)/ rho * (e-0.5*rho*u*u) > T_ignition){
      rhs += temp;
    }
 
 #endif
-  // auto var_vec_l = Variable_Vector_Isolator<solution_vector_type>(solution_vector_m, gamma);
-  // auto var_vec = Variable_Vector_Isolator<solution_vector_type>(solution_vector, gamma);
-  // auto var_vec_r = Variable_Vector_Isolator<solution_vector_type>(solution_vector_p, gamma);
+  // auto var_vec_l = Variable_Vector_Isolator<grid_type>(solution_vector_m, gamma);
+  // auto var_vec = Variable_Vector_Isolator<grid_type>(solution_vector, gamma);
+  // auto var_vec_r = Variable_Vector_Isolator<grid_type>(solution_vector_p, gamma);
   //
   //  rhs += (hyperbolic_flux.flux(var_vec_l.w(), var_vec.w(), gamma) - hyperbolic_flux.flux(var_vec.w(), var_vec_r.w(), gamma)) /dx*dt;
 
   return rhs;
 }
 
-#endif //#ifndef IMPLICIT_MATRIX_ENTRIES_CD
+#endif //#ifndef VARIABLE_IMPLICIT_SCHEME_H

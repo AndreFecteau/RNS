@@ -5,10 +5,8 @@
 
 #include "../Usefull_Headers/Variable_Vector_Isolator.h"
 
-template <typename global_solution_vector_type>
-void plot(std::string file_name, global_solution_vector_type solution_vector, double dx){
-
-  using solution_vector_type = typename global_solution_vector_type::value_type;
+template <typename grid_type>
+void plot(std::string file_name, typename grid_type::global_solution_vector_type solution_vector, double dx){
 
   std::ofstream gnu_input_file;
   gnu_input_file.open (file_name + ".dat");
@@ -17,11 +15,10 @@ void plot(std::string file_name, global_solution_vector_type solution_vector, do
   gnu_input_file << "#rho u p T Y" << std::endl;
 
   for (size_t i = 0; i < solution_vector.size(); i++) {
-    // std::cout << i% (solution_vector.size()/3000) << std::endl;
     if(i%(solution_vector.size()/3000) == 0 || i == solution_vector.size()-1){
-      Variable_Vector_Isolator<solution_vector_type> temp = Variable_Vector_Isolator<solution_vector_type>(solution_vector[i], 1.4);
-      // double mach = temp.u()/sqrt(1.4*temp.p()/temp.rho())
-      gnu_input_file << i * dx << " " << temp.rho() << " " << temp.u()  << " " << temp.p() << " " << temp.T() << " " << temp.Y() << " " << temp.u()/sqrt(1.4*temp.p()/temp.rho()) << std::endl;
+    auto temp = Variable_Vector_Isolator<grid_type>(solution_vector[i], 1.4);
+    // double mach = temp.u()/sqrt(1.4*temp.p()/temp.rho())
+    gnu_input_file << (i+0.5) * dx << " " << temp.rho() << " " << temp.u()  << " " << temp.p() << " " << temp.T() << " " << temp.Y() << " " << temp.u()/sqrt(1.4*temp.p()/temp.rho()) << std::endl;
     }
   }
   gnu_input_file.close();

@@ -12,8 +12,12 @@
 ///////////////////////////////////////////////////////////////////////////////
   /// \brief  Header containg an object to simplify returning isolated variables.
 ///////////////////////////////////////////////////////////////////////////////
-template <typename solution_vector_type>
+template <typename grid_type>
 class Variable_Vector_Isolator{
+
+  using solution_vector_type = typename grid_type::global_solution_vector_type::value_type;
+  using scalar_type = typename grid_type::scalar_type;
+  using size_type = typename grid_type::size_type;
 public:
   /////////////////////////////////////////////////////////////////////////
   /// \brief Default constructor.
@@ -37,7 +41,7 @@ public:
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief Constructor isolating variables.
-  Variable_Vector_Isolator(solution_vector_type solution_vector, double gamma_in) : gamma(gamma_in){
+  Variable_Vector_Isolator(const solution_vector_type& solution_vector,const scalar_type& gamma_in) : gamma(gamma_in){
     u_var = isolate_u(solution_vector);
     T_var = isolate_T(solution_vector);
     rho_var = isolate_rho(solution_vector);

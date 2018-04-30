@@ -14,7 +14,7 @@ void plot_2(std::string file_name, global_solution_vector_type solution_vector, 
   gnu_input_file.open (file_name + ".dat");
   gnu_input_file << "#rho u p T Y" << std::endl;
   for (size_t i = 0; i < solution_vector.size(); i++) {
-    // Variable_Vector_Isolator<solution_vector_type> temp = Variable_Vector_Isolator<solution_vector_type>(solution_vector[i], 1.4);
+    // Variable_Vector_Isolator<grid_type> temp = Variable_Vector_Isolator<grid_type>(solution_vector[i], 1.4);
     gnu_input_file << i * dx << " " << solution_vector[i][0] << " " << solution_vector[i][1]  << " " << solution_vector[i][2]   << std::endl;
   }
   gnu_input_file.close();
