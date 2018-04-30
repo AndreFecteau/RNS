@@ -54,11 +54,11 @@ int main(){
   bool old_check2 = 1;
   bool old_check3 = 0;
 {
-  solver.rename_file("Movie/Delete_");
+  // solver.rename_file("Movie/Delete_");
   solver.reset_frame_number();
-  solver.refine(32);
-  scalar_type lambda_max = solver.get_lambda()*1.005;
-  scalar_type lambda_min = solver.get_lambda()*0.995;
+  // solver.refine(32);
+  scalar_type lambda_max = 124969.74;//solver.get_lambda()*1.005;
+  scalar_type lambda_min = 124348;//solver.get_lambda()*0.995;
 //
   while(fabs(lambda_min - lambda_max) > 1e2) {
     bool check;
@@ -90,104 +90,104 @@ int main(){
 }
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-{
-  solver.add_space_in_back(500);
-  solver.rename_file("Movie/Case_1_D1000_L250_R256_");
-  solver.reset_frame_number();
-  scalar_type lambda_max = solver.get_lambda()*1.005;
-  scalar_type lambda_min = solver.get_lambda()*0.995;
-//
-  while(fabs(lambda_min - lambda_max) > 1e2) {
-    bool check;
-    int number_of_frames = 20;
-    check = solver.solve(number_of_frames);
-    scalar_type lambda_run = solver.get_lambda();
-    bisection_lambda(lambda_min, lambda_max, lambda_run, check);
-    solver.set_lambda(lambda_run);
-}
-  while(fabs(lambda_min - lambda_max) > 1e-2) {
-    bool check;
-    int number_of_frames = 20;
-    check = solver.solve(number_of_frames);
-    scalar_type lambda_run = solver.get_lambda();
-    bisection_lambda(lambda_min, lambda_max, lambda_run, check);
-    solver.set_lambda(lambda_run);
-}
-  while(fabs(lambda_min - lambda_max) > 1e-8) {
-    bool check;
-    int number_of_frames = 10;
-    check = solver.solve(number_of_frames);
-    scalar_type lambda_run = solver.get_lambda();
-    bisection_lambda(lambda_min, lambda_max, lambda_run, check);
-    solver.set_lambda(lambda_run);
-}
-}
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
-{
-  solver.add_space_in_back(1000);
-  solver.rename_file("Movie/Case_1_D2000_L250_R256_");
-  solver.reset_frame_number();
-  scalar_type lambda_max = solver.get_lambda()*1.005;
-  scalar_type lambda_min = solver.get_lambda()*0.995;
-//
-  while(fabs(lambda_min - lambda_max) > 1e2) {
-    bool check;
-    int number_of_frames = 20;
-    check = solver.solve(number_of_frames);
-    scalar_type lambda_run = solver.get_lambda();
-    bisection_lambda(lambda_min, lambda_max, lambda_run, check);
-    solver.set_lambda(lambda_run);
-}
-  while(fabs(lambda_min - lambda_max) > 1e-2) {
-    bool check;
-    int number_of_frames = 20;
-    check = solver.solve(number_of_frames);
-    scalar_type lambda_run = solver.get_lambda();
-    bisection_lambda(lambda_min, lambda_max, lambda_run, check);
-    solver.set_lambda(lambda_run);
-}
-  while(fabs(lambda_min - lambda_max) > 1e-8) {
-    bool check;
-    int number_of_frames = 10;
-    check = solver.solve(number_of_frames);
-    scalar_type lambda_run = solver.get_lambda();
-    bisection_lambda(lambda_min, lambda_max, lambda_run, check);
-    solver.set_lambda(lambda_run);
-}
-}
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
-{
-  solver.add_space_in_back(1000);
-  solver.rename_file("Movie/Case_1_D3000_L250_R256_");
-  solver.reset_frame_number();
-  scalar_type lambda_max = solver.get_lambda()*1.005;
-  scalar_type lambda_min = solver.get_lambda()*0.995;
-//
-  while(fabs(lambda_min - lambda_max) > 1e2) {
-    bool check;
-    int number_of_frames = 20;
-    check = solver.solve(number_of_frames);
-    scalar_type lambda_run = solver.get_lambda();
-    bisection_lambda(lambda_min, lambda_max, lambda_run, check);
-    solver.set_lambda(lambda_run);
-}
-  while(fabs(lambda_min - lambda_max) > 1e-2) {
-    bool check;
-    int number_of_frames = 20;
-    check = solver.solve(number_of_frames);
-    scalar_type lambda_run = solver.get_lambda();
-    bisection_lambda(lambda_min, lambda_max, lambda_run, check);
-    solver.set_lambda(lambda_run);
-}
-  while(fabs(lambda_min - lambda_max) > 1e-8) {
-    bool check;
-    int number_of_frames = 10;
-    check = solver.solve(number_of_frames);
-    scalar_type lambda_run = solver.get_lambda();
-    bisection_lambda(lambda_min, lambda_max, lambda_run, check);
-    solver.set_lambda(lambda_run);
-}
-}
+// {
+//   // solver.add_space_in_back(500);
+//   // solver.rename_file("Movie/Case_1_D1000_L250_R256_");
+//   solver.reset_frame_number();
+//   scalar_type lambda_max = solver.get_lambda()*1.005;
+//   scalar_type lambda_min = solver.get_lambda()*0.995;
+// //
+//   while(fabs(lambda_min - lambda_max) > 1e2) {
+//     bool check;
+//     int number_of_frames = 20;
+//     check = solver.solve(number_of_frames);
+//     scalar_type lambda_run = solver.get_lambda();
+//     bisection_lambda(lambda_min, lambda_max, lambda_run, check);
+//     solver.set_lambda(lambda_run);
+// }
+//   while(fabs(lambda_min - lambda_max) > 1e-2) {
+//     bool check;
+//     int number_of_frames = 20;
+//     check = solver.solve(number_of_frames);
+//     scalar_type lambda_run = solver.get_lambda();
+//     bisection_lambda(lambda_min, lambda_max, lambda_run, check);
+//     solver.set_lambda(lambda_run);
+// }
+//   while(fabs(lambda_min - lambda_max) > 1e-8) {
+//     bool check;
+//     int number_of_frames = 10;
+//     check = solver.solve(number_of_frames);
+//     scalar_type lambda_run = solver.get_lambda();
+//     bisection_lambda(lambda_min, lambda_max, lambda_run, check);
+//     solver.set_lambda(lambda_run);
+// }
+// }
+// ///////////////////////////////////////////////////////////////////////////////////////////////////
+// ///////////////////////////////////////////////////////////////////////////////////////////////////
+// {
+//   solver.add_space_in_back(1000);
+//   solver.rename_file("Movie/Case_1_D2000_L250_R256_");
+//   solver.reset_frame_number();
+//   scalar_type lambda_max = solver.get_lambda()*1.005;
+//   scalar_type lambda_min = solver.get_lambda()*0.995;
+// //
+//   while(fabs(lambda_min - lambda_max) > 1e2) {
+//     bool check;
+//     int number_of_frames = 20;
+//     check = solver.solve(number_of_frames);
+//     scalar_type lambda_run = solver.get_lambda();
+//     bisection_lambda(lambda_min, lambda_max, lambda_run, check);
+//     solver.set_lambda(lambda_run);
+// }
+//   while(fabs(lambda_min - lambda_max) > 1e-2) {
+//     bool check;
+//     int number_of_frames = 20;
+//     check = solver.solve(number_of_frames);
+//     scalar_type lambda_run = solver.get_lambda();
+//     bisection_lambda(lambda_min, lambda_max, lambda_run, check);
+//     solver.set_lambda(lambda_run);
+// }
+//   while(fabs(lambda_min - lambda_max) > 1e-8) {
+//     bool check;
+//     int number_of_frames = 10;
+//     check = solver.solve(number_of_frames);
+//     scalar_type lambda_run = solver.get_lambda();
+//     bisection_lambda(lambda_min, lambda_max, lambda_run, check);
+//     solver.set_lambda(lambda_run);
+// }
+// }
+// ///////////////////////////////////////////////////////////////////////////////////////////////////
+// ///////////////////////////////////////////////////////////////////////////////////////////////////
+// {
+//   solver.add_space_in_back(1000);
+//   solver.rename_file("Movie/Case_1_D3000_L250_R256_");
+//   solver.reset_frame_number();
+//   scalar_type lambda_max = solver.get_lambda()*1.005;
+//   scalar_type lambda_min = solver.get_lambda()*0.995;
+// //
+//   while(fabs(lambda_min - lambda_max) > 1e2) {
+//     bool check;
+//     int number_of_frames = 20;
+//     check = solver.solve(number_of_frames);
+//     scalar_type lambda_run = solver.get_lambda();
+//     bisection_lambda(lambda_min, lambda_max, lambda_run, check);
+//     solver.set_lambda(lambda_run);
+// }
+//   while(fabs(lambda_min - lambda_max) > 1e-2) {
+//     bool check;
+//     int number_of_frames = 20;
+//     check = solver.solve(number_of_frames);
+//     scalar_type lambda_run = solver.get_lambda();
+//     bisection_lambda(lambda_min, lambda_max, lambda_run, check);
+//     solver.set_lambda(lambda_run);
+// }
+//   while(fabs(lambda_min - lambda_max) > 1e-8) {
+//     bool check;
+//     int number_of_frames = 10;
+//     check = solver.solve(number_of_frames);
+//     scalar_type lambda_run = solver.get_lambda();
+//     bisection_lambda(lambda_min, lambda_max, lambda_run, check);
+//     solver.set_lambda(lambda_run);
+// }
+// }
 };

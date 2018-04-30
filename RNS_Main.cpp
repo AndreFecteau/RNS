@@ -1,10 +1,8 @@
 #define HYPERBOLIC
 #define VISCOUS
 #define SOURCE
-#define RECENTER_FLAME
 // #define MANUFACTURED
-// #define IMPLICIT
-// #define EXPLICIT
+#define RECENTER_FLAME
 
 #include <iomanip>
 #include <fenv.h>
