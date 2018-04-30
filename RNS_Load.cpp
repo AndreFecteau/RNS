@@ -3,8 +3,6 @@
 #define SOURCE
 // #define MANUFACTURED
 #define RECENTER_FLAME
-// #define IMPLICIT
-// #define EXPLICIT
 
 #include <iomanip>
 #include <fenv.h>
@@ -40,7 +38,7 @@ int main(){
   std::cout << "Setting Initial Conditions " << std::endl;
   std::cout << "//////////////////////////" << std::endl;
   solver_type solver;
-  unserialize_to_file(solver, "Movie/Case_1_D500_L250_R256_1");
+  unserialize_to_file(solver, "dat_saves/CJ_point/Pr075_Le03_Q9_b5_g14/D500_F250_R16/Plot_399");
   std::cout << "Restarting Simulation With:" << std::endl;
   solver.print_stats();
 
@@ -56,14 +54,15 @@ int main(){
   bool old_check2 = 1;
   bool old_check3 = 0;
 {
-  solver.rename_file("Movie/Case_1_D500_L250_R256_");
+  solver.rename_file("Movie/Delete_");
   solver.reset_frame_number();
-  scalar_type lambda_max = solver.get_lambda()*1.0005;
-  scalar_type lambda_min = solver.get_lambda()*0.9995;
+  solver.refine(32);
+  scalar_type lambda_max = solver.get_lambda()*1.005;
+  scalar_type lambda_min = solver.get_lambda()*0.995;
 //
   while(fabs(lambda_min - lambda_max) > 1e2) {
     bool check;
-    int number_of_frames = 10;
+    int number_of_frames = 3;
     check = solver.solve(number_of_frames);
     scalar_type lambda_run = solver.get_lambda();
     bisection_lambda(lambda_min, lambda_max, lambda_run, check);
@@ -72,7 +71,7 @@ int main(){
 }
   while(fabs(lambda_min - lambda_max) > 1e-2) {
     bool check;
-    int number_of_frames = 10;
+    int number_of_frames = 3;
     check = solver.solve(number_of_frames);
     scalar_type lambda_run = solver.get_lambda();
     bisection_lambda(lambda_min, lambda_max, lambda_run, check);
@@ -81,7 +80,7 @@ int main(){
 }
   while(fabs(lambda_min - lambda_max) > 1e-8) {
     bool check;
-    int number_of_frames = 10;
+    int number_of_frames = 3;
     check = solver.solve(number_of_frames);
     scalar_type lambda_run = solver.get_lambda();
     bisection_lambda(lambda_min, lambda_max, lambda_run, check);

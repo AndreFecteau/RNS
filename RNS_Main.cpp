@@ -87,8 +87,8 @@ int main(){
   bool old_check2 = 0;
   bool old_check3 = 1;
   solver.print_stats();
-  scalar_type lambda_run = solver.get_lambda();
-  solver.set_lambda(120000);
+  // scalar_type lambda_run = solver.get_lambda();
+  solver.set_lambda(124889);
   scalar_type lambda_max = solver.get_lambda()*1.01;
   scalar_type lambda_min = solver.get_lambda()*0.99;
   int number_of_frames = 10;
@@ -96,7 +96,7 @@ int main(){
 
   while(fabs(lambda_min - lambda_max) > 1e1) {
     bool check;
-    number_of_frames = 2;
+    number_of_frames = 3;
     check = solver.solve(number_of_frames);
     scalar_type lambda_run = solver.get_lambda();
     bisection_lambda(lambda_min, lambda_max, lambda_run, check);
@@ -105,7 +105,7 @@ int main(){
   }
   while(fabs(lambda_min - lambda_max) > 1e-8) {
     bool check;
-    number_of_frames = 2;
+    number_of_frames = 3;
     check = solver.solve(number_of_frames);
     scalar_type lambda_run = solver.get_lambda();
     bisection_lambda(lambda_min, lambda_max, lambda_run, check);
