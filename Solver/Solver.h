@@ -10,6 +10,8 @@
 #include "../Serialization/Serialization_Eigen.h"
 #include "../Serialization/Serialize.h"
 #include "../Gnuplot_RNS/Gnuplot_Primitive_Variables.h"
+#include "../Gnuplot_RNS/Gnuplot_Primitive_Variables_Reduced.h"
+#include "../Gnuplot_RNS/Gnuplot_Variables.h"
 
 
 template <typename flow_properties_type, typename grid_type, typename flux_type, typename time_stepping_type>
@@ -46,8 +48,8 @@ using size_type = typename grid_type::size_type;
   Solver(flow_properties_type flow_properties_in, grid_type grid_in, scalar_type frame_time_in,
          scalar_type target_residual_in, scalar_type CFL_in, scalar_type Theta_in,
          scalar_type zeta_in, std::string filename_in, scalar_type flame_location_in) :
-         frame_time(frame_time_in), CFL(CFL_in), flow(flow_properties_in),
-         grid(grid_in), target_residual(target_residual_in),
+         flow(flow_properties_in), grid(grid_in), frame_time(frame_time_in),
+         CFL(CFL_in), target_residual(target_residual_in),
          time_stepping(time_stepping_type(Theta_in, zeta_in)),
          filename(filename_in), flame_location(flame_location_in) {}
 
@@ -61,7 +63,7 @@ using size_type = typename grid_type::size_type;
   /////////////////////////////////////////////////////////////////////////
   /// \brief
   /// \param
-  scalar_type get_lambda(){return flow.lambda;}
+  scalar_type get_lambda() const {return flow.lambda;}
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief
@@ -86,7 +88,7 @@ using size_type = typename grid_type::size_type;
   /////////////////////////////////////////////////////////////////////////
   /// \brief
   /// \param
-  void rename_file(std::string new_filename) {
+  void change_filename(std::string new_filename) {
     filename = new_filename;
     std::cout << "filename changed to: " << filename << std::endl;
   }
@@ -102,7 +104,7 @@ using size_type = typename grid_type::size_type;
   /////////////////////////////////////////////////////////////////////////
   /// \brief
   /// \param
-  void set_lambda(scalar_type lambda) {
+  void change_lambda(scalar_type lambda) {
     flow.lambda = lambda;
     std::cout << "lambda changed to: " << flow.lambda << std::endl;
   }
@@ -115,16 +117,57 @@ using size_type = typename grid_type::size_type;
   /////////////////////////////////////////////////////////////////////////
   /// \brief
   /// \param
+  void change_frame_time(scalar_type new_frame_time) {
+    frame_time = new_frame_time;
+    std::cout << "frame_time changed to: " << frame_time << std::endl;
+  }
+
+  /////////////////////////////////////////////////////////////////////////
+  /// \brief
+  /// \param
+  void change_CFL(scalar_type new_CFL) {
+    CFL = new_CFL;
+    std::cout << "CFL changed to: " << CFL << std::endl;
+  }
+
+  /////////////////////////////////////////////////////////////////////////
+  /// \brief
+  /// \param
+  void change_flame_location(scalar_type new_flame_location) {
+    flame_location = new_flame_location;
+    std::cout << "flame_location changed to: " << flame_location << std::endl;
+  }
+
+  /////////////////////////////////////////////////////////////////////////
+  /// \brief
+  /// \param
+  template <typename T> int sign(T val) {return (T(0) < val) - (val < T(0));}
+
+  /////////////////////////////////////////////////////////////////////////
+  /// \brief
+  /// \param
+  void plot_limiter();
+
+  /////////////////////////////////////////////////////////////////////////
+  /// \brief
+  /// \param
+  void plot_global_solution_vector(std::string plot_name, scalar_type number_of_cells_in_output) {
+     plot_reduced<grid_type>(plot_name, grid, flow, number_of_cells_in_output);
+  }
+
+  /////////////////////////////////////////////////////////////////////////
+  /// \brief
+  /// \param
   template<typename Archive>
   void serialize(Archive& archive) {
     archive(flow, grid, frame_time, target_residual, CFL, time_stepping, filename, current_time, global_current_frame, flame_location);
   }
 
+  flow_properties_type flow;
+  grid_type grid;
  private:
   scalar_type frame_time;
   scalar_type CFL;
-  flow_properties_type flow;
-  grid_type grid;
   scalar_type target_residual;
   time_stepping_type time_stepping;
   global_solution_vector_type global_solution_vector_backup;
@@ -185,9 +228,9 @@ solve(const size_type number_of_frames) {
 #endif
     } else {
       current_time += frame_time_temp;
+      global_current_frame++;
       std::cout << "Frame: " << global_current_frame << " Frame_time = " <<  frame_time_temp << " Residual: " << residual << std::endl;
       std::cout << "position: " << position - flame_location*grid.per_FL();
-      global_current_frame++;
       plot<grid_type>(filename + std::to_string(static_cast<size_type>(global_current_frame)), grid.global_solution_vector,grid.dx());
       serialize_to_file(*this, filename + std::to_string(static_cast<size_type>(global_current_frame)));
       auto finish = std::chrono::high_resolution_clock::now();
@@ -331,6 +374,8 @@ print_stats() {
     std::cout << "mf: " << flow.mf << "\nQ_low_mach: " << flow.Q_low_mach << "\ntheta_low_mach: " << flow.theta_low_mach << std::endl;
     std::cout << "T_ignition: " << flow.T_ignition_scalar << "\nlambda: " << flow.lambda  << std::endl;
     std::cout << "x_min: " << grid.x_min << "\nx_max: " << grid.x_max << "\nnumber_of_cells: " << grid.number_of_cells() << std::endl;
+    std::cout <<"Q: " << flow.Q() << "\ntheta: " << flow.theta() << std::endl;
+
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -347,7 +392,7 @@ refine(size_type per_flame_length) {
       temp_global_solution_vector.resize(grid.domaine_length() * per_flame_length);
       for(size_type i = 0; i < grid.number_of_cells(); ++i) {
         for(size_type j = 0; j < per_flame_length / grid.per_FL(); ++j) {
-          temp_global_solution_vector[i*2+j] = grid.global_solution_vector[i];
+          temp_global_solution_vector[i*per_flame_length / grid.per_FL()+j] = grid.global_solution_vector[i];
         }
       }
     }
@@ -370,5 +415,43 @@ refine(size_type per_flame_length) {
   std::cout << "Number_cells: " << grid.number_of_cells() << std::endl;
   plot<grid_type>(filename + std::to_string(static_cast<size_type>(2000)), grid.global_solution_vector, grid.dx());
 }
+
+///////////////////////////////////////////////////////////////////////////////
+//
+///////////////////////////////////////////////////////////////////////////////
+template <typename flow_properties_type, typename grid_type, typename flux_type, typename time_stepping_type>
+void Solver<flow_properties_type, grid_type, flux_type, time_stepping_type>::
+plot_limiter() {
+    global_solution_vector_type min_mod(grid.number_of_cells());
+    global_solution_vector_type van_albada(grid.number_of_cells());
+    global_solution_vector_type solution_vector_rho(grid.number_of_cells());
+    for (size_type j = 0; j < grid.number_of_cells(); ++j){
+      auto var_vec_m = Variable_Vector_Isolator<grid_type>(grid.global_solution_vector[std::max(0,static_cast<int>(j)-1)], flow.gamma);
+      auto var_vec = Variable_Vector_Isolator<grid_type>(grid.global_solution_vector[j], flow.gamma);
+      auto var_vec_p = Variable_Vector_Isolator<grid_type>(grid.global_solution_vector[std::min(j+1, grid.number_of_cells() -1)], flow.gamma);
+      const solution_vector_type U = var_vec.w();
+      const solution_vector_type Ul =var_vec_m.w();
+      const solution_vector_type Ur = var_vec_p.w();
+
+      const solution_vector_type a = (U - Ul) / grid.dx();
+      const solution_vector_type b = (Ur - U) / grid.dx();
+      for(size_type i = 0; i < 4; ++i) {
+        min_mod[j][i] = sign(a[i])*std::max(0.0,static_cast<scalar_type>(std::min(fabs(a[i]), sign(a[i])*b[i])));
+      }
+
+      double epsilon = 1.0e-6;
+      van_albada[j] =  a.array() * b.array() * (a.array() + b.array()) / (a.array() * a.array() + b.array() * b.array() + epsilon);
+      for (int i = 0; i < 4; ++i) {
+        if (a[i] / b[i] <= 0.0 || b[i] == 0) {
+          van_albada[j][i] = 0.0;
+        }
+      }
+     solution_vector_rho[j] = grid.global_solution_vector[j] / grid.global_solution_vector[j][0];
+    }
+    plot_v<global_solution_vector_type>("min_mod", min_mod, grid.dx());
+    plot_v<global_solution_vector_type>("van_albada", van_albada, grid.dx());
+    plot_v<global_solution_vector_type>("solution_vector", grid.global_solution_vector, grid.dx());
+    plot_v<global_solution_vector_type>("solution_vector_rho", solution_vector_rho, grid.dx());
+  }
 
 #endif //#ifndef SOLVER_H

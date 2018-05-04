@@ -47,9 +47,9 @@ struct Non_Dimensional_Navier_Stokes {
   scalar_type T_ignition_scalar;
 
 
-  scalar_type T_ignition() {return T_ignition_scalar/(gamma*mf*mf);}
-  scalar_type Q() {return Q_low_mach/(mf*mf*(gamma - 1));}
-  scalar_type theta() {return theta_low_mach/(mf*mf*gamma);}
+  scalar_type T_ignition() const {return T_ignition_scalar/(gamma*mf*mf);}
+  scalar_type Q() const {return Q_low_mach/(mf*mf*(gamma - 1.0));}
+  scalar_type theta() const {return theta_low_mach/(mf*mf*gamma);}
 
   template<typename Archive>
   void serialize(Archive& archive) {

@@ -3,6 +3,7 @@
 #define SOURCE
 // #define MANUFACTURED
 #define RECENTER_FLAME
+#define HLLE_FLUX
 
 #include <iomanip>
 #include <fenv.h>
@@ -12,16 +13,17 @@
 #include "Gnuplot_RNS/Gnuplot_Primitive_Variables.h"
 #include "Solver/Implicit_Marching.h"
 // #include "Solver/Implicit_Marching_4th_Order.h"
-#include "Solver/Explicit_Marching.h"
+// #include "Solver/Explicit_Marching.h"
 #include "Usefull_Headers/Handle_Itterative_Lambda.h"
 #include "Physical_Property/Non_Dimensional_Navier_Stokes.h"
 #include "Grid/Grid1D.h"
 #include "Implicit_Flux_and_Sources/Variable_Implicit_Scheme.h"
+#include "Implicit_Flux_and_Sources/HLLE_Flux_Matrix_Entries.h"
 #include "Usefull_Headers/Initial_Conditions.h"
 #include "Read_from_file.h"
 
 int main(){
-  std::cout << std::setprecision(10);
+  std::cout << std::setprecision(20);
 
   using scalar_type = double;
   using size_type = size_t;
@@ -31,7 +33,8 @@ int main(){
 //
   using flow_properties_type = Non_Dimensional_Navier_Stokes<scalar_type>;
   using grid_type = Grid1D<scalar_type, size_type, global_solution_vector_type, matrix_type>;
-  using flux_type = Variable_Implicit_Scheme<grid_type>;
+  // using flux_type = Variable_Implicit_Scheme<grid_type>;
+  using flux_type = HLLE_Flux_Matrix_Entries<grid_type, flow_properties_type>;
   using time_stepping_type = Implicit_Marching<grid_type, flow_properties_type>;
   using solver_type = Solver<flow_properties_type, grid_type, flux_type, time_stepping_type>;
 
@@ -80,15 +83,15 @@ int main(){
   scalar_type flame_location = 250;
   solver= solver_type(flow, grid, frame_time, target_residual, CFL, Theta, zeta, filename, flame_location);
 }
+solver.print_stats();
 }
   bool old_check1 = 1;
   bool old_check2 = 0;
   bool old_check3 = 1;
-  solver.print_stats();
   // scalar_type lambda_run = solver.get_lambda();
-  solver.set_lambda(124889);
-  scalar_type lambda_max = solver.get_lambda()*1.01;
-  scalar_type lambda_min = solver.get_lambda()*0.99;
+  // solver.change_lambda(124889);
+  scalar_type lambda_max = solver.get_lambda()*1.0001;
+  scalar_type lambda_min = solver.get_lambda()*0.9999;
   int number_of_frames = 10;
   // solver.solve(number_of_frames);
 
@@ -99,7 +102,7 @@ int main(){
     scalar_type lambda_run = solver.get_lambda();
     bisection_lambda(lambda_min, lambda_max, lambda_run, check);
     add_lambda_gap(check, old_check1, old_check2, old_check3, lambda_min, lambda_max);
-    solver.set_lambda(lambda_run);
+    solver.change_lambda(lambda_run);
   }
   while(fabs(lambda_min - lambda_max) > 1e-8) {
     bool check;
@@ -108,6 +111,6 @@ int main(){
     scalar_type lambda_run = solver.get_lambda();
     bisection_lambda(lambda_min, lambda_max, lambda_run, check);
     add_lambda_gap(check, old_check1, old_check2, old_check3, lambda_min, lambda_max);
-    solver.set_lambda(lambda_run);
+    solver.change_lambda(lambda_run);
   }
 };
