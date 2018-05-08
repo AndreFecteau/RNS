@@ -1,45 +1,50 @@
-#ifndef IMPLICIT_MATRIX_ENTRIES
-#define IMPLICIT_MATRIX_ENTRIES
+#ifndef IMPLICIT_CENTERED_DIFFERENCE_4TH_ORDER_H
+#define IMPLICIT_CENTERED_DIFFERENCE_4TH_ORDER_H
 
-template <typename global_solution_vector_type, typename matrix_type>
-class Implicit_Matrix_Entries {
+template <typename grid_type, typename flow_type>
+class Implicit_Centered_Difference_4th_Order {
+using global_solution_vector_type = typename grid_type::global_solution_vector_type;
 using solution_vector_type = typename global_solution_vector_type::value_type;
+using scalar_type = typename grid_type::scalar_type;
+using size_type = typename grid_type::size_type;
+using matrix_type = typename grid_type::matrix_type;
+
  public:
   /////////////////////////////////////////////////////////////////////////
   /// \brief Default constructor.
-  Implicit_Matrix_Entries() = default;
+  Implicit_Centered_Difference_4th_Order() = default;
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief Copy constructor.
-  Implicit_Matrix_Entries(const Implicit_Matrix_Entries&) = default;
+  Implicit_Centered_Difference_4th_Order(const Implicit_Centered_Difference_4th_Order&) = default;
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief Move constructor.
-  Implicit_Matrix_Entries(Implicit_Matrix_Entries&&) = default;
+  Implicit_Centered_Difference_4th_Order(Implicit_Centered_Difference_4th_Order&&) = default;
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief Copy assignment operator.
-  Implicit_Matrix_Entries& operator=(const Implicit_Matrix_Entries&) = default;
+  Implicit_Centered_Difference_4th_Order& operator=(const Implicit_Centered_Difference_4th_Order&) = default;
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief Move assignment operator.
-  Implicit_Matrix_Entries& operator=(Implicit_Matrix_Entries&&) = default;
+  Implicit_Centered_Difference_4th_Order& operator=(Implicit_Centered_Difference_4th_Order&&) = default;
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief Constructor setting up required inputs.
-  Implicit_Matrix_Entries(const solution_vector_type& solution_vector_mm,
-                             const solution_vector_type& solution_vector_m,
-                             const solution_vector_type& solution_vector,
-                             const solution_vector_type& solution_vector_p,
-                             const solution_vector_type& solution_vector_pp,
-                             const solution_vector_type& DeltaUm,
-                             const double& gamma_in, const double& Pr_in,
-                             const double& Le_in, const double& Q_in, const double& lambda_in,
-                             const double& theta_in, const double& dx_in, const double& dt_in,
-                             const double& zeta_in, const double& Theta_in) :
-                             gamma(gamma_in), Pr(Pr_in), Le(Le_in), Q(Q_in), lambda(lambda_in),
-                             theta(theta_in), dx(dx_in), dt(dt_in), zeta(zeta_in),
-                             Theta(Theta_in) {
+  Implicit_Centered_Difference_4th_Order( const grid_type grid, const flow_type flow,
+                            const global_solution_vector_type& DeltaUm, const scalar_type dt_in,
+                            const scalar_type Theta_in, const scalar_type zeta_in,
+                            const size_type cell_index) :
+                            gamma(flow.gamma), Pr(flow.Pr), Le(flow.Le), Q(flow.Q()), lambda(flow.lambda),
+                            theta(flow.theta()), dx(grid.dx()), dt(dt_in), zeta(zeta_in),
+                            Theta(Theta_in), T_ignition(flow.T_ignition()) {
+  solution_vector_type solution_vector_mm  = grid.global_solution_vector[std::max(static_cast<int>(cell_index)-2,0)];
+  solution_vector_type solution_vector_m   = grid.global_solution_vector[cell_index-1];
+  solution_vector_type solution_vector     = grid.global_solution_vector[cell_index];
+  solution_vector_type solution_vector_p   = grid.global_solution_vector[cell_index+1];
+  solution_vector_type solution_vector_pp   = grid.global_solution_vector[std::min(cell_index+2, grid.number_of_cells()-1)];
+
   rhomm = solution_vector_mm[0];
   rhom = solution_vector_m[0];
   rho = solution_vector[0];
@@ -60,16 +65,10 @@ using solution_vector_type = typename global_solution_vector_type::value_type;
   Y = solution_vector[3]/solution_vector[0];
   Yp = solution_vector_p[3]/solution_vector_p[0];
   Ypp = solution_vector_pp[3]/solution_vector_pp[0];
-  // pm = (solution_vector_m[2] - solution_vector_m[1]* solution_vector_m[1] /
-  //      (2.0 * solution_vector_m[0])) * (gamma - 1);
-  // p =  (solution_vector[2] - solution_vector[1]* solution_vector[1] /
-  //      (2.0 * solution_vector[0])) * (gamma - 1);
-  // pp = (solution_vector_p[2] - solution_vector_p[1]* solution_vector_p[1] /
-  //      (2.0 * solution_vector_p[0])) * (gamma - 1);
-  dUm1 = DeltaUm[0];
-  dUm2 = DeltaUm[1];
-  dUm3 = DeltaUm[2];
-  dUm4 = DeltaUm[3];
+  dUm1 = DeltaUm[cell_index-1][0];
+  dUm2 = DeltaUm[cell_index-1][1];
+  dUm3 = DeltaUm[cell_index-1][2];
+  dUm4 = DeltaUm[cell_index-1][3];
   }
 
   matrix_type top2_matrix();
@@ -80,30 +79,31 @@ using solution_vector_type = typename global_solution_vector_type::value_type;
   solution_vector_type rhs_matrix();
 
  private:
-  double rhomm, rhom, rho, rhop, rhopp;
-  // double pmm, pm, p, pp, ppp;
-  double umm, um, u, up, upp;
-  double emm, em, e, ep, epp;
-  double Ymm, Ym, Y, Yp, Ypp;
+  scalar_type rhomm, rhom, rho, rhop, rhopp;
+  // scalar_type pmm, pm, p, pp, ppp;
+  scalar_type umm, um, u, up, upp;
+  scalar_type emm, em, e, ep, epp;
+  scalar_type Ymm, Ym, Y, Yp, Ypp;
   char E;
-  double gamma, Pr, Le, Q;
-  double lambda, theta;
-  double dx, dt;
-  double zeta, Theta;
-  double dUm1, dUm2, dUm3, dUm4;
+  scalar_type gamma, Pr, Le, Q;
+  scalar_type lambda, theta;
+  scalar_type dx, dt;
+  scalar_type zeta, Theta;
+  scalar_type dUm1, dUm2, dUm3, dUm4;
+  scalar_type mf, T_ignition;
 
   template <typename T>
-  double Power(const T num, const int expo) {
+  scalar_type Power(const T num, const int expo) {
     return pow(num, expo);
   }
 
-  double Power(const char num, const double expo) {
+  scalar_type Power(const char num, const scalar_type expo) {
     return exp(expo);
   }
 };
 
-template <typename global_solution_vector_type, typename matrix_type>
-matrix_type Implicit_Matrix_Entries<global_solution_vector_type, matrix_type>::top2_matrix() {
+template <typename grid_type, typename flow_type>
+typename grid_type::matrix_type Implicit_Centered_Difference_4th_Order<grid_type, flow_type>::top2_matrix() {
 
   matrix_type top2;
   matrix_type temp;
@@ -156,8 +156,8 @@ matrix_type Implicit_Matrix_Entries<global_solution_vector_type, matrix_type>::t
 }
 
 
-template <typename global_solution_vector_type, typename matrix_type>
-matrix_type Implicit_Matrix_Entries<global_solution_vector_type, matrix_type>::top_matrix() {
+template <typename grid_type, typename flow_type>
+typename grid_type::matrix_type Implicit_Centered_Difference_4th_Order<grid_type, flow_type>::top_matrix() {
 
   matrix_type top;
   matrix_type temp;
@@ -209,8 +209,8 @@ matrix_type Implicit_Matrix_Entries<global_solution_vector_type, matrix_type>::t
   return top;
 }
 
-template <typename global_solution_vector_type, typename matrix_type>
-matrix_type Implicit_Matrix_Entries<global_solution_vector_type, matrix_type>::mid_matrix() {
+template <typename grid_type, typename flow_type>
+typename grid_type::matrix_type Implicit_Centered_Difference_4th_Order<grid_type, flow_type>::mid_matrix() {
 
   matrix_type mid;
   matrix_type temp;
@@ -303,17 +303,17 @@ matrix_type Implicit_Matrix_Entries<global_solution_vector_type, matrix_type>::m
    (4*dt*Power(E,(2*rho*theta)/((-1 + gamma)*(-2*e + rho*Power(u,2))))*lambda*Power(rho,2)*theta*Theta*Y)/
     ((-1 + gamma)*Power(-2*e + rho*Power(u,2),2)*(1 + zeta)),(dt*Power(E,(2*rho*theta)/((-1 + gamma)*(-2*e + rho*Power(u,2))))*lambda*Theta)/(1 + zeta);
 
-   if((gamma-1.0)/ rho * (e-0.5*rho*u*u) > 1.01/(gamma*0.005*0.005)){
-    mid += temp;
-  }
+   if((gamma-1.0)/ rho * (e-0.5*rho*u*u) > T_ignition){
+     mid += temp;
+   }
 
 #endif
 
   return mid;
 }
 
-template <typename global_solution_vector_type, typename matrix_type>
-matrix_type Implicit_Matrix_Entries<global_solution_vector_type, matrix_type>::bot_matrix() {
+template <typename grid_type, typename flow_type>
+typename grid_type::matrix_type Implicit_Centered_Difference_4th_Order<grid_type, flow_type>::bot_matrix() {
 
   matrix_type bot;
   matrix_type temp;
@@ -364,8 +364,8 @@ matrix_type Implicit_Matrix_Entries<global_solution_vector_type, matrix_type>::b
   return bot;
 }
 
-template <typename global_solution_vector_type, typename matrix_type>
-matrix_type Implicit_Matrix_Entries<global_solution_vector_type, matrix_type>::bot2_matrix() {
+template <typename grid_type, typename flow_type>
+typename grid_type::matrix_type Implicit_Centered_Difference_4th_Order<grid_type, flow_type>::bot2_matrix() {
 
   matrix_type bot2;
   matrix_type temp;
@@ -417,9 +417,9 @@ matrix_type Implicit_Matrix_Entries<global_solution_vector_type, matrix_type>::b
 }
 
 
-template <typename global_solution_vector_type, typename matrix_type>
-typename global_solution_vector_type::value_type
-Implicit_Matrix_Entries<global_solution_vector_type, matrix_type>::rhs_matrix() {
+template <typename grid_type, typename flow_type>
+typename grid_type::global_solution_vector_type::value_type
+Implicit_Centered_Difference_4th_Order<grid_type, flow_type>::rhs_matrix() {
 
   solution_vector_type rhs;
   solution_vector_type temp;
@@ -475,18 +475,13 @@ Implicit_Matrix_Entries<global_solution_vector_type, matrix_type>::rhs_matrix() 
   temp << 0.,0.,(dt*lambda*Q*rho*Y)/(Power(E,(rho*theta)/((-1 + gamma)*(e - (rho*Power(u,2))/2.)))*(1 + zeta)),
    -((dt*lambda*rho*Y)/(Power(E,(rho*theta)/((-1 + gamma)*(e - (rho*Power(u,2))/2.)))*(1 + zeta)));
 
-   if((gamma-1.0)/ rho * (e-0.5*rho*u*u) > 1.01/(gamma*0.005*0.005)){
+   if((gamma-1.0)/ rho * (e-0.5*rho*u*u) > T_ignition){
      rhs += temp;
    }
 
 #endif
-  // auto var_vec_l = Variable_Vector_Isolator<solution_vector_type>(solution_vector_m, gamma);
-  // auto var_vec = Variable_Vector_Isolator<solution_vector_type>(solution_vector, gamma);
-  // auto var_vec_r = Variable_Vector_Isolator<solution_vector_type>(solution_vector_p, gamma);
-  //
-  //  rhs += (hyperbolic_flux.flux(var_vec_l.w(), var_vec.w(), gamma) - hyperbolic_flux.flux(var_vec.w(), var_vec_r.w(), gamma)) /dx*dt;
 
   return rhs;
 }
 
-#endif //#ifndef IMPLICIT_MATRIX_ENTRIES_CD
+#endif //#ifndef IMPLICIT_CENTERED_DIFFERENCE_4TH_ORDER_H

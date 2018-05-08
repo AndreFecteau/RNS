@@ -3,7 +3,7 @@
 #define SOURCE
 // #define MANUFACTURED
 #define RECENTER_FLAME
-// #define NUMERICAL_DISSIPATION
+#define NUMERICAL_DISSIPATION
 // #define HLLE_FLUX
 
 #include <iomanip>
@@ -19,13 +19,14 @@
 #include "Usefull_Headers/Handle_Itterative_Lambda.h"
 #include "Physical_Property/Non_Dimensional_Navier_Stokes.h"
 #include "Grid/Grid1D.h"
-#include "Implicit_Flux_and_Sources/Variable_Implicit_Scheme.h"
-#include "Implicit_Flux_and_Sources/HLLE_Flux_Matrix_Entries.h"
+// #include "Implicit_Flux_and_Sources/Implicit_Centered_Difference_4th_Order.h"
+#include "Implicit_Flux_and_Sources/Implicit_Centered_Difference_2nd_Order.h"
+#include "Implicit_Flux_and_Sources/Implicit_HLLE.h"
 #include "Usefull_Headers/Initial_Conditions.h"
-#include "Read_from_file.h"
+#include "Usefull_Headers/Read_from_file.h"
 
 int main(){
-  std::cout << std::setprecision(10);
+  std::cout << std::setprecision(20);
 
   using scalar_type = double;
   using size_type = size_t;
@@ -35,8 +36,8 @@ int main(){
 //
   using flow_properties_type = Non_Dimensional_Navier_Stokes<scalar_type>;
   using grid_type = Grid1D<scalar_type, size_type, global_solution_vector_type, matrix_type>;
-  // using flux_type = Variable_Implicit_Scheme<grid_type, flow_properties_type>;
-  using flux_type = HLLE_Flux_Matrix_Entries<grid_type, flow_properties_type>;
+  using flux_type = Implicit_Centered_Difference_2nd_Order<grid_type, flow_properties_type>;
+  // using flux_type = Implicit_HLLE<grid_type, flow_properties_type>;
   using time_stepping_type = Implicit_Marching<grid_type, flow_properties_type>;
   using solver_type = Solver<flow_properties_type, grid_type, flux_type, time_stepping_type>;
 
@@ -46,7 +47,7 @@ int main(){
   solver_type solver;
   // unserialize_to_file(solver, "dat_saves/CJ_point/Pr075_Le03_Q9_b5_g14/D500_F250_R16/Solution");
   // unserialize_to_file(solver, "Movie/Low_Mach_R16_23");
-  unserialize_to_file(solver, "D2500_L250_R256_236");
+  unserialize_to_file(solver, "dat_saves/CJ_point/Pr075_Le03_Q9_b5_g14/D500_F250_R16/Solution");
   std::cout << "Restarting Simulation With:" << std::endl;
   solver.print_stats();
   // solver.plot_limiter();
@@ -55,16 +56,18 @@ int main(){
   // solver.frame_time = 5e5;
   // solver.CFL = 5e8;
 
-  // solver.rename_file("Movie/Delete_");
+  solver.change_filename("Movie/Delete_");
+  solver.change_frame_time(1e0);
+  solver.change_CFL(1e4);
   // solver.reset_frame_number();
   // solver.refine(64);
-  plot_reduced<grid_type>("Movie/Delete_0", solver.grid, solver.flow, 2500*16);
+  // plot_reduced<grid_type>("Movie/Delete_0", solver.grid, solver.flow, 2500*16);
   // scalar_type lambda_run = solver.get_lambda();
   // solver.set_lambda(lambda_run*1.1);
   // solver.frame_time = 1e-1;
   // solver.CFL = 1;
-  // int number_of_frames = 10;
-  // solver.solve(number_of_frames);
+  int number_of_frames = 10;
+  solver.solve(number_of_frames);
 
 
   // bool old_check1 = 0;

@@ -11,16 +11,17 @@
 #include "Low_Mach_Solver/RK4_Low_Mach_Solver.h"
 #include "Usefull_Headers/Variable_Vector_Isolator.h"
 #include "Gnuplot_RNS/Gnuplot_Primitive_Variables.h"
+#include "Gnuplot_RNS/Gnuplot_Primitive_Variables_Reduced.h"
 #include "Solver/Implicit_Marching.h"
-// #include "Solver/Implicit_Marching_4th_Order.h"
 // #include "Solver/Explicit_Marching.h"
 #include "Usefull_Headers/Handle_Itterative_Lambda.h"
 #include "Physical_Property/Non_Dimensional_Navier_Stokes.h"
 #include "Grid/Grid1D.h"
-#include "Implicit_Flux_and_Sources/Variable_Implicit_Scheme.h"
-#include "Implicit_Flux_and_Sources/HLLE_Flux_Matrix_Entries.h"
+// #include "Implicit_Flux_and_Sources/Implicit_Centered_Difference_4th_Order.h"
+#include "Implicit_Flux_and_Sources/Implicit_Centered_Difference_2nd_Order.h"
+#include "Implicit_Flux_and_Sources/Implicit_HLLE.h"
 #include "Usefull_Headers/Initial_Conditions.h"
-#include "Read_from_file.h"
+#include "Usefull_Headers/Read_from_file.h"
 
 int main(){
   std::cout << std::setprecision(20);
@@ -33,8 +34,9 @@ int main(){
 //
   using flow_properties_type = Non_Dimensional_Navier_Stokes<scalar_type>;
   using grid_type = Grid1D<scalar_type, size_type, global_solution_vector_type, matrix_type>;
-  // using flux_type = Variable_Implicit_Scheme<grid_type>;
-  using flux_type = HLLE_Flux_Matrix_Entries<grid_type, flow_properties_type>;
+  // using flux_type = Implicit_Centered_Difference_4th_Order<grid_type, flow_properties_type>;
+  using flux_type = Implicit_Centered_Difference_2nd_Order<grid_type, flow_properties_type>;
+  // using flux_type = Implicit_HLLE<grid_type, flow_properties_type>;
   using time_stepping_type = Implicit_Marching<grid_type, flow_properties_type>;
   using solver_type = Solver<flow_properties_type, grid_type, flux_type, time_stepping_type>;
 

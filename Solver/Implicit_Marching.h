@@ -6,6 +6,7 @@
 // #include "../Implicit_Flux_and_Sources/Variable_Implicit_Scheme_4th_Order.h"
 // #include "../Implicit_Flux_and_Sources/Variable_Implicit_Scheme_HLLE.h"
 // #include "../Matrix_Inverse/Gaussian_Block_Triagonal_Matrix_Inverse.h"
+// #include "../Matrix_Inverse/Gaussian_Block_Penagonal_Matrix_Inverse.h"
 #include "../Matrix_Inverse/Thomas_Block_Triagonal_Matrix_Inverse.h"
 #include "../Usefull_Headers/Variable_Vector_Isolator.h"
 
@@ -159,8 +160,6 @@ timemarch(flow_properties_type flow,
 #if defined(NUMERICAL_DISSIPATION)
     rhs[i-1] += numerical_dissipation(grid, i, 0.8);
 #endif
-    // rhs[i-1] += numerical_dissipation(grid.global_solution_vector, i, 0.5);
-    // rhs[i-1] += numerical_dissipation(grid.global_solution_vector, i, 0.01);
   }
 // Implicit Boundary Conditions
 #pragma omp single

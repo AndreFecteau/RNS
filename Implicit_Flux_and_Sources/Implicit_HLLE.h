@@ -1,10 +1,10 @@
-#ifndef HLLE_FLUX_MATRIX_ENTRIES_H
-#define HLLE_FLUX_MATRIX_ENTRIES_H
+#ifndef IMPLICIT_HLLE_H
+#define IMPLICIT_HLLE_H
 
 #include "../Explicit_Flux_and_Sources/HLLE.h"
 
 template <typename grid_type, typename flow_type>
-class HLLE_Flux_Matrix_Entries {
+class Implicit_HLLE {
 using global_solution_vector_type = typename grid_type::global_solution_vector_type;
 using solution_vector_type = typename global_solution_vector_type::value_type;
 using scalar_type = typename grid_type::scalar_type;
@@ -13,27 +13,27 @@ using matrix_type = typename grid_type::matrix_type;
  public:
   /////////////////////////////////////////////////////////////////////////
   /// \brief Default constructor.
-  HLLE_Flux_Matrix_Entries() = default;
+  Implicit_HLLE() = default;
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief Copy constructor.
-  HLLE_Flux_Matrix_Entries(const HLLE_Flux_Matrix_Entries&) = default;
+  Implicit_HLLE(const Implicit_HLLE&) = default;
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief Move constructor.
-  HLLE_Flux_Matrix_Entries(HLLE_Flux_Matrix_Entries&&) = default;
+  Implicit_HLLE(Implicit_HLLE&&) = default;
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief Copy assignment operator.
-  HLLE_Flux_Matrix_Entries& operator=(const HLLE_Flux_Matrix_Entries&) = default;
+  Implicit_HLLE& operator=(const Implicit_HLLE&) = default;
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief Move assignment operator.
-  HLLE_Flux_Matrix_Entries& operator=(HLLE_Flux_Matrix_Entries&&) = default;
+  Implicit_HLLE& operator=(Implicit_HLLE&&) = default;
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief Constructor setting up required inputs.
-  HLLE_Flux_Matrix_Entries( const grid_type grid, const flow_type flow,
+  Implicit_HLLE( const grid_type grid, const flow_type flow,
                             const global_solution_vector_type& DeltaUm, const scalar_type dt_in,
                             const scalar_type Theta_in, const scalar_type zeta_in,
                             const size_type cell_index) :
@@ -225,7 +225,7 @@ using matrix_type = typename grid_type::matrix_type;
 };
 
 template <typename grid_type, typename flow_type>
-typename grid_type::matrix_type HLLE_Flux_Matrix_Entries<grid_type, flow_type>::mid_matrix() {
+typename grid_type::matrix_type Implicit_HLLE<grid_type, flow_type>::mid_matrix() {
 
   matrix_type b;
   matrix_type temp;
@@ -295,7 +295,7 @@ typename grid_type::matrix_type HLLE_Flux_Matrix_Entries<grid_type, flow_type>::
 }
 
 template <typename grid_type, typename flow_type>
-typename grid_type::matrix_type HLLE_Flux_Matrix_Entries<grid_type, flow_type>::top_matrix() {
+typename grid_type::matrix_type Implicit_HLLE<grid_type, flow_type>::top_matrix() {
 
   matrix_type c;
   matrix_type temp;
@@ -348,7 +348,7 @@ typename grid_type::matrix_type HLLE_Flux_Matrix_Entries<grid_type, flow_type>::
 }
 
 template <typename grid_type, typename flow_type>
-typename grid_type::matrix_type HLLE_Flux_Matrix_Entries<grid_type, flow_type>::bot_matrix() {
+typename grid_type::matrix_type Implicit_HLLE<grid_type, flow_type>::bot_matrix() {
 
   matrix_type a;
   matrix_type temp;
@@ -405,7 +405,7 @@ typename grid_type::matrix_type HLLE_Flux_Matrix_Entries<grid_type, flow_type>::
 
 template <typename grid_type, typename flow_type>
 typename grid_type::global_solution_vector_type::value_type
-HLLE_Flux_Matrix_Entries<grid_type, flow_type>::rhs_matrix() {
+Implicit_HLLE<grid_type, flow_type>::rhs_matrix() {
 
   HLLE<global_solution_vector_type> hyperbolic_flux;
   solution_vector_type rhs;
@@ -486,4 +486,4 @@ HLLE_Flux_Matrix_Entries<grid_type, flow_type>::rhs_matrix() {
   return rhs;
 }
 
-#endif //#ifndef HLLE_FLUX_MATRIX_ENTRIES_H
+#endif //#ifndef IMPLICIT_HLLE_H

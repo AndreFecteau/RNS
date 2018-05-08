@@ -1,8 +1,8 @@
-#ifndef VARIABLE_IMPLICIT_SCHEME_H
-#define VARIABLE_IMPLICIT_SCHEME_H
+#ifndef IMPLICIT_CENTERED_DIFFERENCE_2ND_ORDER_H
+#define IMPLICIT_CENTERED_DIFFERENCE_2ND_ORDER_H
 
 template <typename grid_type, typename flow_type>
-class Variable_Implicit_Scheme {
+class Implicit_Centered_Difference_2nd_Order {
 using global_solution_vector_type = typename grid_type::global_solution_vector_type;
 using solution_vector_type = typename global_solution_vector_type::value_type;
 using scalar_type = typename grid_type::scalar_type;
@@ -12,27 +12,27 @@ using matrix_type = typename grid_type::matrix_type;
  public:
   /////////////////////////////////////////////////////////////////////////
   /// \brief Default constructor.
-  Variable_Implicit_Scheme() = default;
+  Implicit_Centered_Difference_2nd_Order() = default;
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief Copy constructor.
-  Variable_Implicit_Scheme(const Variable_Implicit_Scheme&) = default;
+  Implicit_Centered_Difference_2nd_Order(const Implicit_Centered_Difference_2nd_Order&) = default;
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief Move constructor.
-  Variable_Implicit_Scheme(Variable_Implicit_Scheme&&) = default;
+  Implicit_Centered_Difference_2nd_Order(Implicit_Centered_Difference_2nd_Order&&) = default;
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief Copy assignment operator.
-  Variable_Implicit_Scheme& operator=(const Variable_Implicit_Scheme&) = default;
+  Implicit_Centered_Difference_2nd_Order& operator=(const Implicit_Centered_Difference_2nd_Order&) = default;
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief Move assignment operator.
-  Variable_Implicit_Scheme& operator=(Variable_Implicit_Scheme&&) = default;
+  Implicit_Centered_Difference_2nd_Order& operator=(Implicit_Centered_Difference_2nd_Order&&) = default;
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief Constructor setting up required inputs.
-  Variable_Implicit_Scheme( const grid_type grid, const flow_type flow,
+  Implicit_Centered_Difference_2nd_Order( const grid_type grid, const flow_type flow,
                             const global_solution_vector_type& DeltaUm, const scalar_type dt_in,
                             const scalar_type Theta_in, const scalar_type zeta_in,
                             const size_type cell_index) :
@@ -90,7 +90,7 @@ using matrix_type = typename grid_type::matrix_type;
 
 
 template <typename grid_type, typename flow_type>
-typename grid_type::matrix_type Variable_Implicit_Scheme<grid_type, flow_type>::mid_matrix() {
+typename grid_type::matrix_type Implicit_Centered_Difference_2nd_Order<grid_type, flow_type>::mid_matrix() {
 
   matrix_type b;
   matrix_type temp;
@@ -161,7 +161,7 @@ typename grid_type::matrix_type Variable_Implicit_Scheme<grid_type, flow_type>::
 }
 
 template <typename grid_type, typename flow_type>
-typename grid_type::matrix_type Variable_Implicit_Scheme<grid_type, flow_type>::top_matrix() {
+typename grid_type::matrix_type Implicit_Centered_Difference_2nd_Order<grid_type, flow_type>::top_matrix() {
 
   matrix_type c;
   matrix_type temp;
@@ -210,7 +210,7 @@ typename grid_type::matrix_type Variable_Implicit_Scheme<grid_type, flow_type>::
 }
 
 template <typename grid_type, typename flow_type>
-typename grid_type::matrix_type Variable_Implicit_Scheme<grid_type, flow_type>::bot_matrix() {
+typename grid_type::matrix_type Implicit_Centered_Difference_2nd_Order<grid_type, flow_type>::bot_matrix() {
 
   matrix_type a;
   matrix_type temp;
@@ -259,7 +259,7 @@ typename grid_type::matrix_type Variable_Implicit_Scheme<grid_type, flow_type>::
 
 template <typename grid_type, typename flow_type>
 typename grid_type::global_solution_vector_type::value_type
-Variable_Implicit_Scheme<grid_type, flow_type>::rhs_matrix() {
+Implicit_Centered_Difference_2nd_Order<grid_type, flow_type>::rhs_matrix() {
 
   solution_vector_type rhs;
   solution_vector_type temp;
@@ -310,13 +310,8 @@ Variable_Implicit_Scheme<grid_type, flow_type>::rhs_matrix() {
    }
 
 #endif
-  // auto var_vec_l = Variable_Vector_Isolator<grid_type>(solution_vector_m, gamma);
-  // auto var_vec = Variable_Vector_Isolator<grid_type>(solution_vector, gamma);
-  // auto var_vec_r = Variable_Vector_Isolator<grid_type>(solution_vector_p, gamma);
-  //
-  //  rhs += (hyperbolic_flux.flux(var_vec_l.w(), var_vec.w(), gamma) - hyperbolic_flux.flux(var_vec.w(), var_vec_r.w(), gamma)) /dx*dt;
 
   return rhs;
 }
 
-#endif //#ifndef VARIABLE_IMPLICIT_SCHEME_H
+#endif //#ifndef IMPLICIT_CENTERED_DIFFERENCE_2ND_ORDER_H

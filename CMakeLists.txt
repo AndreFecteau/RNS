@@ -3,7 +3,6 @@
 # $ cmake --version
 cmake_minimum_required (VERSION 3.2 FATAL_ERROR)
 
-
 # Set the project name
 project (RNS_Solver CXX)
 
@@ -49,7 +48,7 @@ if(Eigen3_FOUND)
  set(TARGET_LINK_LIBRARIES_PATH "Eigen3::Eigen")
 else()
   include_directories ( "/usr/include/eigen3" )
-  message ("Cannot find OpenMP; using default path /usr/include/eigen3")
+  message ("Cannot find Eigen3; using default path /usr/include/eigen3")
 endif()
 
 # find a Cereal install
@@ -63,8 +62,6 @@ endif()
 
 # find a OpenMP install
 find_package (OpenMP)
-
-# Add OpenMP Flags if found
 if(OpenMP_FOUND)
  message ("OpenMP found")
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
