@@ -32,10 +32,10 @@ CHECK_CXX_COMPILER_FLAG("-std=c++17" COMPILER_SUPPORTS_CXX17)
 CHECK_CXX_COMPILER_FLAG("-std=c++14" COMPILER_SUPPORTS_CXX14)
 
 # check results and add flag
-if(COMPILER_SUPPORTS_CXX17)#
+if(COMPILER_SUPPORTS_CXX17)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
     set(CMAKE_CXX_STANDARD 17)
-elseif(COMPILER_SUPPORTS_CXX14)#
+elseif(COMPILER_SUPPORTS_CXX14)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
     set(CMAKE_CXX_STANDARD 14)
 else()
@@ -43,7 +43,7 @@ else()
 endif()
 
 # find a Eigen install
-find_package (Eigen3 3.3.4)
+find_package (Eigen3 3.2.8)
 if(Eigen3_FOUND)
  message ("Eigen3 found")
  set(TARGET_LINK_LIBRARIES_PATH "${TARGET_LINK_LIBRARIES_PATH} Eigen3::Eigen")
@@ -53,7 +53,7 @@ else()
 endif()
 
 # find a Cereal install
-find_package (Cereal)
+find_package (Cereal SILENT)
 if(Cereal_FOUND)
  message ("Cereal found")
 else()
