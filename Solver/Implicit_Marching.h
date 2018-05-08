@@ -9,6 +9,7 @@
 // #include "../Matrix_Inverse/Gaussian_Block_Penagonal_Matrix_Inverse.h"
 #include "../Matrix_Inverse/Thomas_Block_Triagonal_Matrix_Inverse.h"
 #include "../Usefull_Headers/Variable_Vector_Isolator.h"
+#include "../Usefull_Headers/Math.h"
 
 template <typename grid_type, typename flow_properties_type>
 class Implicit_Marching {
@@ -39,78 +40,83 @@ class Implicit_Marching {
   /// \brief Move assignment operator.
   Implicit_Marching& operator=(Implicit_Marching&&) = default;
 
-  Implicit_Marching(scalar_type Theta_in, scalar_type zeta_in) : Theta(Theta_in), zeta(zeta_in) {}
+  Implicit_Marching(scalar_type Theta_in, scalar_type zeta_in,
+                    scalar_type dissipation_magnitude_in = 0.0) :
+                    Theta(Theta_in), zeta(zeta_in),
+                    dissipation_magnitude(dissipation_magnitude_in) {}
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief Execute step in time.
   /// \param frame_time Time to stop the time marching.
   /// \param global_solution_vector vector containing cell states from all the cells.
   template <typename flux_type>
-  scalar_type timemarch(flow_properties_type flow, grid_type& grid, scalar_type CFL, scalar_type frame_time);
+  scalar_type timemarch(flow_properties_type flow,
+                        grid_type& grid, scalar_type CFL,
+                        scalar_type frame_time);
 
   /////////////////////////////////////////////////////////////////////////
-  /// \brief
-  /// \param
-  // scalar_type get_dx() {return dx;}
+  /// \brief Change private variable Theta.
+  /// \param new_Theta New value for Theta.
+  void change_Theta(scalar_type new_Theta) {Theta = new_Theta;}
 
   /////////////////////////////////////////////////////////////////////////
-  /// \brief
-  /// \param
-  // void reduce_CFL() {CFL /= 2.0; std::cout << "Reduced CFL: " << CFL << std::endl;}
+  /// \brief Change private variable zeta.
+  /// \param new_zeta New value for zeta.
+  void change_zeta(scalar_type new_zeta) {zeta = new_zeta;}
 
   /////////////////////////////////////////////////////////////////////////
-  /// \brief
-  /// \param
+  /// \brief Change private variable dissipation_magnitude.
+  /// \param new_dissipation_magnitude New value for dissipation_magnitude.
+  void change_dissipation_magnitude(scalar_type new_dissipation_magnitude) {
+          dissipation_magnitude = new_dissipation_magnitude;
+        }
+
+  /////////////////////////////////////////////////////////////////////////
+  /// \brief Function used by cereal for the .cereal restart files.
+  /// \param Archive The cereal archive used to store all the variables.
   template<typename Archive>
   void serialize(Archive& archive) {
-    archive(zeta, Theta);
+    archive(zeta, Theta, dissipation_magnitude);
   }
 
  private:
-  scalar_type Theta;
-  scalar_type zeta;
+  scalar_type Theta, zeta; // variable deciding what order in time and how implicit is the scheme.
+  scalar_type dissipation_magnitude; // used to scale the numerical_dissipation;
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief Calculates maximum stable timestep.
-  /// \param global_solution_vector vector containing cell states from all the cells.
+  /// \param grid Struct containing all elements needed for the grid.
+  /// \param flow Struct containing all elements needed to define the flow.
+  /// \param CFL Numerical limit of the timestep(Courant–Friedrichs–Lewy).
   scalar_type calculate_dt(const grid_type& grid,  const flow_properties_type& flow, const scalar_type& CFL);
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief Calculates wavespeed for timestep control.
-  /// \param global_solution_vector vector containing cell states from all the cells.
+  /// \param grid Struct containing all elements needed for the grid.
+  /// \param flow Struct containing all elements needed to define the flow.
   scalar_type lambda_eigenvalue(const grid_type& grid, const flow_properties_type& flow);
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief Calculates the variable for timestep control from second order
   ///        derivatives.
-  /// \param global_solution_vector vector containing cell states from all the cells.
+  /// \param grid Struct containing all elements needed for the grid.
+  /// \param flow Struct containing all elements needed to define the flow.
   scalar_type K_value(const grid_type& grid, const flow_properties_type& flow);
 
   /////////////////////////////////////////////////////////////////////////
-  /// \brief
-  /// \param
-  scalar_type squaredNorm(const solution_vector_type solution_vector){
-    return sqrt(solution_vector[0]*solution_vector[0] +
-                solution_vector[1]*solution_vector[1] +
-                solution_vector[2]*solution_vector[2] +
-                solution_vector[3]*solution_vector[3]);
-  }
+  /// \brief Add's numerical_dissipation, scales with dissipation_magnitude(0->1);
+  /// \param grid Struct containing all elements needed for the grid.
+  /// \param i Index of the cell in use.
+  solution_vector_type numerical_dissipation(const grid_type& grid, const size_type& i);
 
   /////////////////////////////////////////////////////////////////////////
-  /// \brief
-  /// \param
-  solution_vector_type numerical_dissipation(const grid_type& grid, const size_type i, const scalar_type omega);
-
-  /////////////////////////////////////////////////////////////////////////
-  /// \brief
-  /// \param
-  solution_vector_type manufactured_residual(const scalar_type lambda, const size_type i, grid_type grid, flow_properties_type flow);
-
-  /////////////////////////////////////////////////////////////////////////
-  /// \brief
-  /// \param
-  template <typename T>
-  scalar_type Power(const T num, const size_type expo) {return pow(num, expo);}
+  /// \brief Used to validate the numerical code.
+  /// \param grid Struct containing all elements needed for the grid.
+  /// \param flow Struct containing all elements needed to define the flow.
+  /// \param i Index of the cell in use.
+  solution_vector_type manufactured_residual(const grid_type& grid,
+                                             const flow_properties_type& flow,
+                                             const size_type& i);
 };
 
 
@@ -146,6 +152,7 @@ timemarch(flow_properties_type flow,
   }
 }
 
+// fille time-space matrix
 #pragma omp for
   for(size_type i = 1; i < grid.number_of_cells() - 1; ++i) {
     auto matrix_entries = flux_type(grid, flow, delta_global_solution_vector,
@@ -154,13 +161,12 @@ timemarch(flow_properties_type flow,
     bot[i-1] = matrix_entries.bot_matrix();
     top[i-1] = matrix_entries.top_matrix();
     rhs[i-1] = matrix_entries.rhs_matrix();
-#if defined(MANUFACTURED)
-    rhs[i-1] += manufactured_residual(flow.lambda, i, grid, flow)*dt/(1+zeta);
-#endif
-#if defined(NUMERICAL_DISSIPATION)
-    rhs[i-1] += numerical_dissipation(grid, i, 0.8);
-#endif
+    rhs[i-1] += numerical_dissipation(grid, i);
+  #if defined(MANUFACTURED)
+    rhs[i-1] += manufactured_residual(grid, flow, i) * dt/(1+zeta);
+  #endif
   }
+
 // Implicit Boundary Conditions
 #pragma omp single
 {
@@ -172,9 +178,11 @@ timemarch(flow_properties_type flow,
 #endif
 }
 
+// Calculate Flux
 #pragma omp single
   delta_global_solution_vector = block_triagonal_matrix_inverse<matrix_type, solution_vector_type>(mid, top, bot, rhs);
 
+// Add Flux to Global Solution Vector
 #pragma omp for
   for (size_type i = 1; i < grid.number_of_cells()-1; ++i) {
     if(current_time == 0.0) {
@@ -195,10 +203,13 @@ timemarch(flow_properties_type flow,
 #endif
   }
 
+// Advance time
 #pragma omp single
   current_time += dt;
   }
-  residual = 0.0;
+
+// Calculate residual
+residual = 0.0;
 #pragma omp for reduction(+: residual)
   for (size_type i = 1; i < grid.number_of_cells()-1; ++i) {
     residual += delta_global_solution_vector[i-1].squaredNorm() * grid.dx() / dt;
@@ -216,6 +227,7 @@ calculate_dt(const grid_type& grid, const flow_properties_type& flow, const scal
   scalar_type dt1 = CFL * grid.dx() / lambda_eigenvalue(grid, flow);
   scalar_type dt2 = CFL * grid.dx()*grid.dx() / (K_value(grid, flow));
 
+  // nedded when rho become nan dt = 0;
   if(isnan(grid.global_solution_vector[1][2])){
     dt1 = 1e4;
     dt2 = 1e4;
@@ -262,29 +274,33 @@ K_value(const grid_type& grid, const flow_properties_type& flow) {
 ///////////////////////////////////////////////////////////////////////////////
 template <typename grid_type, typename flow_properties_type>
 typename grid_type::global_solution_vector_type::value_type Implicit_Marching<grid_type, flow_properties_type>::
-numerical_dissipation(const grid_type &grid, const size_type i, const scalar_type omega) {
-            return -omega/(1.0+zeta)/8.0*(grid.global_solution_vector[std::min(i+2,grid.number_of_cells()-1)] -
-                                        4.0*grid.global_solution_vector[std::min(i+1,grid.number_of_cells()-1)] +
-                                        6.0*grid.global_solution_vector[i] -
-                                        4.0*grid.global_solution_vector[std::max(static_cast<int>(i)-1,0)] +
-                                        grid.global_solution_vector[std::max(static_cast<int>(i)-2,0)]);
+numerical_dissipation(const grid_type& grid, const size_type& i) {
+            return -dissipation_magnitude/(1.0+zeta)/8.0*(
+                   grid.global_solution_vector[std::min(i+2,grid.number_of_cells()-1)] -
+                   4.0*grid.global_solution_vector[std::min(i+1,grid.number_of_cells()-1)] +
+                   6.0*grid.global_solution_vector[i] -
+                   4.0*grid.global_solution_vector[std::max(static_cast<int>(i)-1,0)] +
+                   grid.global_solution_vector[std::max(static_cast<int>(i)-2,0)]);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 // Manufactured Solution
 ///////////////////////////////////////////////////////////////////////////////
 template <typename grid_type, typename flow_properties_type>
-typename grid_type::global_solution_vector_type::value_type Implicit_Marching<grid_type, flow_properties_type>::manufactured_residual(const scalar_type lambda, const size_type i, grid_type grid, flow_properties_type flow) {
+typename grid_type::global_solution_vector_type::value_type Implicit_Marching<grid_type, flow_properties_type>::
+manufactured_residual(const grid_type& grid, const flow_properties_type& flow, const size_type& i) {
+  using namespace math;
     solution_vector_type temp;
     solution_vector_type man_sol;
-    scalar_type Pr = flow.Pr;
-    scalar_type Le = flow.Le;
-    scalar_type Q = flow.Q();
-    scalar_type theta = flow.theta();
-    scalar_type gamma = flow.gamma;
+    const scalar_type Pr = flow.Pr;
+    const scalar_type Le = flow.Le;
+    const scalar_type Q = flow.Q();
+    const scalar_type theta = flow.theta();
+    const scalar_type gamma = flow.gamma;
+    const scalar_type lambda = flow.lambda;
 
     man_sol << 0,0,0,0;
-    scalar_type x = grid.dx()*(i+0.5);
+    const scalar_type x = grid.dx()*(i+0.5);
     ///////////////////////////////////////////////////////////////////////////////
     // Hyperbolic
     ///////////////////////////////////////////////////////////////////////////////

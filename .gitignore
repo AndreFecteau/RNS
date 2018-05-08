@@ -11,6 +11,9 @@ CMakeCache.txt
 /Movie_Test/
 /dat_saves/
 /dat_saves_temp/
+/Images/
+/Latex/
+
 # ignore a file type
 #*.json
 *.log

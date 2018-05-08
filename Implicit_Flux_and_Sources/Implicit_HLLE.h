@@ -1,7 +1,7 @@
 #ifndef IMPLICIT_HLLE_H
 #define IMPLICIT_HLLE_H
 
-#include "../Explicit_Flux_and_Sources/HLLE.h"
+#include "HLLE.h"
 
 template <typename grid_type, typename flow_type>
 class Implicit_HLLE {

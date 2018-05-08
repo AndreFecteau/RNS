@@ -1,10 +1,10 @@
 #define HYPERBOLIC
 #define VISCOUS
 #define SOURCE
-// #define MANUFACTURED
 #define RECENTER_FLAME
-#define NUMERICAL_DISSIPATION
-// #define HLLE_FLUX
+// #define RIGHT_CST_EXTR
+// #define LEFT_CST_EXTR
+// #define MANUFACTURED
 
 #include <iomanip>
 #include <fenv.h>
@@ -14,12 +14,9 @@
 #include "Gnuplot_RNS/Gnuplot_Primitive_Variables.h"
 #include "Gnuplot_RNS/Gnuplot_Primitive_Variables_Reduced.h"
 #include "Solver/Implicit_Marching.h"
-// #include "Solver/Implicit_Marching_4th_Order.h"
-// #include "Solver/Explicit_Marching.h"
 #include "Usefull_Headers/Handle_Itterative_Lambda.h"
 #include "Physical_Property/Non_Dimensional_Navier_Stokes.h"
 #include "Grid/Grid1D.h"
-// #include "Implicit_Flux_and_Sources/Implicit_Centered_Difference_4th_Order.h"
 #include "Implicit_Flux_and_Sources/Implicit_Centered_Difference_2nd_Order.h"
 #include "Implicit_Flux_and_Sources/Implicit_HLLE.h"
 #include "Usefull_Headers/Initial_Conditions.h"
