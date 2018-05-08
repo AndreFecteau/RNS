@@ -43,7 +43,7 @@ else()
 endif()
 
 # find a Eigen install
-find_package (Eigen3 3.3.4 REQUIRED)
+find_package (Eigen3 3.3.4)
 if(Eigen3_FOUND)
  message ("Eigen3 found")
  set(TARGET_LINK_LIBRARIES_PATH "${TARGET_LINK_LIBRARIES_PATH} Eigen3::Eigen")
@@ -53,7 +53,7 @@ else()
 endif()
 
 # find a Cereal install
-find_package (Cereal REQUIRED)
+find_package (Cereal)
 if(Cereal_FOUND)
  message ("Cereal found")
 else()
@@ -79,8 +79,8 @@ add_executable (RNS_Solver RNS_Main.cpp)
 add_executable (RNS_Solver_restart RNS_Load.cpp)
 
 # Link Eigen librairies
-target_link_libraries (RNS_Solver Eigen3::Eigen)
-target_link_libraries (RNS_Solver_restart Eigen3::Eigen)
+target_link_libraries (RNS_Solver ${TARGET_LINK_LIBRARIES_PATH})
+target_link_libraries (RNS_Solver_restart ${TARGET_LINK_LIBRARIES_PATH})
 
 # add_executable (RNS_Solver_test Block_Triagonal_Matrix_Inverse_Test.cpp)
 # target_link_libraries (RNS_Solver_test Eigen3::Eigen)
