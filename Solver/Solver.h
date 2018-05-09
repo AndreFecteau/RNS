@@ -179,28 +179,17 @@ using size_type = typename grid_type::size_type;
   /////////////////////////////////////////////////////////////////////////
   /// \brief
   /// \param
-  // void manufactured_solution_residual(time_stepping_type march);
+  void manufactured_solution_residual();
 
-  bool flame_left_domaine(const size_type &position, scalar_type &frame_time_temp) {
-    bool check = position < 100*grid.per_FL() || position > grid.number_of_cells()*0.9;
-    if(check) {
-      grid.global_solution_vector = global_solution_vector_backup;
-      frame_time_temp *= 0.5;
-      std::cout << ":" << std::endl;
-    }
-    return check;
-  }
+  /////////////////////////////////////////////////////////////////////////
+  /// \brief
+  /// \param
+  bool flame_left_domaine(const size_type &position, scalar_type &frame_time_temp);
 
-  bool solution_is_unstable(const scalar_type &residual, scalar_type &frame_CFL, scalar_type &frame_time_temp) {
-    bool check = isnan(residual) || residual > 1e10;
-    if(check){
-      grid.global_solution_vector = global_solution_vector_backup;
-      frame_CFL *= 0.5;
-      frame_time_temp *= 0.5;
-      std::cout << "." << std::flush;
-    }
-    return check;
-  }
+  /////////////////////////////////////////////////////////////////////////
+  /// \brief
+  /// \param
+  bool solution_is_unstable(const scalar_type &residual, scalar_type &frame_CFL, scalar_type &frame_time_temp);
 
 };
 
@@ -212,7 +201,7 @@ bool Solver<flow_properties_type, grid_type, flux_type, time_stepping_type>::
 solve(const size_type number_of_frames) {
 
   std::cout << "//////////////////////" << std::endl;
-  std::cout << "Lambda = " << flow.lambda << std::endl;
+  std::cout << "Solver"<< std::endl;
   std::cout << "//////////////////////" << std::endl;
 
   scalar_type residual = std::numeric_limits<scalar_type>::max();
@@ -254,10 +243,11 @@ solve(const size_type number_of_frames) {
 #endif
     frame_time_temp = frame_time;
     frame_CFL = CFL;
-
     }
+#if defined(MANUFACTURED)
+    manufactured_solution_residual();
+#endif
   }
-
   const size_type h = std::max(static_cast<int>(5*grid.per_FL()), static_cast<int>(5*grid.per_FL()-(position - flame_location*grid.per_FL())));
   if(grid.global_solution_vector[h][1] / grid.global_solution_vector[h][0] < 1.0) {
     return 0;
@@ -269,30 +259,32 @@ solve(const size_type number_of_frames) {
 ///////////////////////////////////////////////////////////////////////////////
 // Manufactured Solution Residual
 ///////////////////////////////////////////////////////////////////////////////
-// template <typename flow_properties_type, typename grid_type, typename flux_type, typename time_stepping_type>
-// void Solver<flow_properties_type, grid_type, flux_type, time_stepping_type>::
-// manufactured_solution_residual(time_stepping_type march) {
-//   std::cout << march.get_dx() << std::endl;
-//   for (size_t i = 0; i < initial_solution.size(); ++i) {
-//    scalar_type x = (i+0.5)*march.get_dx();
-//     initial_solution[i] << (-0.45*tanh(4.0 * x - 10.0) + 0.55),
-//                           (-0.45*tanh(4.0 * x - 10.0) + 0.55)*(4.5*tanh(4.0 * x - 10.0) + 5.5),
-//                           2.0*tanh(4.0*x - 10.0) + 70000,
-//                           (-0.45*tanh(4.0 * x - 10.0) + 0.55)*(-0.5*tanh(x - 8.0/4.0) + 0.5);
-//   }
-//   scalar_type convergence = 0.0;
-//   for(size_t i = 0; i < initial_solution.size(); ++i) {
-//    for(size_type j = 0; j < 4; ++j){
-//      convergence += std::pow(std::fabs(initial_solution[i][j]-global_solution_vector[i][j]),2)*march.get_dx();
-//    }
-//   }
-//
-//   convergence = std::sqrt(convergence);
-//   std::cout << "convergence:" << convergence << std::endl;
-//   std::ofstream gnu_input_file;
-//   gnu_input_file.open("Convergence_Plot.dat", std::ios_base::app);
-//   gnu_input_file << global_solution_vector.size() << " " <<  convergence << " " << current_time << std::endl;
-// }
+template <typename flow_properties_type, typename grid_type, typename flux_type, typename time_stepping_type>
+void Solver<flow_properties_type, grid_type, flux_type, time_stepping_type>::
+manufactured_solution_residual() {
+  global_solution_vector_type initial_solution = global_solution_vector_type(grid.number_of_cells(),
+  solution_vector_type::Zero());
+  for (size_t i = 0; i < grid.number_of_cells(); ++i) {
+   scalar_type x = (i+0.5)*grid.dx();
+    initial_solution[i] << (-0.45*tanh(4.0 * x - 10.0) + 0.55),
+                          (-0.45*tanh(4.0 * x - 10.0) + 0.55)*(4.5*tanh(4.0 * x - 10.0) + 5.5),
+                          2.0*tanh(4.0*x - 10.0) + 70000,
+                          (-0.45*tanh(4.0 * x - 10.0) + 0.55)*(-0.5*tanh(x - 8.0/4.0) + 0.5);
+  }
+  scalar_type convergence = 0.0;
+  for(size_t i = 0; i < initial_solution.size(); ++i) {
+   for(size_type j = 0; j < 4; ++j){
+     convergence += std::pow(std::fabs(initial_solution[i][j]-grid.global_solution_vector[i][j]),2)*grid.dx();
+   }
+  }
+
+  convergence = std::sqrt(convergence);
+  std::cout << "convergence: " << convergence << std::endl;
+  std::ofstream gnu_input_file;
+  gnu_input_file.open("Convergence_Plot.dat", std::ios_base::app);
+  gnu_input_file << grid.number_of_cells() << " " <<  convergence << " " << current_time << std::endl;
+  gnu_input_file.close();
+}
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -434,36 +426,67 @@ refine(size_type per_flame_length) {
 template <typename flow_properties_type, typename grid_type, typename flux_type, typename time_stepping_type>
 void Solver<flow_properties_type, grid_type, flux_type, time_stepping_type>::
 plot_limiter() {
-    global_solution_vector_type min_mod(grid.number_of_cells());
-    global_solution_vector_type van_albada(grid.number_of_cells());
-    global_solution_vector_type solution_vector_rho(grid.number_of_cells());
-    for (size_type j = 0; j < grid.number_of_cells(); ++j){
-      auto var_vec_m = Variable_Vector_Isolator<grid_type>(grid.global_solution_vector[std::max(0,static_cast<int>(j)-1)], flow.gamma);
-      auto var_vec = Variable_Vector_Isolator<grid_type>(grid.global_solution_vector[j], flow.gamma);
-      auto var_vec_p = Variable_Vector_Isolator<grid_type>(grid.global_solution_vector[std::min(j+1, grid.number_of_cells() -1)], flow.gamma);
-      const solution_vector_type U = var_vec.w();
-      const solution_vector_type Ul =var_vec_m.w();
-      const solution_vector_type Ur = var_vec_p.w();
+  global_solution_vector_type min_mod(grid.number_of_cells());
+  global_solution_vector_type van_albada(grid.number_of_cells());
+  global_solution_vector_type solution_vector_rho(grid.number_of_cells());
+  for (size_type j = 0; j < grid.number_of_cells(); ++j){
+    auto var_vec_m = Variable_Vector_Isolator<grid_type>(grid.global_solution_vector[std::max(0,static_cast<int>(j)-1)], flow.gamma);
+    auto var_vec = Variable_Vector_Isolator<grid_type>(grid.global_solution_vector[j], flow.gamma);
+    auto var_vec_p = Variable_Vector_Isolator<grid_type>(grid.global_solution_vector[std::min(j+1, grid.number_of_cells() -1)], flow.gamma);
+    const solution_vector_type U = var_vec.w();
+    const solution_vector_type Ul =var_vec_m.w();
+    const solution_vector_type Ur = var_vec_p.w();
 
-      const solution_vector_type a = (U - Ul) / grid.dx();
-      const solution_vector_type b = (Ur - U) / grid.dx();
-      for(size_type i = 0; i < 4; ++i) {
-        min_mod[j][i] = math::sign(a[i])*std::max(0.0,static_cast<scalar_type>(std::min(fabs(a[i]), math::sign(a[i])*b[i])));
-      }
-
-      double epsilon = 1.0e-6;
-      van_albada[j] =  a.array() * b.array() * (a.array() + b.array()) / (a.array() * a.array() + b.array() * b.array() + epsilon);
-      for (int i = 0; i < 4; ++i) {
-        if (a[i] / b[i] <= 0.0 || b[i] == 0) {
-          van_albada[j][i] = 0.0;
-        }
-      }
-     solution_vector_rho[j] = grid.global_solution_vector[j] / grid.global_solution_vector[j][0];
+    const solution_vector_type a = (U - Ul) / grid.dx();
+    const solution_vector_type b = (Ur - U) / grid.dx();
+    for(size_type i = 0; i < 4; ++i) {
+      min_mod[j][i] = math::sign(a[i])*std::max(0.0,static_cast<scalar_type>(std::min(fabs(a[i]), math::sign(a[i])*b[i])));
     }
-    plot_v<global_solution_vector_type>("min_mod", min_mod, grid.dx());
-    plot_v<global_solution_vector_type>("van_albada", van_albada, grid.dx());
-    plot_v<global_solution_vector_type>("solution_vector", grid.global_solution_vector, grid.dx());
-    plot_v<global_solution_vector_type>("solution_vector_rho", solution_vector_rho, grid.dx());
+
+    double epsilon = 1.0e-6;
+    van_albada[j] =  a.array() * b.array() * (a.array() + b.array()) / (a.array() * a.array() + b.array() * b.array() + epsilon);
+    for (int i = 0; i < 4; ++i) {
+      if (a[i] / b[i] <= 0.0 || b[i] == 0) {
+        van_albada[j][i] = 0.0;
+      }
+    }
+   solution_vector_rho[j] = grid.global_solution_vector[j] / grid.global_solution_vector[j][0];
   }
+  plot_v<global_solution_vector_type>("min_mod", min_mod, grid.dx());
+  plot_v<global_solution_vector_type>("van_albada", van_albada, grid.dx());
+  plot_v<global_solution_vector_type>("solution_vector", grid.global_solution_vector, grid.dx());
+  plot_v<global_solution_vector_type>("solution_vector_rho", solution_vector_rho, grid.dx());
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// flame_left_domaine
+///////////////////////////////////////////////////////////////////////////////
+template <typename flow_properties_type, typename grid_type, typename flux_type, typename time_stepping_type>
+bool Solver<flow_properties_type, grid_type, flux_type, time_stepping_type>::
+flame_left_domaine(const size_type &position, scalar_type &frame_time_temp) {
+  bool check = position < 100*grid.per_FL() || position > grid.number_of_cells()*0.9;
+  if(check) {
+    grid.global_solution_vector = global_solution_vector_backup;
+    frame_time_temp *= 0.5;
+    std::cout << ":" << std::flush;
+  }
+  return check;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// solution_is_unstable
+///////////////////////////////////////////////////////////////////////////////
+template <typename flow_properties_type, typename grid_type, typename flux_type, typename time_stepping_type>
+bool Solver<flow_properties_type, grid_type, flux_type, time_stepping_type>::
+solution_is_unstable(const scalar_type &residual, scalar_type &frame_CFL, scalar_type &frame_time_temp) {
+  bool check = isnan(residual) || residual > 1e10;
+  if(check){
+    grid.global_solution_vector = global_solution_vector_backup;
+    frame_CFL *= 0.5;
+    frame_time_temp *= 0.5;
+    std::cout << "." << std::flush;
+  }
+  return check;
+}
 
 #endif //#ifndef SOLVER_H

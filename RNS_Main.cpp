@@ -23,7 +23,7 @@
 #include "Usefull_Headers/Read_from_file.h"
 
 int main(){
-  std::cout << std::setprecision(10);
+  // std::cout << std::setprecision(10);
 
   using scalar_type = double;
   using size_type = size_t;
@@ -62,7 +62,7 @@ int main(){
   scalar_type x_min = 0.0;
   scalar_type domaine_length = 500;
   scalar_type x_max = x_min + domaine_length;
-  scalar_type per_FL = 16.0;
+  scalar_type per_FL = 64.0;
   size_type number_of_cells = domaine_length * per_FL;
   global_solution_vector_type initial_solution = global_solution_vector_type(number_of_cells,
                                                                              Vector_type::Zero());
@@ -73,8 +73,9 @@ int main(){
   scalar_type Theta = 1.0;
   scalar_type zeta = 0.0;
   scalar_type CFL = 5e8;
-  scalar_type frame_time = 5e6;
-  RK4_CJ_point(flow, grid);
+  scalar_type frame_time = 5e0;
+  // RK4_CJ_point(flow, grid);
+  manufactured_solution(flow, grid);
   filename = "Movie/Delete_";
   std::cout << filename << std::endl;
   plot<grid_type>(filename+"0", grid.global_solution_vector, (grid.x_max - grid.x_min)/grid.number_of_cells());
@@ -89,20 +90,20 @@ solver.print_stats();
   bool old_check1 = 1;
   bool old_check2 = 0;
   bool old_check3 = 1;
-  solver.change_lambda(124500);
+  // solver.change_lambda(1000);
   // scalar_type lambda_run = solver.get_lambda();
-  scalar_type lambda_max = solver.get_lambda()*1.001;
-  scalar_type lambda_min = solver.get_lambda()*0.999;
-  int number_of_frames = 3;
-  // solver.solve(number_of_frames);
+  // scalar_type lambda_max = solver.get_lambda()*1.001;
+  // scalar_type lambda_min = solver.get_lambda()*0.999;
+  int number_of_frames = 30;
+  solver.solve(number_of_frames);
 
-  while(fabs(lambda_min - lambda_max) > 1e-8) {
-    bool check;
-    number_of_frames = 3;
-    check = solver.solve(number_of_frames);
-    scalar_type lambda_run = solver.get_lambda();
-    bisection_lambda(lambda_min, lambda_max, lambda_run, check);
-    add_lambda_gap(check, old_check1, old_check2, old_check3, lambda_min, lambda_max);
-    solver.change_lambda(lambda_run);
-  }
+  // while(fabs(lambda_min - lambda_max) > 1e-8) {
+  //   bool check;
+  //   number_of_frames = 3;
+  //   check = solver.solve(number_of_frames);
+  //   scalar_type lambda_run = solver.get_lambda();
+  //   bisection_lambda(lambda_min, lambda_max, lambda_run, check);
+  //   add_lambda_gap(check, old_check1, old_check2, old_check3, lambda_min, lambda_max);
+  //   solver.change_lambda(lambda_run);
+  // }
 };
