@@ -23,7 +23,7 @@
 #include "Usefull_Headers/Read_from_file.h"
 
 int main(){
-  std::cout << std::setprecision(20);
+  std::cout << std::setprecision(10);
 
   using scalar_type = double;
   using size_type = size_t;
@@ -72,8 +72,8 @@ int main(){
 {
   scalar_type Theta = 1.0;
   scalar_type zeta = 0.0;
-  scalar_type CFL = 5e7;
-  scalar_type frame_time = 5e4;
+  scalar_type CFL = 5e8;
+  scalar_type frame_time = 5e6;
   RK4_CJ_point(flow, grid);
   filename = "Movie/Delete_";
   std::cout << filename << std::endl;

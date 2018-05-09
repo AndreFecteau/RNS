@@ -15,15 +15,16 @@ set(VERSION_PATCH 0)
 message(STATUS "We are on a ${CMAKE_SYSTEM_NAME} system")
 message(STATUS "The host processor is ${CMAKE_HOST_SYSTEM_PROCESSOR}")
 
-# example how to set c++ compiler flags for GNU
-if(CMAKE_CXX_COMPILER_ID MATCHES GNU)
-    set(CMAKE_CXX_FLAGS         "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wno-unknown-pragmas -Wno-sign-compare -Woverloaded-virtual -Wwrite-strings -Wno-unused")
-    set(CMAKE_CXX_FLAGS_DEBUG   "-O0 -g3")
-    set(CMAKE_CXX_FLAGS_RELEASE "-O3")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-arcs -ftest-coverage")
-else()
-  message(FATAL_ERROR "Not GNU Compiler, not sure what will happen.")
+# Set a default build type if none was specified
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+  message("Setting build type to 'RelWithDebInfo' as none was specified.")
+  set(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING "Choose the type of build."
+FORCE)
+  # Set the possible values of build type for cmake-gui
+  set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release"
+  "MinSizeRel" "RelWithDebInfo")
 endif()
+
 
 # try conditional compilation
 include(CheckCXXCompilerFlag)
@@ -42,7 +43,7 @@ else()
 endif()
 
 # find a Eigen install
-find_package (Eigen3 3.2.8)
+find_package (Eigen3 3.3 NO_MODULE)
 if(Eigen3_FOUND)
  message ("Eigen3 found")
  set(TARGET_LINK_LIBRARIES_PATH "Eigen3::Eigen")
