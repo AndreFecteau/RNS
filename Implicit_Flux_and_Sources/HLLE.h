@@ -43,9 +43,9 @@ class HLLE {
   /////////////////////////////////////////////////////////////////////////
   /// \brief Function to calculate the flux of the given cells.
   /// \return Flux between cells.
-  solution_vector_type flux(solution_vector_type variable_vector_left,
-                            solution_vector_type variable_vector_right,
-                            double gamma_in) {
+  solution_vector_type flux(const solution_vector_type &variable_vector_left,
+                            const solution_vector_type &variable_vector_right,
+                            const double &gamma_in) {
     gamma = gamma_in;
     rho_right =variable_vector_right[0];
     u_right  = variable_vector_right[1];

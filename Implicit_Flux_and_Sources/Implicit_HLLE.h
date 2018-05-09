@@ -3,6 +3,8 @@
 
 #include "HLLE.h"
 
+using namespace math;
+
 template <typename grid_type, typename flow_type>
 class Implicit_HLLE {
 using global_solution_vector_type = typename grid_type::global_solution_vector_type;
@@ -145,82 +147,29 @@ using matrix_type = typename grid_type::matrix_type;
   /////////////////////////////////////////////////////////////////////////
   /// \brief
   /// \param
-  template <typename T>
-  scalar_type Power(const T& num, const int& expo) {
-    return pow(num, expo);
-  }
+  scalar_type u_rhoavg(const scalar_type &rho_left, const scalar_type &rho_right,
+                       const scalar_type &u_left, const scalar_type &u_right);
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief
   /// \param
-  scalar_type Power(const char&, const scalar_type& expo) {
-    return exp(expo);
-  }
+  scalar_type rho_rhoavg(const scalar_type &rho_left, const scalar_type &rho_right);
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief
   /// \param
-  scalar_type u_rhoavg(scalar_type rho_left, scalar_type rho_right, scalar_type u_left, scalar_type u_right) {
-    return (sqrt(rho_left) * u_left + sqrt(rho_right) * u_right) /
-    (sqrt(rho_left) + sqrt(rho_right));
-  }
+  scalar_type p_rhoavg(const scalar_type &rho_left, const scalar_type &rho_right,
+                       const scalar_type &u_left, const scalar_type &u_right,
+                       const scalar_type &p_left, const scalar_type &p_right,
+                       const scalar_type &gamma);
 
   /////////////////////////////////////////////////////////////////////////
-  /// \brief
-  /// \param
-  scalar_type rho_rhoavg(scalar_type rho_left, scalar_type rho_right) {
-    return sqrt(rho_left * rho_right);
-  }
-
-  /////////////////////////////////////////////////////////////////////////
-  /// \brief
-  /// \param
-  scalar_type p_rhoavg(scalar_type rho_left, scalar_type rho_right, scalar_type u_left, scalar_type u_right,
-                  scalar_type p_left, scalar_type p_right, scalar_type gamma) {
-
-    scalar_type h_left = gamma * p_left / (rho_left * (gamma - 1.0)) + u_left * u_left * 0.5;
-    scalar_type h_right = gamma * p_right / (rho_right * (gamma - 1.0)) + u_right * u_right * 0.5;
-
-    scalar_type h_ravg = (sqrt(rho_left) * h_left + sqrt(rho_right) * h_right) /
-    (sqrt(rho_left) + sqrt(rho_right));
-
-    scalar_type u_ravg = u_rhoavg(rho_left, rho_right, u_left, u_right);
-
-    scalar_type rho_ravg = rho_rhoavg(rho_left, rho_right);
-
-    return (h_ravg - u_ravg*u_ravg * 0.5) * (gamma - 1.0) / gamma * rho_ravg;
-  }
-
-  /////////////////////////////////////////////////////////////////////////
-  /// \brief
+  /// \brief Van Albada limiter
   /// \param
   solution_vector_type limiter(const solution_vector_type &Ul,
                                const solution_vector_type &U,
                                const solution_vector_type &Ur,
-                               scalar_type dx) {
-  // solution_vector_type phi;
-  // solution_vector_type a = (U - Ul) / dx;
-  // solution_vector_type b = (Ur - U) / dx;
-  // for(size_type i = 0; i < 4; ++i) {
-  // phi[i] = sign(a[i])*std::max(0.0,static_cast<scalar_type>(std::min(fabs(a[i]), sign(a[i])*b[i])));
-  // }
-  //   return phi;
-  solution_vector_type a = (U - Ul) / dx;
-  solution_vector_type b = (Ur - U) / dx;
-  double epsilon = 1.0e-6;
-  solution_vector_type phi =  a.array() * b.array() * (a.array() + b.array()) / (a.array() * a.array() + b.array() * b.array() + epsilon);
-  for (int i = 0; i < 4; ++i) {
-    if (a[i] / b[i] <= 0.0 || b[i] == 0) {
-      phi[i] = 0.0;
-    }
-  }
-  return phi;
-  }
-
-  /////////////////////////////////////////////////////////////////////////
-  /// \brief
-  /// \param
-  template <typename T> int sign(T val) {return (T(0) < val) - (val < T(0));}
+                               const scalar_type &dx);
 
 };
 
@@ -419,36 +368,18 @@ Implicit_HLLE<grid_type, flow_type>::rhs_matrix() {
 ///////////////////////////////////////////////////////////////////////////////
 #if defined(HYPERBOLIC)
 
-  // temp << (dt*((LlambdaL*LlambdaR*(rho - rhom))/(-LlambdaL + LlambdaR) - ((-rho + rhop)*RlambdaL*RlambdaR)/(-RlambdaL + RlambdaR) +
-  //       (-(LlambdaL*rho*u) + LlambdaR*rhom*um)/(-LlambdaL + LlambdaR) - (rho*RlambdaR*u - rhop*RlambdaL*up)/(-RlambdaL + RlambdaR)))/(dx*(1 + zeta)),
-  //  (dt*((LlambdaL*LlambdaR*(rho*u - rhom*um))/(-LlambdaL + LlambdaR) +
-  //       (-(LlambdaL*(rho*Power(u,2) + (-1 + gamma)*(e - (rho*Power(u,2))/2.))) +
-  //          LlambdaR*(rhom*Power(um,2) + (-1 + gamma)*(em - (rhom*Power(um,2))/2.)))/(-LlambdaL + LlambdaR) -
-  //       (RlambdaL*RlambdaR*(-(rho*u) + rhop*up))/(-RlambdaL + RlambdaR) -
-  //       (RlambdaR*(rho*Power(u,2) + (-1 + gamma)*(e - (rho*Power(u,2))/2.)) - RlambdaL*(rhop*Power(up,2) + (-1 + gamma)*(ep - (rhop*Power(up,2))/2.)))/
-  //        (-RlambdaL + RlambdaR)))/(dx*(1 + zeta)),(dt*(((e - em)*LlambdaL*LlambdaR)/(-LlambdaL + LlambdaR) -
-  //       ((-e + ep)*RlambdaL*RlambdaR)/(-RlambdaL + RlambdaR) +
-  //       (-(LlambdaL*u*(e + (-1 + gamma)*(e - (rho*Power(u,2))/2.))) + LlambdaR*um*(em + (-1 + gamma)*(em - (rhom*Power(um,2))/2.)))/
-  //        (-LlambdaL + LlambdaR) - (RlambdaR*u*(e + (-1 + gamma)*(e - (rho*Power(u,2))/2.)) -
-  //          RlambdaL*up*(ep + (-1 + gamma)*(ep - (rhop*Power(up,2))/2.)))/(-RlambdaL + RlambdaR)))/(dx*(1 + zeta)),
-  //  (dt*((LlambdaL*LlambdaR*(rho*Y - rhom*Ym))/(-LlambdaL + LlambdaR) + (-(LlambdaL*rho*u*Y) + LlambdaR*rhom*um*Ym)/(-LlambdaL + LlambdaR) -
-  //       (RlambdaL*RlambdaR*(-(rho*Y) + rhop*Yp))/(-RlambdaL + RlambdaR) - (rho*RlambdaR*u*Y - rhop*RlambdaL*up*Yp)/(-RlambdaL + RlambdaR)))/
-  //   (dx*(1 + zeta));
-  // rhs += temp;
-
-
-  auto var_vec_mm = Variable_Vector_Isolator<grid_type>(solution_vector_mm, gamma);
-  auto var_vec_m = Variable_Vector_Isolator<grid_type>(solution_vector_m, gamma);
-  auto var_vec = Variable_Vector_Isolator<grid_type>(solution_vector, gamma);
-  auto var_vec_p = Variable_Vector_Isolator<grid_type>(solution_vector_p, gamma);
-  auto var_vec_pp = Variable_Vector_Isolator<grid_type>(solution_vector_pp, gamma);
-  solution_vector_type phi_m = limiter(var_vec_mm.w(),var_vec_m.w(), var_vec.w(), dx);
-  solution_vector_type phi = limiter(var_vec_m.w(),var_vec.w(), var_vec_p.w(), dx);
-  solution_vector_type phi_p = limiter(var_vec.w(),var_vec_p.w(), var_vec_pp.w(), dx);
-  solution_vector_type LUl = var_vec_m.w().array() + phi_m.array() *dx / 2.0;
-  solution_vector_type LUr =   var_vec.w().array() - phi.array() * dx / 2.0;
-  solution_vector_type RUl =   var_vec.w().array() + phi.array() *dx / 2.0;
-  solution_vector_type RUr = var_vec_p.w().array() - phi_p.array() * dx / 2.0;
+  const auto var_vec_mm = Variable_Vector_Isolator<grid_type>(solution_vector_mm, gamma);
+  const auto var_vec_m = Variable_Vector_Isolator<grid_type>(solution_vector_m, gamma);
+  const auto var_vec = Variable_Vector_Isolator<grid_type>(solution_vector, gamma);
+  const auto var_vec_p = Variable_Vector_Isolator<grid_type>(solution_vector_p, gamma);
+  const auto var_vec_pp = Variable_Vector_Isolator<grid_type>(solution_vector_pp, gamma);
+  const solution_vector_type phi_m = limiter(var_vec_mm.w(),var_vec_m.w(), var_vec.w(), dx);
+  const solution_vector_type phi = limiter(var_vec_m.w(),var_vec.w(), var_vec_p.w(), dx);
+  const solution_vector_type phi_p = limiter(var_vec.w(),var_vec_p.w(), var_vec_pp.w(), dx);
+  const solution_vector_type LUl = var_vec_m.w().array() + phi_m.array() *dx / 2.0;
+  const solution_vector_type LUr =   var_vec.w().array() - phi.array() * dx / 2.0;
+  const solution_vector_type RUl =   var_vec.w().array() + phi.array() *dx / 2.0;
+  const solution_vector_type RUr = var_vec_p.w().array() - phi_p.array() * dx / 2.0;
 
    rhs += 1.0 / (1.0 + zeta) * (hyperbolic_flux.flux(LUl, LUr, gamma) - hyperbolic_flux.flux(RUl, RUr, gamma)) /dx*dt;
 
@@ -485,5 +416,54 @@ Implicit_HLLE<grid_type, flow_type>::rhs_matrix() {
 
   return rhs;
 }
+
+template <typename grid_type, typename flow_type>
+typename grid_type::global_solution_vector_type::value_type Implicit_HLLE<grid_type, flow_type>::
+limiter(const solution_vector_type &Ul, const solution_vector_type &U,
+        const solution_vector_type &Ur, const scalar_type &dx) {
+
+  const solution_vector_type a = (U - Ul) / dx;
+  const solution_vector_type b = (Ur - U) / dx;
+  const scalar_type epsilon = 1.0e-6;
+  solution_vector_type phi =  a.array() * b.array() * (a.array() + b.array()) / (a.array() * a.array() + b.array() * b.array() + epsilon);
+  for (int i = 0; i < 4; ++i) {
+    if (a[i] / b[i] <= 0.0 || b[i] == 0) {
+      phi[i] = 0.0;
+    }
+  }
+  return phi;
+}
+
+template <typename grid_type, typename flow_type>
+typename grid_type::scalar_type Implicit_HLLE<grid_type, flow_type>::
+p_rhoavg(const scalar_type &rho_left, const scalar_type &rho_right, const scalar_type &u_left, const scalar_type &u_right,
+         const scalar_type &p_left, const scalar_type &p_right, const scalar_type &gamma) {
+
+  scalar_type h_left = gamma * p_left / (rho_left * (gamma - 1.0)) + u_left * u_left * 0.5;
+  scalar_type h_right = gamma * p_right / (rho_right * (gamma - 1.0)) + u_right * u_right * 0.5;
+
+  scalar_type h_ravg = (sqrt(rho_left) * h_left + sqrt(rho_right) * h_right) /
+  (sqrt(rho_left) + sqrt(rho_right));
+
+  scalar_type u_ravg = u_rhoavg(rho_left, rho_right, u_left, u_right);
+
+  scalar_type rho_ravg = rho_rhoavg(rho_left, rho_right);
+
+  return (h_ravg - u_ravg*u_ravg * 0.5) * (gamma - 1.0) / gamma * rho_ravg;
+}
+
+template <typename grid_type, typename flow_type>
+typename grid_type::scalar_type Implicit_HLLE<grid_type, flow_type>::
+u_rhoavg(const scalar_type &rho_left, const scalar_type &rho_right, const scalar_type &u_left, const scalar_type &u_right) {
+  return (sqrt(rho_left) * u_left + sqrt(rho_right) * u_right) /
+  (sqrt(rho_left) + sqrt(rho_right));
+}
+
+template <typename grid_type, typename flow_type>
+typename grid_type::scalar_type Implicit_HLLE<grid_type, flow_type>::
+rho_rhoavg(const scalar_type &rho_left, const scalar_type &rho_right) {
+  return sqrt(rho_left * rho_right);
+}
+
 
 #endif //#ifndef IMPLICIT_HLLE_H

@@ -1,6 +1,8 @@
 #ifndef IMPLICIT_CENTERED_DIFFERENCE_2ND_ORDER_H
 #define IMPLICIT_CENTERED_DIFFERENCE_2ND_ORDER_H
 
+using namespace math;
+
 template <typename grid_type, typename flow_type>
 class Implicit_Centered_Difference_2nd_Order {
 using global_solution_vector_type = typename grid_type::global_solution_vector_type;
@@ -77,17 +79,7 @@ using matrix_type = typename grid_type::matrix_type;
   scalar_type zeta, Theta;
   scalar_type dUm1, dUm2, dUm3, dUm4;
   scalar_type mf, T_ignition;
-
-  template <typename T>
-  scalar_type Power(const T num, const int expo) {
-    return pow(num, expo);
-  }
-
-  scalar_type Power(const char, const scalar_type expo) {
-    return exp(expo);
-  }
 };
-
 
 template <typename grid_type, typename flow_type>
 typename grid_type::matrix_type Implicit_Centered_Difference_2nd_Order<grid_type, flow_type>::mid_matrix() {

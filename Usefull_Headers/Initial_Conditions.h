@@ -25,44 +25,8 @@ make_RK4_solution_vector(RK4_Low_Mach_Solver low_mach_solution,
   return temp_vec;
 }
 
-// void RK4_low_mach_initial_conditions(double &lambda, int &number_of_cells,
-//                                      global_solution_vector_type &initial_solution,
-//                                      double Le, double Q(), double theta(), double T_ignition,
-//                                      double gamma, double &x_max, double mf, double dx,
-//                                      double domaine_length) {
-//   RK4_Low_Mach_Solver initial_low_mach = RK4_Low_Mach_Solver(Le, Q(), theta(), T_ignition);
-//   lambda = initial_low_mach.get_lambda();
-//
-//   // double domaine_length = 2000.0;
-//   // double space_in_front = 1300.0;
-//   // double space_in_back  = domaine_length - space_in_front - 1.0;
-//   x_max = domaine_length;
-//   number_of_cells = x_max/dx;
-//   initial_solution.resize(number_of_cells);
-// // #pragma omp parallel for
-//   for (int i = 0; i < number_of_cells; ++i) {
-//     if (i*dx < domaine_length*0.7) {
-//       initial_solution[i] << 1.0,
-//       1.0 * 1.0,
-//       (1.0 / (gamma * mf * mf)) /
-//       (gamma - 1.0) + 1.0 * 1.0 * 1.0 * 0.5,
-//       1.0 * 1.0;
-//     } else if ((i+1)*dx > domaine_length*0.7 + initial_low_mach.length()) {
-//       initial_solution[i] << initial_solution[(i-1)];
-//   // std::cout << "back" << std::endl;
-//     } else {
-//       initial_solution[i] << make_RK4_solution_vector(initial_low_mach,
-//                                                       (i+1)*dx - domaine_length*0.7, gamma, mf);
-//     }
-//     // std::cout << "sol" << std::endl;
-//     // initial_solution[i][1] = -fabs(initial_solution[number_of_cells-i][1]);
-//   }
-//   // std::cout << "here" << std::endl;
-// }
 template <typename flow_properties_type, typename grid_type>
 void load_from_file(flow_properties_type& flow, grid_type& grid, std::string filename) {
-  // using scalar_type = typename grid_type::scalar_type;
-  // using size_type = typename grid_type::size_type;
   using global_solution_vector_type = typename grid_type::global_solution_vector_type;
   using solution_vector_type = typename grid_type::global_solution_vector_type::value_type;
 
@@ -82,18 +46,11 @@ void load_from_file(flow_properties_type& flow, grid_type& grid, std::string fil
     temp << rho, u, T, Y;
     primitive_variable.push_back(temp);
   while(fin >> x >> rho >> u >> garb >> T >> Y >> garb){
-    // std::getline(fin, line);
-    // double  rho, u, T, Y, garb;
-    // fin >> x >> rho >> u >> garb >> T >> Y >> garb;
-    // std::getline(fin, line);
-    // std::cout << x << std::endl;
     dx = (x-old_x);
     old_x = x;
     temp << rho, u, T, Y;
     primitive_variable.push_back(temp);
   }
-  // grid.global_solution_vector.resize(primitive_variable.size());
-  // int i = 0;
   for(int i = 0; i < primitive_variable.size()-100; ++i){
     grid.global_solution_vector[i] << primitive_variable[i][0],
                                       primitive_variable[i][0] * primitive_variable[i][1],
@@ -101,7 +58,6 @@ void load_from_file(flow_properties_type& flow, grid_type& grid, std::string fil
                                       primitive_variable[i][0] * primitive_variable[i][1] * primitive_variable[i][1] * 0.5,
                                       primitive_variable[i][0] * primitive_variable[i][3];
   }
-  // grid.number_of_cells() = grid.global_solution_vector.size();
   grid.x_max = x+dx;
 }
 
@@ -225,12 +181,7 @@ grid.global_solution_vector.resize(grid.number_of_cells());
                           (-0.45*tanh(4.0 * x - 10.0) + 0.55)*(4.5*tanh(4.0 * x - 10.0) + 5.5),
                           2.0*tanh(4.0*x - 10.0) + 70000,
                           (-0.45*tanh(4.0 * x - 10.0) + 0.55)*(-0.5*tanh(x - 8.0/4.0) + 0.5);
-    // initial_solution[i] << cos(x)+10, (cos(x)+10)*(cos(x)+10), cos(x)+10000, (cos(x)+10)*(cos(x)+10);
   }
-  // for (int i = 1; i < number_of_cells-1; ++i) {
-  //   double x = x_min + (i+0.5)*dx;
-  //   initial_solution[i] << 0.5*cos(x)+10, 0.5*(cos(x)+10)*(cos(x)+10), 0.5*cos(x)+10000, 0.5*(cos(x)+10)*(cos(x)+10);
-  // }
 }
 //
 // void case_1(double &final_time, int number_of_cells, global_solution_vector_type &initial_solution, double gamma, double &x_max, double &x_min) {

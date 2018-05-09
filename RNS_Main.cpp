@@ -1,9 +1,10 @@
 #define HYPERBOLIC
 #define VISCOUS
 #define SOURCE
-// #define MANUFACTURED
 #define RECENTER_FLAME
-#define HLLE_FLUX
+// #define RIGHT_CST_EXTR
+// #define LEFT_CST_EXTR
+// #define MANUFACTURED
 
 #include <iomanip>
 #include <fenv.h>
@@ -29,10 +30,8 @@ int main(){
   typedef Eigen::Matrix<scalar_type, 4, 1> Vector_type;
   using matrix_type = Eigen::Matrix<scalar_type, 4,4>;
   using global_solution_vector_type = std::vector<Vector_type>;
-//
   using flow_properties_type = Non_Dimensional_Navier_Stokes<scalar_type>;
   using grid_type = Grid1D<scalar_type, size_type, global_solution_vector_type, matrix_type>;
-  // using flux_type = Implicit_Centered_Difference_4th_Order<grid_type, flow_properties_type>;
   using flux_type = Implicit_Centered_Difference_2nd_Order<grid_type, flow_properties_type>;
   // using flux_type = Implicit_HLLE<grid_type, flow_properties_type>;
   using time_stepping_type = Implicit_Marching<grid_type, flow_properties_type>;
@@ -73,37 +72,30 @@ int main(){
 {
   scalar_type Theta = 1.0;
   scalar_type zeta = 0.0;
-  scalar_type target_residual = 1e-15;
-  scalar_type CFL = 5e8;
-  scalar_type frame_time = 2e7;
+  scalar_type CFL = 5e7;
+  scalar_type frame_time = 5e4;
   RK4_CJ_point(flow, grid);
   filename = "Movie/Delete_";
   std::cout << filename << std::endl;
   plot<grid_type>(filename+"0", grid.global_solution_vector, (grid.x_max - grid.x_min)/grid.number_of_cells());
   scalar_type flame_location = 250;
-  solver= solver_type(flow, grid, frame_time, target_residual, CFL, Theta, zeta, filename, flame_location);
+  scalar_type dissipation_magnitude = 0.8;
+  solver= solver_type(flow, grid, frame_time, CFL, Theta, zeta, filename, flame_location, dissipation_magnitude);
 }
+
 solver.print_stats();
+
 }
   bool old_check1 = 1;
   bool old_check2 = 0;
   bool old_check3 = 1;
+  solver.change_lambda(124500);
   // scalar_type lambda_run = solver.get_lambda();
-  // solver.change_lambda(124889);
-  scalar_type lambda_max = solver.get_lambda()*1.0001;
-  scalar_type lambda_min = solver.get_lambda()*0.9999;
-  int number_of_frames = 10;
+  scalar_type lambda_max = solver.get_lambda()*1.001;
+  scalar_type lambda_min = solver.get_lambda()*0.999;
+  int number_of_frames = 3;
   // solver.solve(number_of_frames);
 
-  while(fabs(lambda_min - lambda_max) > 1e1) {
-    bool check;
-    number_of_frames = 3;
-    check = solver.solve(number_of_frames);
-    scalar_type lambda_run = solver.get_lambda();
-    bisection_lambda(lambda_min, lambda_max, lambda_run, check);
-    add_lambda_gap(check, old_check1, old_check2, old_check3, lambda_min, lambda_max);
-    solver.change_lambda(lambda_run);
-  }
   while(fabs(lambda_min - lambda_max) > 1e-8) {
     bool check;
     number_of_frames = 3;

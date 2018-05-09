@@ -33,8 +33,8 @@ int main(){
 //
   using flow_properties_type = Non_Dimensional_Navier_Stokes<scalar_type>;
   using grid_type = Grid1D<scalar_type, size_type, global_solution_vector_type, matrix_type>;
-  using flux_type = Implicit_Centered_Difference_2nd_Order<grid_type, flow_properties_type>;
-  // using flux_type = Implicit_HLLE<grid_type, flow_properties_type>;
+  // using flux_type = Implicit_Centered_Difference_2nd_Order<grid_type, flow_properties_type>;
+  using flux_type = Implicit_HLLE<grid_type, flow_properties_type>;
   using time_stepping_type = Implicit_Marching<grid_type, flow_properties_type>;
   using solver_type = Solver<flow_properties_type, grid_type, flux_type, time_stepping_type>;
 

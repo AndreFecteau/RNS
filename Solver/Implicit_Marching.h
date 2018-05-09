@@ -41,7 +41,7 @@ class Implicit_Marching {
   Implicit_Marching& operator=(Implicit_Marching&&) = default;
 
   Implicit_Marching(scalar_type Theta_in, scalar_type zeta_in,
-                    scalar_type dissipation_magnitude_in = 0.0) :
+                    scalar_type dissipation_magnitude_in) :
                     Theta(Theta_in), zeta(zeta_in),
                     dissipation_magnitude(dissipation_magnitude_in) {}
 
