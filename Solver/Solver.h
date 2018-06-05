@@ -64,6 +64,16 @@ using size_type = typename grid_type::size_type;
   /////////////////////////////////////////////////////////////////////////
   /// \brief
   /// \param
+  flow_properties_type get_flow() const {return flow;}
+
+  /////////////////////////////////////////////////////////////////////////
+  /// \brief
+  /// \param
+  grid_type get_grid() const {return grid;}
+
+  /////////////////////////////////////////////////////////////////////////
+  /// \brief
+  /// \param
   scalar_type get_lambda() const {return flow.lambda;}
 
   /////////////////////////////////////////////////////////////////////////
@@ -295,7 +305,7 @@ typename grid_type::size_type Solver<flow_properties_type, grid_type, flux_type,
 flame_position_algorithm() {
   size_type position = 0;
   auto var_vec = Variable_Vector_Isolator<grid_type>(grid.global_solution_vector[0], flow.gamma);
-  while (var_vec.rho() > 0.5) {
+  while (var_vec.Y() > 0.5) {
   ++position;
   var_vec = Variable_Vector_Isolator<grid_type>(grid.global_solution_vector[position], flow.gamma);
   }
@@ -311,7 +321,7 @@ recenter_solution(const scalar_type &flame_location) {
   auto global_solution_vector_temp = grid.global_solution_vector;
   size_type position = 0;
   auto var_vec = Variable_Vector_Isolator<grid_type>(grid.global_solution_vector[position], 1.4);
-  while (var_vec.rho() > 0.5) {
+  while (var_vec.Y() > 0.5) {
   ++position;
   var_vec = Variable_Vector_Isolator<grid_type>(grid.global_solution_vector[position], 1.4);
   }

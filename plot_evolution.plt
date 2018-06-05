@@ -6,10 +6,15 @@ set key title ""
 set xrange [-10:350]
 
 plot \
-"./Movie/Delete_0.dat"      using ($1):4    title "_D500" with lines ,\
-"./Movie/Delete_1.dat"      using ($1):4    title "_D500" with lines ,\
-"./Movie/Delete_2.dat"      using ($1):4    title "_D500" with lines ,\
-"./Movie/Delete_3.dat"      using ($1):4    title "_D500" with lines ,\
+"./Movie/Delete_0.dat"      using ($1):2    title "_D500" with lines ,\
+"./Movie/Delete_1.dat"      using ($1):2    title "_D500" with lines ,\
+"./Movie/Delete_2.dat"      using ($1):2    title "_D500" with lines ,\
+"./Movie/Delete_3.dat"      using ($1):2    title "_D500" with lines ,\
+"./Movie/Delete_4.dat"      using ($1):2    title "_D500" with lines ,\
+"./Movie/Delete_5.dat"      using ($1):2    title "_D500" with lines ,\
+"./Movie/Delete_6.dat"      using ($1):2    title "_D500" with lines ,\
+"./Movie/Delete_7.dat"      using ($1):2    title "_D500" with lines ,\
+"./Movie/Delete_8.dat"      using ($1):2    title "_D500" with lines ,\
 #"./Movie/Case_1_D500_L250_R256_0.dat"                using ($1):6    title "Initial Solution " with lines,\
 "./Lambda_Plot_D500.dat"      using ($1):3    title "_D2500",\
 "./dat_saves/CJ_point/Pr075_Le03_Q9_b5_g14/D500_F250_R16/Solution_N.dat"      using ($1):7    title "_D500_F250_R16" with lines,\

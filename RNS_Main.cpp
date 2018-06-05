@@ -2,7 +2,7 @@
 #define VISCOUS
 #define SOURCE
 #define RECENTER_FLAME
-// #define RIGHT_CST_EXTR
+#define RIGHT_CST_EXTR
 // #define LEFT_CST_EXTR
 // #define MANUFACTURED
 
@@ -62,7 +62,7 @@ int main(){
   scalar_type x_min = 0.0;
   scalar_type domaine_length = 500;
   scalar_type x_max = x_min + domaine_length;
-  scalar_type per_FL = 64.0;
+  scalar_type per_FL = 32.0;
   size_type number_of_cells = domaine_length * per_FL;
   global_solution_vector_type initial_solution = global_solution_vector_type(number_of_cells,
                                                                              Vector_type::Zero());
@@ -71,16 +71,16 @@ int main(){
 
 {
   scalar_type Theta = 1.0;
-  scalar_type zeta = 0.0;
-  scalar_type CFL = 5e8;
-  scalar_type frame_time = 5e0;
+  scalar_type zeta = 0.5;
+  scalar_type CFL = 5e6;
+  scalar_type frame_time = 5e4;
   // RK4_CJ_point(flow, grid);
-  manufactured_solution(flow, grid);
+  detonation_CJ_point(flow, grid);
   filename = "Movie/Delete_";
   std::cout << filename << std::endl;
   plot<grid_type>(filename+"0", grid.global_solution_vector, (grid.x_max - grid.x_min)/grid.number_of_cells());
   scalar_type flame_location = 250;
-  scalar_type dissipation_magnitude = 0.8;
+  scalar_type dissipation_magnitude = 0.0;//0.8;
   solver= solver_type(flow, grid, frame_time, CFL, Theta, zeta, filename, flame_location, dissipation_magnitude);
 }
 
@@ -90,8 +90,8 @@ solver.print_stats();
   bool old_check1 = 1;
   bool old_check2 = 0;
   bool old_check3 = 1;
-  // solver.change_lambda(1000);
   // scalar_type lambda_run = solver.get_lambda();
+  solver.change_lambda(solver.get_lambda()*2.25e-3);
   // scalar_type lambda_max = solver.get_lambda()*1.001;
   // scalar_type lambda_min = solver.get_lambda()*0.999;
   int number_of_frames = 30;

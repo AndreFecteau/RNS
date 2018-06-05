@@ -33,10 +33,16 @@ struct Grid1D {
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief Constructor setting up required inputs.
-  Grid1D(scalar_type x_min_in, scalar_type x_max_in,
+  Grid1D( scalar_type x_min_in, scalar_type x_max_in,
           global_solution_vector_type global_solution_vector_in) :
           x_min(x_min_in), x_max(x_max_in),
           global_solution_vector(global_solution_vector_in) {}
+
+  Grid1D( scalar_type x_min_in, scalar_type x_max_in,
+          scalar_type number_of_cells_in) :
+          x_min(x_min_in), x_max(x_max_in),
+          global_solution_vector(global_solution_vector_type(number_of_cells_in,
+          global_solution_vector_type::value_type::Zero())) {}
 
   scalar_type x_min;
   scalar_type x_max;
@@ -53,6 +59,5 @@ struct Grid1D {
   }
 
 };
-
 
 #endif //#ifndef NON_DIMENSIONAL_NAVIER_STOKES_H

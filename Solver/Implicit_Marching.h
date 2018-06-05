@@ -2,11 +2,6 @@
 #define IMPLICIT_MARCHING_H
 
 #include <math.h>
-// #include "../Implicit_Flux_and_Sources/Variable_Implicit_Scheme.h"
-// #include "../Implicit_Flux_and_Sources/Variable_Implicit_Scheme_4th_Order.h"
-// #include "../Implicit_Flux_and_Sources/Variable_Implicit_Scheme_HLLE.h"
-// #include "../Matrix_Inverse/Gaussian_Block_Triagonal_Matrix_Inverse.h"
-// #include "../Matrix_Inverse/Gaussian_Block_Penagonal_Matrix_Inverse.h"
 #include "../Matrix_Inverse/Thomas_Block_Triagonal_Matrix_Inverse.h"
 #include "../Usefull_Headers/Variable_Vector_Isolator.h"
 #include "../Usefull_Headers/Math.h"
@@ -171,7 +166,7 @@ timemarch(flow_properties_type flow,
 #pragma omp single
 {
 #if defined(RIGHT_CST_EXTR)
-  mid[global_solution_vector.size()-3] += top[global_solution_vector.size()-3];
+  mid[grid.number_of_cells()-3] += top[grid.number_of_cells()-3];
 #endif
 #if defined(LEFT_CST_EXTR)
   mid[0] += bot[0];
@@ -196,10 +191,10 @@ timemarch(flow_properties_type flow,
 #pragma omp single
   {
 #if defined(RIGHT_CST_EXTR)
-    global_solution_vector[global_solution_vector.size()-1] = global_solution_vector[global_solution_vector.size()-2];
+    grid.global_solution_vector[grid.number_of_cells()-1] = grid.global_solution_vector[grid.number_of_cells()-2];
 #endif
 #if defined(LEFT_CST_EXTR)
-    global_solution_vector[0] = global_solution_vector[1];
+    grid.global_solution_vector[0] = grid.global_solution_vector[1];
 #endif
   }
 
