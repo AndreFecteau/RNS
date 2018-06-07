@@ -19,7 +19,7 @@
 #include "Grid/Grid1D.h"
 #include "Implicit_Flux_and_Sources/Implicit_Centered_Difference_2nd_Order.h"
 #include "Implicit_Flux_and_Sources/Implicit_HLLE.h"
-#include "Usefull_Headers/Initial_Conditions.h"
+#include "Initial_Condition/Initial_Conditions.h"
 #include "Usefull_Headers/Read_from_file.h"
 
 int main(){

@@ -1,7 +1,43 @@
 /*global_solution_vector_type global_solution_vector;*/
 /*global_solution_vector.resize(1000);*/
 
-auto grid = Grid1D(0,10, number_of_cells, ic)
+var number_of_cells = 32.0*500.0;
+var xmin = 0.0;
+var xmax = 500.0;
+auto grid = Grid1D(xmin, xmax, number_of_cells);
 
-puts(helloWorld("bob"))
-puts("\n")
+
+var Pr                = 0.75;
+var Le                = 0.3;
+var Q_low_mach        = 9.0;
+var beta              = 5.0;
+var lambda            = 0.0;
+var mf                = 0.005;
+var T_ignition_scalar = 1.02;
+var gamma             = 1.4;
+var theta_low_mach    = beta*(1+Q_low_mach)*(1+Q_low_mach)/Q_low_mach;
+auto flow = Flow(Pr, Le, Q_low_mach, theta_low_mach, mf, gamma, lambda, T_ignition_scalar)
+
+auto ic = fun[] (double x) {
+  auto U = Solution_vector_type();
+  U[0] = 2.0*x;
+  U[1] = 0.0;
+  U[2] = 0.0;
+  U[3] = 0.0;
+  return U;
+};
+
+/*set_initial_solution(grid, ic);*/
+RK4_mf_point(grid, flow);
+
+var Theta = 1.0;
+var zeta = 0.5;
+var CFL = 5.0e8;
+var frame_time = 5.0e2;
+var filename = "Movie/Delete_";
+var flame_location = 250.0;
+var dissipation_magnitude = 0.0;
+auto solver= Solver(flow, grid, frame_time, CFL, Theta, zeta, filename, flame_location, dissipation_magnitude);
+
+solver.print_stats();
+solver.solve(10);
