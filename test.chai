@@ -16,16 +16,16 @@ var mf                = 0.005;
 var T_ignition_scalar = 1.02;
 var gamma             = 1.4;
 var theta_low_mach    = beta*(1+Q_low_mach)*(1+Q_low_mach)/Q_low_mach;
-auto flow = Flow(Pr, Le, Q_low_mach, theta_low_mach, mf, gamma, lambda, T_ignition_scalar)
+auto flow = Flow(Pr, Le, Q_low_mach, theta_low_mach, mf, gamma, lambda, T_ignition_scalar);
 
-auto ic = fun[] (double x) {
+/*auto ic = fun[] (double x) {
   auto U = Solution_vector_type();
   U[0] = 2.0*x;
   U[1] = 0.0;
   U[2] = 0.0;
   U[3] = 0.0;
   return U;
-};
+};*/
 
 /*set_initial_solution(grid, ic);*/
 RK4_mf_point(grid, flow);
@@ -33,11 +33,15 @@ RK4_mf_point(grid, flow);
 var Theta = 1.0;
 var zeta = 0.5;
 var CFL = 5.0e8;
-var frame_time = 5.0e2;
+var frame_time = 5.0e4;
 var filename = "Movie/Delete_";
 var flame_location = 250.0;
 var dissipation_magnitude = 0.0;
-auto solver= Solver(flow, grid, frame_time, CFL, Theta, zeta, filename, flame_location, dissipation_magnitude);
+auto solver= HLLE_solver(flow, grid, frame_time, CFL, Theta, zeta, filename, flame_location, dissipation_magnitude);
+
 
 solver.print_stats();
-solver.solve(10);
+solver.solve(1);
+auto grid2 = solver.get_grid();
+auto cdsolver= CD2_solver(flow, grid2, frame_time, CFL, Theta, zeta, filename, flame_location, 0.9);
+cdsolver.solve(10);

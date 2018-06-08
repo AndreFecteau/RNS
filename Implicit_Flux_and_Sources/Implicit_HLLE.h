@@ -427,7 +427,7 @@ limiter(const solution_vector_type &Ul, const solution_vector_type &U,
   const scalar_type epsilon = 1.0e-6;
   solution_vector_type phi =  a.array() * b.array() * (a.array() + b.array()) / (a.array() * a.array() + b.array() * b.array() + epsilon);
   for (int i = 0; i < 4; ++i) {
-    if (a[i] / b[i] <= 0.0 || b[i] == 0) {
+    if (a[i] * b[i] <= 0.0 || b[i] == 0) {
       phi[i] = 0.0;
     }
   }

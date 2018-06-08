@@ -134,7 +134,7 @@ timemarch(flow_properties_type flow,
   global_solution_vector_type rhs(grid.global_solution_vector.size()-2);
   global_solution_vector_type delta_global_solution_vector = global_solution_vector_type(grid.global_solution_vector.size()-2,
   solution_vector_type::Zero());
-
+omp_set_num_threads(1);
 #pragma omp parallel
   {
   while (current_time < frame_time){
@@ -146,8 +146,7 @@ timemarch(flow_properties_type flow,
     dt = frame_time - current_time;
   }
 }
-
-// fille time-space matrix
+// fill time-space matrix
 #pragma omp for
   for(size_type i = 1; i < grid.number_of_cells() - 1; ++i) {
     auto matrix_entries = flux_type(grid, flow, delta_global_solution_vector,

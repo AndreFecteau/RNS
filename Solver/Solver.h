@@ -219,7 +219,7 @@ solve(const size_type number_of_frames) {
   scalar_type frame_time_temp = frame_time;
   scalar_type frame_CFL = CFL;
   size_type position = 0;
-
+  plot<grid_type>(filename + std::to_string(static_cast<size_type>(global_current_frame)), grid.global_solution_vector,grid.dx());
   while (frame_counter < number_of_frames) {
     auto start = std::chrono::high_resolution_clock::now();
 
@@ -229,7 +229,6 @@ solve(const size_type number_of_frames) {
     residual = time_stepping.template timemarch<flux_type>(flow, grid, frame_CFL, frame_time_temp);
 
     position = flame_position_algorithm();
-
     if (solution_is_unstable(residual, frame_CFL, frame_time_temp)) {
 #if defined(RECENTER_FLAME)
     } else if (flame_left_domaine(position, frame_time_temp)) {

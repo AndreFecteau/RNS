@@ -24,13 +24,17 @@ using global_solution_vector_type = std::vector<solution_vector_type>;
 using grid1D_type = Grid1D<scalar_type, size_type, global_solution_vector_type, matrix_type>;
 using flow_type = Non_Dimensional_Navier_Stokes<scalar_type>;
 using time_stepping_type = Implicit_Marching<grid1D_type, flow_type>;
-using flux_type = Implicit_HLLE<grid1D_type, flow_type>;
-using solver_type = Solver<flow_type, grid1D_type, flux_type, time_stepping_type>;
+using HLLE_flux_type = Implicit_HLLE<grid1D_type, flow_type>;
+using CD2_flux_type = Implicit_Centered_Difference_2nd_Order<grid1D_type, flow_type>;
+using HLLE_solver_type = Solver<flow_type, grid1D_type, HLLE_flux_type, time_stepping_type>;
+using CD2_solver_type = Solver<flow_type, grid1D_type, CD2_flux_type, time_stepping_type>;
 
 void register_RNS_Chaiscript(chaiscript::ChaiScript& chai) {
 
-  // chaiscript::ChaiScript chai;
   chai.add(chaiscript::bootstrap::standard_library::vector_type<std::vector<solution_vector_type> >("global_solution_vector_type"));
+  chai.add(chaiscript::user_type<HLLE_flux_type>(), "HLLE");
+  chai.add(chaiscript::user_type<CD2_flux_type>(), "Centered_Difference");
+  chai.add(chaiscript::user_type<time_stepping_type>(), "Stepping");
 
 ///////////////////////////////////////////////Eigen////////////////////////////////////////////////
 //----------------------------------------------Type----------------------------------------------//
@@ -92,7 +96,6 @@ void register_RNS_Chaiscript(chaiscript::ChaiScript& chai) {
   chai.add(chaiscript::fun(division),"/");
   chai.add(chaiscript::fun([](solution_vector_type& v, const double d) {v.fill(d);}),"fill");
   chai.add(chaiscript::fun(vec_to_string),"to_string");
-//
 
 /////////////////////////////////////////Initial_Condition//////////////////////////////////////////
 //---------------------------------------General Functions----------------------------------------//
@@ -144,33 +147,61 @@ chai.add(chaiscript::fun(&manufactured_solution<grid1D_type, flow_type>), "manuf
   chai.add(chaiscript::fun(&flow_type::lambda),                        "lambda");
   chai.add(chaiscript::fun(&flow_type::T_ignition_scalar),             "T_ignition_scalar");
 
-///////////////////////////////////////////////Solver///////////////////////////////////////////////
+/////////////////////////////////////////////Solver_HLLE////////////////////////////////////////////
 //----------------------------------------------Type----------------------------------------------//
-  chai.add(chaiscript::user_type<solver_type>(),                          "Solver");
+  chai.add(chaiscript::user_type<HLLE_solver_type>(),                          "HLLE_solver");
 //------------------------------------------Constructors------------------------------------------//
-  chai.add(chaiscript::constructor<solver_type ()>(),                     "Solver");
-  chai.add(chaiscript::constructor<solver_type (const solver_type &)>(),  "Solver");
-  chai.add(chaiscript::constructor<solver_type (flow_type, grid1D_type, scalar_type,
+  chai.add(chaiscript::constructor<HLLE_solver_type ()>(),                     "HLLE_solver");
+  chai.add(chaiscript::constructor<HLLE_solver_type (const HLLE_solver_type &)>(),  "HLLE_solver");
+  chai.add(chaiscript::constructor<HLLE_solver_type (flow_type, grid1D_type, scalar_type,
                                               scalar_type, scalar_type, scalar_type,
-                                              std::string, scalar_type, scalar_type)>(),  "Solver");
+                                              std::string, scalar_type, scalar_type)>(),  "HLLE_solver");
 //----------------------------------------Member Functions----------------------------------------//
-  chai.add(chaiscript::fun(&solver_type::solve),                        "solve");
-  chai.add(chaiscript::fun(&solver_type::get_flow),                     "get_flow");
-  chai.add(chaiscript::fun(&solver_type::get_grid),                     "get_grid");
-  chai.add(chaiscript::fun(&solver_type::get_lambda),                   "get_lambda");
-  chai.add(chaiscript::fun(&solver_type::recenter_solution),            "recenter_solution");
-  chai.add(chaiscript::fun(&solver_type::add_space_in_back),            "add_space_in_back");
-  chai.add(chaiscript::fun(&solver_type::add_space_in_front),           "add_space_in_front");
-  chai.add(chaiscript::fun(&solver_type::print_stats),                  "print_stats");
-  chai.add(chaiscript::fun(&solver_type::change_filename),              "change_filename");
-  chai.add(chaiscript::fun(&solver_type::reset_frame_number),           "reset_frame_number");
-  chai.add(chaiscript::fun(&solver_type::change_lambda),                "change_lambda");
-  chai.add(chaiscript::fun(&solver_type::refine),                       "refine");
-  chai.add(chaiscript::fun(&solver_type::change_frame_time),            "change_frame_time");
-  chai.add(chaiscript::fun(&solver_type::change_CFL),                   "change_CFL");
-  chai.add(chaiscript::fun(&solver_type::change_flame_location),        "change_flame_location");
-  chai.add(chaiscript::fun(&solver_type::plot_limiter),                 "plot_limiter");
-  chai.add(chaiscript::fun(&solver_type::plot_global_solution_vector),  "plot_global_solution_vector");
+  chai.add(chaiscript::fun(&HLLE_solver_type::solve),                        "solve");
+  chai.add(chaiscript::fun(&HLLE_solver_type::get_flow),                     "get_flow");
+  chai.add(chaiscript::fun(&HLLE_solver_type::get_grid),                     "get_grid");
+  chai.add(chaiscript::fun(&HLLE_solver_type::get_lambda),                   "get_lambda");
+  chai.add(chaiscript::fun(&HLLE_solver_type::recenter_solution),            "recenter_solution");
+  chai.add(chaiscript::fun(&HLLE_solver_type::add_space_in_back),            "add_space_in_back");
+  chai.add(chaiscript::fun(&HLLE_solver_type::add_space_in_front),           "add_space_in_front");
+  chai.add(chaiscript::fun(&HLLE_solver_type::print_stats),                  "print_stats");
+  chai.add(chaiscript::fun(&HLLE_solver_type::change_filename),              "change_filename");
+  chai.add(chaiscript::fun(&HLLE_solver_type::reset_frame_number),           "reset_frame_number");
+  chai.add(chaiscript::fun(&HLLE_solver_type::change_lambda),                "change_lambda");
+  chai.add(chaiscript::fun(&HLLE_solver_type::refine),                       "refine");
+  chai.add(chaiscript::fun(&HLLE_solver_type::change_frame_time),            "change_frame_time");
+  chai.add(chaiscript::fun(&HLLE_solver_type::change_CFL),                   "change_CFL");
+  chai.add(chaiscript::fun(&HLLE_solver_type::change_flame_location),        "change_flame_location");
+  chai.add(chaiscript::fun(&HLLE_solver_type::plot_limiter),                 "plot_limiter");
+  chai.add(chaiscript::fun(&HLLE_solver_type::plot_global_solution_vector),  "plot_global_solution_vector");
+//----------------------------------------Member Variable-----------------------------------------//
+/////////////////////////////////////////////Solver_HLLE////////////////////////////////////////////
+//----------------------------------------------Type----------------------------------------------//
+  chai.add(chaiscript::user_type<CD2_solver_type>(),                          "CD2_solver");
+//------------------------------------------Constructors------------------------------------------//
+  chai.add(chaiscript::constructor<CD2_solver_type ()>(),                     "CD2_solver");
+  chai.add(chaiscript::constructor<CD2_solver_type (const CD2_solver_type &)>(),  "CD2_solver");
+  chai.add(chaiscript::constructor<CD2_solver_type (flow_type, grid1D_type, scalar_type,
+                                              scalar_type, scalar_type, scalar_type,
+                                              std::string, scalar_type, scalar_type)>(),  "CD2_solver");
+//----------------------------------------Member Functions----------------------------------------//
+  chai.add(chaiscript::fun(&CD2_solver_type::solve),                        "solve");
+  chai.add(chaiscript::fun(&CD2_solver_type::get_flow),                     "get_flow");
+  chai.add(chaiscript::fun(&CD2_solver_type::get_grid),                     "get_grid");
+  chai.add(chaiscript::fun(&CD2_solver_type::get_lambda),                   "get_lambda");
+  chai.add(chaiscript::fun(&CD2_solver_type::recenter_solution),            "recenter_solution");
+  chai.add(chaiscript::fun(&CD2_solver_type::add_space_in_back),            "add_space_in_back");
+  chai.add(chaiscript::fun(&CD2_solver_type::add_space_in_front),           "add_space_in_front");
+  chai.add(chaiscript::fun(&CD2_solver_type::print_stats),                  "print_stats");
+  chai.add(chaiscript::fun(&CD2_solver_type::change_filename),              "change_filename");
+  chai.add(chaiscript::fun(&CD2_solver_type::reset_frame_number),           "reset_frame_number");
+  chai.add(chaiscript::fun(&CD2_solver_type::change_lambda),                "change_lambda");
+  chai.add(chaiscript::fun(&CD2_solver_type::refine),                       "refine");
+  chai.add(chaiscript::fun(&CD2_solver_type::change_frame_time),            "change_frame_time");
+  chai.add(chaiscript::fun(&CD2_solver_type::change_CFL),                   "change_CFL");
+  chai.add(chaiscript::fun(&CD2_solver_type::change_flame_location),        "change_flame_location");
+  chai.add(chaiscript::fun(&CD2_solver_type::plot_limiter),                 "plot_limiter");
+  chai.add(chaiscript::fun(&CD2_solver_type::plot_global_solution_vector),  "plot_global_solution_vector");
 //----------------------------------------Member Variable-----------------------------------------//
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 }
@@ -178,6 +209,7 @@ chai.add(chaiscript::fun(&manufactured_solution<grid1D_type, flow_type>), "manuf
 inline void execute_chaiscript_file(std::string filename) {
 
   chaiscript::ChaiScript chai;
+
   register_RNS_Chaiscript(chai);
 
   try {
