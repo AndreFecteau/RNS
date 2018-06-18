@@ -93,11 +93,14 @@ void deflagration_CJ_point(grid_type& grid, flow_type& flow) {
       (1.0 / (flow.gamma * flow.mf * flow.mf)) /
       (flow.gamma - 1.0) + 1.0 * 1.0 * 1.0 * 0.5,
       1.0 * 1.0;
-    } else {
+    } else if ((i+1)*grid.dx() > grid.domaine_length()*flame_location + initial_low_mach.length()) {
       grid.global_solution_vector[i] << rho_inf,
       rho_inf * u_inf,
       p_inf / (flow.gamma - 1.0) + rho_inf * u_inf * u_inf * 0.5,
       rho_inf * 0;
+    } else {
+        grid.global_solution_vector[i] << make_RK4_solution_vector<grid_type>(initial_low_mach,
+                                                        (i+1)*grid.dx() - grid.domaine_length()*flame_location, flow.gamma, flow.mf);
     }
   }
 }

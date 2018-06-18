@@ -9,10 +9,10 @@
 
 #include "../Serialization/Serialization_Eigen.h"
 #include "../Serialization/Serialize.h"
+#include "../Usefull_Headers/Math.h"
 #include "../Gnuplot_RNS/Gnuplot_Primitive_Variables.h"
 #include "../Gnuplot_RNS/Gnuplot_Primitive_Variables_Reduced.h"
 #include "../Gnuplot_RNS/Gnuplot_Variables.h"
-#include "../Usefull_Headers/Math.h"
 
 
 template <typename flow_properties_type, typename grid_type, typename flux_type, typename time_stepping_type>

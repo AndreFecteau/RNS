@@ -15,6 +15,8 @@
 #include "../Physical_Property/Non_Dimensional_Navier_Stokes.h"
 #include "../Solver/Solver.h"
 #include "../Initial_Condition/Initial_Conditions.h"
+#include "../Serialization/Serialize.h"
+#include "../Usefull_Headers/Handle_Itterative_Lambda.h"
 
 using size_type = size_t;
 using scalar_type = double;
@@ -105,6 +107,13 @@ chai.add(chaiscript::fun(&deflagration_CJ_point<grid1D_type, flow_type>), "defla
 chai.add(chaiscript::fun(&detonation_CJ_point<grid1D_type, flow_type>),   "detonation_CJ_point");
 chai.add(chaiscript::fun(&RK4_mf_point<grid1D_type, flow_type>),          "RK4_mf_point");
 chai.add(chaiscript::fun(&manufactured_solution<grid1D_type, flow_type>), "manufactured_solution");
+chai.add(chaiscript::fun(&unserialize_to_file<HLLE_solver_type>),         "unserialize_to_file");
+chai.add(chaiscript::fun(&unserialize_to_file<CD2_solver_type>),          "unserialize_to_file");
+
+/////////////////////////////////////Handle_Itterative_Lambda///////////////////////////////////////
+//---------------------------------------General Functions----------------------------------------//
+chai.add(chaiscript::fun(&bisection_lambda),             "bisection_lambda");
+chai.add(chaiscript::fun(&add_lambda_gap),             "add_lambda_gap");
 
 ///////////////////////////////////////////////Grid1D///////////////////////////////////////////////
 //----------------------------------------------Type----------------------------------------------//
@@ -161,13 +170,13 @@ chai.add(chaiscript::fun(&manufactured_solution<grid1D_type, flow_type>), "manuf
   chai.add(chaiscript::fun(&HLLE_solver_type::get_flow),                     "get_flow");
   chai.add(chaiscript::fun(&HLLE_solver_type::get_grid),                     "get_grid");
   chai.add(chaiscript::fun(&HLLE_solver_type::get_lambda),                   "get_lambda");
+  chai.add(chaiscript::fun(&HLLE_solver_type::change_lambda),                "change_lambda");
   chai.add(chaiscript::fun(&HLLE_solver_type::recenter_solution),            "recenter_solution");
   chai.add(chaiscript::fun(&HLLE_solver_type::add_space_in_back),            "add_space_in_back");
   chai.add(chaiscript::fun(&HLLE_solver_type::add_space_in_front),           "add_space_in_front");
   chai.add(chaiscript::fun(&HLLE_solver_type::print_stats),                  "print_stats");
   chai.add(chaiscript::fun(&HLLE_solver_type::change_filename),              "change_filename");
   chai.add(chaiscript::fun(&HLLE_solver_type::reset_frame_number),           "reset_frame_number");
-  chai.add(chaiscript::fun(&HLLE_solver_type::change_lambda),                "change_lambda");
   chai.add(chaiscript::fun(&HLLE_solver_type::refine),                       "refine");
   chai.add(chaiscript::fun(&HLLE_solver_type::change_frame_time),            "change_frame_time");
   chai.add(chaiscript::fun(&HLLE_solver_type::change_CFL),                   "change_CFL");
