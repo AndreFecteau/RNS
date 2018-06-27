@@ -216,7 +216,7 @@ calculate_dt(const grid_type& grid, const flow_properties_type& flow, const scal
   scalar_type dt1 = CFL * grid.dx() / lambda_eigenvalue(grid, flow);
   scalar_type dt2 = CFL * grid.dx()*grid.dx() / (K_value(grid, flow));
 
-  if(isnan(grid.global_solution_vector[1][2])){
+  if(std::isnan(grid.global_solution_vector[1][2])){
     dt1 = 1e4;
     dt2 = 1e4;
   }

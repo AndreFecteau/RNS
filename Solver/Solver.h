@@ -215,7 +215,7 @@ solve(const size_type number_of_frames) {
       ++position;
       var_vec = Variable_Vector_Isolator<grid_type>(grid.global_solution_vector[position], flow.gamma);
     }
-    if (isnan(residual) || residual > 1e10){
+    if (std::isnan(residual) || residual > 1e10){
       grid.global_solution_vector = global_solution_vector_backup;
       frame_CFL *= 0.5;
       frame_time_temp *= 0.5;
