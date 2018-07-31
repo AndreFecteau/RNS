@@ -497,7 +497,7 @@ flame_left_domaine(const size_type &position, scalar_type &frame_time_temp) {
 template <typename flow_properties_type, typename grid_type, typename flux_type, typename time_stepping_type>
 bool Solver<flow_properties_type, grid_type, flux_type, time_stepping_type>::
 solution_is_unstable(const scalar_type &residual, scalar_type &frame_CFL, scalar_type &frame_time_temp) {
-  bool check = isnan(residual) || residual > 1e5;
+  bool check = std::isnan(residual) || residual > 1e5;
   if(check){
     grid.global_solution_vector = global_solution_vector_backup;
     frame_CFL *= 0.5;

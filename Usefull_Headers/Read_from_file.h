@@ -5,8 +5,8 @@
 // #include <math.h>
 // #include <limits>
 #include <vector>
-#include "/usr/include/eigen3/Eigen/Core"
-#include "/usr/include/eigen3/Eigen/Dense"
+#include "Eigen/Core"
+#include "Eigen/Dense"
 
 class Read_from_file {
 

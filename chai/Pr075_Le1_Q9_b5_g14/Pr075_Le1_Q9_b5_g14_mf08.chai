@@ -9,6 +9,8 @@
 ///        Value.
 /// \tips  HLLE with 32 pt/fl to find general shape then switch to CD2 with 512 pt/fl to
 ///        itterate lambda.
+var filename = "/scratch/fecteau/Pr075_Le1_Q9_b5_g14/mf08/Le_1_64FL_";
+var mf = 0.08;
 var per_fl = 16;
 var domain = 500;
 var number_of_cells = per_fl*domain;
@@ -24,7 +26,6 @@ var Le                = 1.0;
 var Q_low_mach        = 9.0;
 var beta              = 5.0;
 var lambda            = 0.00;
-var mf                = 0.01;
 var T_ignition_scalar = 1.02;
 var gamma             = 1.4;
 var theta_low_mach    = beta*(1+Q_low_mach)*(1+Q_low_mach)/Q_low_mach;
@@ -54,7 +55,6 @@ var Theta = 1.0;
 var zeta = 0.5;
 var CFL = 5.0e4;
 var frame_time = 2.0e3;
-var filename = "Movie/Le_1_64FL_";
 var flame_location = 250.0;
 var dissipation_magnitude = 0.9;
 auto solver= CD2_solver(flow, grid, frame_time, CFL, Theta, zeta, filename, flame_location, dissipation_magnitude);
