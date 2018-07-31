@@ -41,7 +41,7 @@ void set_initial_solution(grid_type& grid, const flow_type& flow, const std::str
     temp << rho, u, T, Y;
     primitive_variable.push_back(temp);
   }
-  for(int i = 0; i < primitive_variable.size()-100; ++i){
+  for(int i = 0; i < primitive_variable.size(); ++i){
     grid.global_solution_vector[i] << primitive_variable[i][0],
                                       primitive_variable[i][0] * primitive_variable[i][1],
                                       primitive_variable[i][0] * primitive_variable[i][2] / (flow.gamma-1) +

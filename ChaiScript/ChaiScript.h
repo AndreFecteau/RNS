@@ -168,6 +168,7 @@ chai.add(chaiscript::fun(&add_lambda_gap),             "add_lambda_gap");
 //----------------------------------------Member Functions----------------------------------------//
   chai.add(chaiscript::fun(&HLLE_solver_type::solve),                        "solve");
   chai.add(chaiscript::fun(&HLLE_solver_type::get_flow),                     "get_flow");
+  chai.add(chaiscript::fun(&HLLE_solver_type::change_flow),                  "change_flow");
   chai.add(chaiscript::fun(&HLLE_solver_type::get_grid),                     "get_grid");
   chai.add(chaiscript::fun(&HLLE_solver_type::get_lambda),                   "get_lambda");
   chai.add(chaiscript::fun(&HLLE_solver_type::change_lambda),                "change_lambda");
@@ -196,6 +197,7 @@ chai.add(chaiscript::fun(&add_lambda_gap),             "add_lambda_gap");
 //----------------------------------------Member Functions----------------------------------------//
   chai.add(chaiscript::fun(&CD2_solver_type::solve),                        "solve");
   chai.add(chaiscript::fun(&CD2_solver_type::get_flow),                     "get_flow");
+  chai.add(chaiscript::fun(&CD2_solver_type::change_flow),                  "change_flow");
   chai.add(chaiscript::fun(&CD2_solver_type::get_grid),                     "get_grid");
   chai.add(chaiscript::fun(&CD2_solver_type::get_lambda),                   "get_lambda");
   chai.add(chaiscript::fun(&CD2_solver_type::recenter_solution),            "recenter_solution");

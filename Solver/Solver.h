@@ -123,6 +123,14 @@ using size_type = typename grid_type::size_type;
   /////////////////////////////////////////////////////////////////////////
   /// \brief
   /// \param
+  void change_flow(flow_properties_type new_flow) {
+    flow = new_flow;
+    std::cout << "flow changed" << std::endl;
+  }
+
+  /////////////////////////////////////////////////////////////////////////
+  /// \brief
+  /// \param
   void refine(size_type per_flame_length);
 
   /////////////////////////////////////////////////////////////////////////
@@ -398,7 +406,8 @@ template <typename flow_properties_type, typename grid_type, typename flux_type,
 void Solver<flow_properties_type, grid_type, flux_type, time_stepping_type>::
 refine(size_type per_flame_length) {
   global_solution_vector_type temp_global_solution_vector;
-  if(per_flame_length > grid.per_FL()){
+  if(per_flame_length == grid.per_FL()){
+  } else if(per_flame_length > grid.per_FL()){
     if(per_flame_length % grid.per_FL() != 0) {
       std::cout << "cant refine to asked amount" << std::endl;
     } else {
@@ -413,7 +422,7 @@ refine(size_type per_flame_length) {
     if(grid.per_FL() % per_flame_length != 0) {
       std::cout << "cant refine to asked amount" << std::endl;
     } else {
-      global_solution_vector_type temp_global_solution_vector;
+      // global_solution_vector_type temp_global_solution_vector;
       temp_global_solution_vector.resize(grid.domaine_length() * per_flame_length);
       for(size_type i = 0; i < temp_global_solution_vector.size(); ++i) {
         temp_global_solution_vector[i] = grid.global_solution_vector[i * grid.per_FL() / per_flame_length];
