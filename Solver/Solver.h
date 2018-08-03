@@ -265,7 +265,7 @@ solve(const size_type number_of_frames) {
     manufactured_solution_residual();
 #endif
   }
-  const size_type h = std::max(static_cast<int>(5*grid.per_FL()), static_cast<int>(5*grid.per_FL()-(position - flame_location*grid.per_FL())));
+  const size_type h = std::max(static_cast<int>(50*grid.per_FL()), static_cast<int>(50*grid.per_FL()-(position - flame_location*grid.per_FL())));
   if(grid.global_solution_vector[h][1] / grid.global_solution_vector[h][0] < 1.0) {
     return 0;
   } else {
@@ -407,6 +407,7 @@ void Solver<flow_properties_type, grid_type, flux_type, time_stepping_type>::
 refine(size_type per_flame_length) {
   global_solution_vector_type temp_global_solution_vector;
   if(per_flame_length == grid.per_FL()){
+    temp_global_solution_vector = grid.global_solution_vector;
   } else if(per_flame_length > grid.per_FL()){
     if(per_flame_length % grid.per_FL() != 0) {
       std::cout << "cant refine to asked amount" << std::endl;
