@@ -17,5 +17,18 @@ int main(int argc, char* argv[]) {
 
   /////////////////////////////////////////////////////////////////////
   // Parse command line arguments.
+  std::cout << "argc: " << argv[2] << std::endl;
+  if(argc > 2 && static_cast<std::string>(argv[2]) == "-omp"){
+    std::string str_num(argv[3]);
+    if(!std::all_of(str_num.begin(), str_num.end(), ::isdigit) || std::stoi(str_num) == 0) {
+      throw std::invalid_argument("Error setting number of OpenMP threads, \""
+      + str_num +
+      "\" is not a valid positive integer.");
+    }
+    std::cout << "str_num: " << str_num << std::endl;
+    omp_set_num_threads(std::stoi(str_num));
+  } else {
+      omp_set_num_threads(1);
+  }
   execute_chaiscript_file(argv[1]);
 };

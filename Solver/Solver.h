@@ -374,13 +374,13 @@ void Solver<flow_properties_type, grid_type, flux_type, time_stepping_type>::
 add_space_in_front(scalar_type space) {
   global_solution_vector_type temp_global_solution_vector;
   temp_global_solution_vector.resize(grid.number_of_cells() + space/grid.dx());
-  grid.x_max += space;
   for(size_t i = 0; i < space/grid.dx(); ++i){
     temp_global_solution_vector[i] = grid.global_solution_vector[0];
   }
   for(size_t i = space/grid.dx(); i < temp_global_solution_vector.size(); ++i) {
     temp_global_solution_vector[i] = grid.global_solution_vector[i - space/grid.dx()];
   }
+  grid.x_max += space;
   grid.global_solution_vector = temp_global_solution_vector;
   std::cout << "Added space in domaine, New domaine size: " << grid.domaine_length() << std::endl;
 }
