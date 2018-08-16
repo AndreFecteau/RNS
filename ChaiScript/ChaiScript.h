@@ -105,7 +105,7 @@ chai.add(chaiscript::fun(&set_initial_solution<grid1D_type>),             "set_i
 chai.add(chaiscript::fun(&set_initial_solution<grid1D_type, flow_type>),  "set_initial_solution");
 chai.add(chaiscript::fun(&deflagration_CJ_point<grid1D_type, flow_type>), "deflagration_CJ_point");
 chai.add(chaiscript::fun(&detonation_CJ_point<grid1D_type, flow_type>),   "detonation_CJ_point");
-chai.add(chaiscript::fun(&RK4_mf_point<grid1D_type, flow_type>),          "RK4_mf_point");
+chai.add(chaiscript::fun(&RK4_mf_point<grid1D_type, flow_type>),          "deflagration_mf_point");
 chai.add(chaiscript::fun(&manufactured_solution<grid1D_type, flow_type>), "manufactured_solution");
 chai.add(chaiscript::fun(&unserialize_to_file<HLLE_solver_type>),         "unserialize_to_file");
 chai.add(chaiscript::fun(&unserialize_to_file<CD2_solver_type>),          "unserialize_to_file");
