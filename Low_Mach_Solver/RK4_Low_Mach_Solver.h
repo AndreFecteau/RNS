@@ -65,6 +65,7 @@ public:
     delta_T = (T_initial-T_final)/(number_of_nodes-1);
     make_low_mach_reactive_solution();
     re_position_positive();
+    std::cout << lambda << std::endl;
     // export_data_to_dat();
   }
 
@@ -155,9 +156,9 @@ private:
   ///         find the actual lambda.
   void bisection_lambda();
 
-  double lambda_min = 0.0;
-  double lambda = 3.0e6;
-  double lambda_max = 3.0e12;
+  double lambda_min = 3.0e4;
+  double lambda = 3.0e5;
+  double lambda_max = 3.0e6;
   double accuracy = 1.0e-19;
   double wb = 1.0e-4;
   double T_initial = 1.0;
