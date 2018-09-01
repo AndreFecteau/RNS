@@ -6,6 +6,7 @@
 // #define LEFT_CST_EXTR
 // #define MANUFACTURED
 
+#include <iomanip>
 #include "ChaiScript/ChaiScript.h"
 
 int main(int argc, char* argv[]) {
@@ -14,10 +15,9 @@ int main(int argc, char* argv[]) {
   // Enable floating-point exceptions (I cant do this due to the unkown
   // stable timestep i am trying and if fail re-starting)
   // feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW);
-
+  std::cout << std::setprecision(20);
   /////////////////////////////////////////////////////////////////////
   // Parse command line arguments.
-  std::cout << "argc: " << argv[2] << std::endl;
   if(argc > 2 && static_cast<std::string>(argv[2]) == "-omp"){
     std::string str_num(argv[3]);
     if(!std::all_of(str_num.begin(), str_num.end(), ::isdigit) || std::stoi(str_num) == 0) {

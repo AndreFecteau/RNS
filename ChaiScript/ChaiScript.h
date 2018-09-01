@@ -128,6 +128,10 @@ chai.add(chaiscript::fun(&add_lambda_gap),             "add_lambda_gap");
   chai.add(chaiscript::fun(&grid1D_type::domaine_length),                   "domaine_length");
   chai.add(chaiscript::fun(&grid1D_type::dx),                               "dx");
   chai.add(chaiscript::fun(&grid1D_type::per_FL),                           "per_FL");
+  chai.add(chaiscript::fun(&grid1D_type::add_space_in_back),                "add_space_in_back");
+  chai.add(chaiscript::fun(&grid1D_type::add_space_in_front),               "add_space_in_front");
+  chai.add(chaiscript::fun(&grid1D_type::refine),                           "refine");
+
 //----------------------------------------Member Variable-----------------------------------------//
   chai.add(chaiscript::fun(&grid1D_type::x_min),                            "x_min");
   chai.add(chaiscript::fun(&grid1D_type::x_max),                            "x_max");
@@ -173,18 +177,20 @@ chai.add(chaiscript::fun(&add_lambda_gap),             "add_lambda_gap");
   chai.add(chaiscript::fun(&HLLE_solver_type::get_lambda),                   "get_lambda");
   chai.add(chaiscript::fun(&HLLE_solver_type::change_lambda),                "change_lambda");
   chai.add(chaiscript::fun(&HLLE_solver_type::recenter_solution),            "recenter_solution");
-  chai.add(chaiscript::fun(&HLLE_solver_type::add_space_in_back),            "add_space_in_back");
-  chai.add(chaiscript::fun(&HLLE_solver_type::add_space_in_front),           "add_space_in_front");
+  // chai.add(chaiscript::fun(&HLLE_solver_type::add_space_in_back),            "add_space_in_back");
+  // chai.add(chaiscript::fun(&HLLE_solver_type::add_space_in_front),           "add_space_in_front");
   chai.add(chaiscript::fun(&HLLE_solver_type::print_stats),                  "print_stats");
   chai.add(chaiscript::fun(&HLLE_solver_type::change_filename),              "change_filename");
   chai.add(chaiscript::fun(&HLLE_solver_type::reset_frame_number),           "reset_frame_number");
-  chai.add(chaiscript::fun(&HLLE_solver_type::refine),                       "refine");
+  // chai.add(chaiscript::fun(&HLLE_solver_type::refine),                       "refine");
   chai.add(chaiscript::fun(&HLLE_solver_type::change_frame_time),            "change_frame_time");
   chai.add(chaiscript::fun(&HLLE_solver_type::change_CFL),                   "change_CFL");
   chai.add(chaiscript::fun(&HLLE_solver_type::change_flame_location),        "change_flame_location");
   chai.add(chaiscript::fun(&HLLE_solver_type::plot_limiter),                 "plot_limiter");
-  chai.add(chaiscript::fun(&HLLE_solver_type::plot_global_solution_vector),  "plot_global_solution_vector");
+  chai.add(chaiscript::fun(&HLLE_solver_type::grid),                         "grid");
 //----------------------------------------Member Variable-----------------------------------------//
+  chai.add(chaiscript::fun(&HLLE_solver_type::plot_global_solution_vector),  "plot_global_solution_vector");
+
 /////////////////////////////////////////////Solver_HLLE////////////////////////////////////////////
 //----------------------------------------------Type----------------------------------------------//
   chai.add(chaiscript::user_type<CD2_solver_type>(),                          "CD2_solver");
@@ -201,19 +207,21 @@ chai.add(chaiscript::fun(&add_lambda_gap),             "add_lambda_gap");
   chai.add(chaiscript::fun(&CD2_solver_type::get_grid),                     "get_grid");
   chai.add(chaiscript::fun(&CD2_solver_type::get_lambda),                   "get_lambda");
   chai.add(chaiscript::fun(&CD2_solver_type::recenter_solution),            "recenter_solution");
-  chai.add(chaiscript::fun(&CD2_solver_type::add_space_in_back),            "add_space_in_back");
-  chai.add(chaiscript::fun(&CD2_solver_type::add_space_in_front),           "add_space_in_front");
+  // chai.add(chaiscript::fun(&CD2_solver_type::add_space_in_back),            "add_space_in_back");
+  // chai.add(chaiscript::fun(&CD2_solver_type::add_space_in_front),           "add_space_in_front");
   chai.add(chaiscript::fun(&CD2_solver_type::print_stats),                  "print_stats");
   chai.add(chaiscript::fun(&CD2_solver_type::change_filename),              "change_filename");
   chai.add(chaiscript::fun(&CD2_solver_type::reset_frame_number),           "reset_frame_number");
   chai.add(chaiscript::fun(&CD2_solver_type::change_lambda),                "change_lambda");
-  chai.add(chaiscript::fun(&CD2_solver_type::refine),                       "refine");
+  // chai.add(chaiscript::fun(&CD2_solver_type::refine),                       "refine");
   chai.add(chaiscript::fun(&CD2_solver_type::change_frame_time),            "change_frame_time");
   chai.add(chaiscript::fun(&CD2_solver_type::change_CFL),                   "change_CFL");
   chai.add(chaiscript::fun(&CD2_solver_type::change_flame_location),        "change_flame_location");
   chai.add(chaiscript::fun(&CD2_solver_type::plot_limiter),                 "plot_limiter");
   chai.add(chaiscript::fun(&CD2_solver_type::plot_global_solution_vector),  "plot_global_solution_vector");
 //----------------------------------------Member Variable-----------------------------------------//
+  chai.add(chaiscript::fun(&CD2_solver_type::grid),                         "grid");
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 }
 
