@@ -459,10 +459,10 @@ plot_limiter() {
     const solution_vector_type a = (U - Ul) / grid.dx();
     const solution_vector_type b = (Ur - U) / grid.dx();
     for(size_type i = 0; i < 4; ++i) {
-      min_mod[j][i] = math::sign(a[i])*std::max(0.0,static_cast<scalar_type>(std::min(fabs(a[i]), math::sign(a[i])*b[i])));
+      min_mod[j][i] = math::sign(a[i])*std::max(static_cast<scalar_type>(0.0),static_cast<scalar_type>(std::min(fabs(a[i]), math::sign(a[i])*b[i])));
     }
 
-    double epsilon = 1.0e-6;
+    scalar_type epsilon = 1.0e-6;
     van_albada[j] =  a.array() * b.array() * (a.array() + b.array()) / (a.array() * a.array() + b.array() * b.array() + epsilon);
     for (int i = 0; i < 4; ++i) {
       if (a[i] / b[i] <= 0.0 || b[i] == 0) {

@@ -30,5 +30,6 @@ int main(int argc, char* argv[]) {
   } else {
       omp_set_num_threads(1);
   }
+  std::cout << "chai";
   execute_chaiscript_file(argv[1]);
 };

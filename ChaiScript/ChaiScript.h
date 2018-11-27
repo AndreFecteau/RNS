@@ -19,7 +19,7 @@
 #include "../Usefull_Headers/Handle_Itterative_Lambda.h"
 
 using size_type = size_t;
-using scalar_type = double;
+using scalar_type = long double;
 using matrix_type = Eigen::Matrix<scalar_type, 4,4>;
 using solution_vector_type = Eigen::Matrix<scalar_type,4,1>;
 using global_solution_vector_type = std::vector<solution_vector_type>;
@@ -69,13 +69,13 @@ void register_RNS_Chaiscript(chaiscript::ChaiScript& chai) {
     }
     return (a-b).eval();
   };
-  const auto multiplication1 = [](const solution_vector_type& a, const double& b) {
+  const auto multiplication1 = [](const solution_vector_type& a, const scalar_type& b) {
     return (a*b).eval();
   };
-  const auto multiplication2 = [](const double& a, const solution_vector_type& b) {
+  const auto multiplication2 = [](const scalar_type& a, const solution_vector_type& b) {
     return (a*b).eval();
   };
-  const auto division = [](const solution_vector_type& a, const double& b) {
+  const auto division = [](const solution_vector_type& a, const scalar_type& b) {
     return (a/b).eval();
   };
   const auto vec_to_string = [](const solution_vector_type& v) {
@@ -96,7 +96,7 @@ void register_RNS_Chaiscript(chaiscript::ChaiScript& chai) {
   chai.add(chaiscript::fun(multiplication1),"*");
   chai.add(chaiscript::fun(multiplication2),"*");
   chai.add(chaiscript::fun(division),"/");
-  chai.add(chaiscript::fun([](solution_vector_type& v, const double d) {v.fill(d);}),"fill");
+  chai.add(chaiscript::fun([](solution_vector_type& v, const scalar_type d) {v.fill(d);}),"fill");
   chai.add(chaiscript::fun(vec_to_string),"to_string");
 
 /////////////////////////////////////////Initial_Condition//////////////////////////////////////////
@@ -237,7 +237,7 @@ inline void execute_chaiscript_file(std::string filename) {
     std::cout << ee.pretty_print();
     if ( !ee.call_stack.empty() ) {
     std::cout << "during evaluation at (" << ee.call_stack[0].start().line << ", " << ee.call_stack[0].start().column << ")";
-    }
+  }
   std::cout << '\n';
   }
 }

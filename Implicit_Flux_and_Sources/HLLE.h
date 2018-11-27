@@ -20,6 +20,7 @@ template <typename global_solution_vector_type>
 class HLLE {
  public:
    using solution_vector_type = typename global_solution_vector_type::value_type;
+   using scalar_type = typename global_solution_vector_type::value_type::value_type;
   /////////////////////////////////////////////////////////////////////////
   /// \brief Default constructor.
   HLLE() = default;
@@ -45,7 +46,7 @@ class HLLE {
   /// \return Flux between cells.
   solution_vector_type flux(const solution_vector_type &variable_vector_left,
                             const solution_vector_type &variable_vector_right,
-                            const double &gamma_in) {
+                            const scalar_type &gamma_in) {
     gamma = gamma_in;
     rho_right =variable_vector_right[0];
     u_right  = variable_vector_right[1];
@@ -83,41 +84,41 @@ class HLLE {
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief Function to calculate the enthalpy for the right state.
-  double h_right() {
+  scalar_type h_right() {
     // return (0.5 * rho_right * u_right * u_right + p_right / (gamma-1) + p_right) / rho_right;
     return gamma * p_right / (rho_right * (gamma - 1.0)) + u_right * u_right * 0.5;
   }
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief Function to calculate the enthalpy for the left state.
-  double h_left() {
+  scalar_type h_left() {
     // return (0.5 * rho_left * u_left * u_left + p_left / (gamma-1) + p_left) / rho_left;
     return gamma * p_left / (rho_left * (gamma - 1.0)) + u_left * u_left * 0.5;
   }
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief Function to calculate the average rho state.
-  double rho_rhoavg() {
+  scalar_type rho_rhoavg() {
     return sqrt(rho_left * rho_right);
   }
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief Function to calculate the average rho state of the velocity.
-  double u_rhoavg() {
+  scalar_type u_rhoavg() {
     return (sqrt(rho_left) * u_left + sqrt(rho_right) * u_right) /
            (sqrt(rho_left) + sqrt(rho_right));
   }
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief Function to calculate the average rho state of the enthalpy.
-  double h_rhoavg() {
+  scalar_type h_rhoavg() {
     return (sqrt(rho_left) * h_left() + sqrt(rho_right) * h_right()) /
            (sqrt(rho_left) + sqrt(rho_right));
   }
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief Function to calculate the average rho state of the temperature.
-  double p_rhoavg() {
+  scalar_type p_rhoavg() {
     return (h_rhoavg() - u_rhoavg()*u_rhoavg() * 0.5) * (gamma - 1.0) / gamma * rho_rhoavg();
   }
 
@@ -135,7 +136,7 @@ class HLLE {
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief Function to calculate an arbitrary flux.
-  solution_vector_type create_flux_vector(double rho, double u, double p, double Y) {
+  solution_vector_type create_flux_vector(scalar_type rho, scalar_type u, scalar_type p, scalar_type Y) {
     solution_vector_type partial_flux;
     partial_flux << rho * u, rho * u * u + p, u * (gamma * p / (gamma - 1.0) +
                     rho * u * u * 0.5),rho * u * Y;
@@ -144,32 +145,32 @@ class HLLE {
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief Function to calculate the corrected lambda_left.
-  double lambda_left() {
-    double lambda_1 = u_left - sqrt(gamma*p_left/rho_left);
-    // double lambda_2 = u_rhoavg() - sqrt((gamma - 1) * (h_rhoavg() - 0.5 * u_rhoavg()*u_rhoavg()));
-    double lambda_2 = u_rhoavg() - sqrt(gamma*p_rhoavg()/rho_rhoavg());
+  scalar_type lambda_left() {
+    scalar_type lambda_1 = u_left - sqrt(gamma*p_left/rho_left);
+    // scalar_type lambda_2 = u_rhoavg() - sqrt((gamma - 1) * (h_rhoavg() - 0.5 * u_rhoavg()*u_rhoavg()));
+    scalar_type lambda_2 = u_rhoavg() - sqrt(gamma*p_rhoavg()/rho_rhoavg());
     return std::min(lambda_1,lambda_2);
   }
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief Function to calculate the corrected lambda_right.
-  double lambda_right() {
-    double lambda_1 = u_right + sqrt(gamma*p_right/rho_right);
-    // double lambda_2 = u_rhoavg() + sqrt((gamma - 1) * (h_rhoavg() - 0.5 * u_rhoavg()*u_rhoavg()));
-    double lambda_2 = u_rhoavg() + sqrt(gamma*p_rhoavg()/rho_rhoavg());
+  scalar_type lambda_right() {
+    scalar_type lambda_1 = u_right + sqrt(gamma*p_right/rho_right);
+    // scalar_type lambda_2 = u_rhoavg() + sqrt((gamma - 1) * (h_rhoavg() - 0.5 * u_rhoavg()*u_rhoavg()));
+    scalar_type lambda_2 = u_rhoavg() + sqrt(gamma*p_rhoavg()/rho_rhoavg());
     return std::max(lambda_1,lambda_2);
   }
 
  private:
-  double rho_right;
-  double u_right;
-  double p_right;
-  double rho_left;
-  double u_left;
-  double p_left;
-  double Y_right;
-  double Y_left;
-  double gamma;
+  scalar_type rho_right;
+  scalar_type u_right;
+  scalar_type p_right;
+  scalar_type rho_left;
+  scalar_type u_left;
+  scalar_type p_left;
+  scalar_type Y_right;
+  scalar_type Y_left;
+  scalar_type gamma;
 };
 
 #endif //#ifndef HLLE_H
