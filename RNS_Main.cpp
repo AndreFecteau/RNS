@@ -1,7 +1,7 @@
-#define HYPERBOLIC
-#define VISCOUS
-#define SOURCE
-#define RECENTER_FLAME
+// #define HYPERBOLIC
+// #define VISCOUS
+// #define SOURCE
+// #define RECENTER_FLAME
 // #define RIGHT_CST_EXTR
 // #define LEFT_CST_EXTR
 // #define MANUFACTURED
@@ -25,11 +25,9 @@ int main(int argc, char* argv[]) {
       + str_num +
       "\" is not a valid positive integer.");
     }
-    std::cout << "str_num: " << str_num << std::endl;
     omp_set_num_threads(std::stoi(str_num));
   } else {
       omp_set_num_threads(1);
   }
-  std::cout << "chai";
   execute_chaiscript_file(argv[1]);
 };
