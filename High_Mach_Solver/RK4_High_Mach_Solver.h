@@ -14,6 +14,7 @@
 #include <algorithm>
 #include "Gnuplot_CS.h"
 #include <math.h>
+#include <cmath>
 
 // using scalar_type = long double;
 template <typename scalar_type>
@@ -86,7 +87,10 @@ public:
       U_vec =  U_cut;
       Y_vec =  Y_cut;
       x =  x_cut;
-
+    double change_in_x = *std::min_element(std::begin(x), std::end(x));
+    for (size_t i = 0; i < x.size(); ++i) {
+      x[i] -= change_in_x;
+    }
   }
 
   scalar_type Power(scalar_type var, int itt){
@@ -124,7 +128,10 @@ public:
   /////////////////////////////////////////////////////////////////////////
   /// \brief returns the length of the domaine.
   scalar_type length(){
-    return delta_x * Y_vec.size();
+    auto it_max = std::max_element(std::begin(x), std::end(x));
+    auto it_min = std::min_element(std::begin(x), std::end(x));
+    return *it_max - *it_min;
+    // return delta_x * Y_vec.size();
   };
 
   /////////////////////////////////////////////////////////////////////////
@@ -135,7 +142,12 @@ public:
   /////////////////////////////////////////////////////////////////////////
   // / \brief Gets the index from a location.
   int get_i(scalar_type location) {
-    return static_cast<int>(location/delta_x);
+    int i = 0;
+    while(((x[i] - location) * (x[i+1] - location)) > 0){
+      ++i;
+    }
+    return i;
+    // return delta_x * Y_vec.size();
   }
 
   /////////////////////////////////////////////////////////////////////////
@@ -252,7 +264,7 @@ void RK4_High_Mach_Solver<scalar_type>::export_data_to_dat() {
   std::string variables = "# x Y";
   std::string variables_usual = "# x rho U p T Y";
   gnuplot_CS<scalar_type>("RK4", data, variables);
-  // std::cout << "done plotting" << std::endl;
+	  // std::cout << "done plotting" << std::endl;
   gnuplot_CS<scalar_type>("RK4_Usual", data_usual, variables_usual);
 }
 
@@ -261,7 +273,7 @@ void RK4_High_Mach_Solver<scalar_type>::export_data_to_dat() {
 ///////////////////////////////////////////////////////////////////////////////
 template <typename scalar_type>
 void RK4_High_Mach_Solver<scalar_type>::make_reactive_solution() {
-  while((lambda_max - lambda_min) > 1e-12){
+  while(fabs((lambda_max - lambda_min)/lambda) > 1e-12){
     // std::cout << lambda << std::endl;
     x.clear();
     Y_vec.clear();
@@ -273,7 +285,7 @@ void RK4_High_Mach_Solver<scalar_type>::make_reactive_solution() {
     for(int i = 0; i < number_of_nodes*2-2; ++i) {
       donecheck = runge_kutta_4(i);
       if(donecheck == 1){
-        if(!isfinite(Y)){
+        if(!std::isfinite(Y)){
           bisection_lambda(100);
         }
         break;
@@ -282,6 +294,7 @@ void RK4_High_Mach_Solver<scalar_type>::make_reactive_solution() {
     if(donecheck == 0){
       bisection_lambda(100.0);
     }
+    std::cout << "Lambda: " << lambda  << std::endl;
     export_data_to_dat();
   }
 }
@@ -316,7 +329,7 @@ void RK4_High_Mach_Solver<scalar_type>::setup_boundary_conditions() {
   Y = Y1();
   U = 1.0;
   Theta =1.0;
-  dYdx = -1e-5;
+  dYdx = -1e-8;
 }
 
 template <typename scalar_type>
@@ -390,7 +403,7 @@ bool RK4_High_Mach_Solver<scalar_type>::runge_kutta_4(int i) {
     x.push_back(i*delta_x);
   }
 
-  if(!isfinite(Y)){
+  if(!std::isfinite(Y)){
     return 1;
   }
 

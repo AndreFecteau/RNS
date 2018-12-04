@@ -4,7 +4,7 @@
 #define RECENTER_FLAME
 
 #include<vector>
-#include<Eigen/Core>
+#include <Eigen/Core>
 #include <chaiscript/chaiscript.hpp>
 #include <chaiscript/chaiscript_stdlib.hpp>
 
@@ -227,17 +227,18 @@ chai.add(chaiscript::fun(&add_lambda_gap),             "add_lambda_gap");
 
 inline void execute_chaiscript_file(std::string filename) {
 
-  chaiscript::ChaiScript chai;
+  //chaiscript::ChaiScript chai;
+  chaiscript::ChaiScript chai(chaiscript::Std_Lib::library());
 
   register_RNS_Chaiscript(chai);
 
-  try {
+  //try {
     chai.eval_file(filename);
-  } catch (const chaiscript::exception::eval_error &ee) {
-    std::cout << ee.pretty_print();
-    if ( !ee.call_stack.empty() ) {
-    std::cout << "during evaluation at (" << ee.call_stack[0].start().line << ", " << ee.call_stack[0].start().column << ")";
-  }
-  std::cout << '\n';
-  }
+  //} catch (const chaiscript::exception::eval_error &ee) {
+  //  std::cout << ee.pretty_print();
+  //  if ( !ee.call_stack.empty() ) {
+  //  std::cout << "during evaluation at (" << ee.call_stack[0].start().line << ", " << ee.call_stack[0].start().column << ")";
+  //}
+  //std::cout << '\n';
+  //}
 }
