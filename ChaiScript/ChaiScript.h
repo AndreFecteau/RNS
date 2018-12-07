@@ -19,7 +19,7 @@
 #include "../Usefull_Headers/Handle_Itterative_Lambda.h"
 
 using size_type = size_t;
-using scalar_type = long double;
+using scalar_type = double;
 using matrix_type = Eigen::Matrix<scalar_type, 4,4>;
 using solution_vector_type = Eigen::Matrix<scalar_type,4,1>;
 using global_solution_vector_type = std::vector<solution_vector_type>;
