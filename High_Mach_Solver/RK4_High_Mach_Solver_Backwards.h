@@ -49,7 +49,7 @@ public:
   RK4_High_Mach_Solver_Backwards& operator=(RK4_High_Mach_Solver_Backwards&&) = default;
 
   RK4_High_Mach_Solver_Backwards(scalar_type le_in, scalar_type Q_in, scalar_type theta_in, scalar_type gamma_in, scalar_type mf_in, scalar_type Pr_in, scalar_type U_match):
-    number_of_nodes(1e7), domaine_length(400), Le(le_in), Q(Q_in), theta(theta_in), gamma(gamma_in), mf(mf_in), Pr(Pr_in) {
+    number_of_nodes(1e8), domaine_length(40000), Le(le_in), Q(Q_in), theta(theta_in), gamma(gamma_in), mf(mf_in), Pr(Pr_in) {
     delta_x = -domaine_length/static_cast<scalar_type>(number_of_nodes);
     // std::cout << "delta_x: " << delta_x << std::endl;
     if (Q < 4 || Q > 9) {
