@@ -150,7 +150,7 @@ void deflagration_CJ_point(grid_type& grid, flow_type& flow) {
                                                               flow.mf, flow.Pr);
   RK4_High_Mach_Solver_Backwards<scalar_type> burned_solution = RK4_High_Mach_Solver_Backwards<scalar_type>(flow.Le, flow.Q_low_mach,
                                                               flow.theta_low_mach, flow.gamma,
-                                                              flow.mf, flow.Pr,unburned_solution.get_U(unburned_solution.length()));
+                                                              flow.mf, flow.Pr,unburned_solution.get_U(unburned_solution.length() - 1e-5));
   flow.lambda = unburned_solution.get_lambda();
   // scalar_type safety_factor = 0.999999;
   scalar_type p_0 = 1.0/(flow.gamma*flow.mf*flow.mf);

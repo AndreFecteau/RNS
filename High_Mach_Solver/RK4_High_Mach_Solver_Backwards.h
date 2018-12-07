@@ -420,7 +420,7 @@ bool RK4_High_Mach_Solver_Backwards<scalar_type>::runge_kutta_4(int i) {
   // }
   // x = x + delta_x;
 
-  if((i%(number_of_nodes/32000) == 0)){
+  if((i%(number_of_nodes/100000) == 0)){
     Y_vec.push_back(Y);
     Theta_vec.push_back(Theta);
     U_vec.push_back(U);

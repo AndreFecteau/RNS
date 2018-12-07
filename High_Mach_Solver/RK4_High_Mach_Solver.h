@@ -75,7 +75,7 @@ public:
     scalar_type Theta_var2 = Theta2();
     scalar_type U2 = (1 + gamma*Power(mf,2) - sqrt(1 + 2*gamma*Power(mf,2) + Power(gamma,2)*Power(mf,4) - 4*gamma*Power(mf,2)*Theta_var2))/(2.*gamma*Power(mf,2));
       for(int i = 0; i < Theta_vec.size(); ++i){
-        if(Theta_vec[i] < Theta_var2 && Theta_vec[std::min(i+1,static_cast<int>(Theta_vec.size()-1))]-Theta_vec[std::max(i-1,0)] < 0){
+        if(Theta_vec[i] < Theta_var2 && Theta_vec[std::min(i+1,static_cast<int>(Theta_vec.size()-1))]-Theta_vec[std::max(i-1,0)] < 0 || Y_vec[std::min(i+1,static_cast<int>(Y_vec.size()-1))]-Y_vec[std::max(i-1,0)] > 0 ){
           break;
         }
         Theta_cut.push_back(Theta_vec[i]);
