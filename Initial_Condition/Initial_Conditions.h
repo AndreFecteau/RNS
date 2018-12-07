@@ -2,6 +2,7 @@
 #define INITIAL_CONDITIONS_H
 #include "../Low_Mach_Solver/RK4_Low_Mach_Solver.h"
 #include "../High_Mach_Solver/RK4_High_Mach_Solver.h"
+#include "../High_Mach_Solver/RK4_High_Mach_Solver_Backwards.h"
 #include "../Usefull_Headers/Helper_Functions.h"
 
 #include <fstream>
@@ -86,6 +87,22 @@ make_RK4_solution_vector(RK4_High_Mach_Solver<typename grid_type::scalar_type> l
   return temp_vec;
 }
 
+template <typename grid_type>
+typename grid_type::global_solution_vector_type::value_type
+make_RK4_solution_vector(RK4_High_Mach_Solver_Backwards<typename grid_type::scalar_type> low_mach_solution,
+                         typename grid_type::scalar_type x,
+                         typename grid_type::scalar_type gamma,
+                         typename grid_type::scalar_type mf) {
+  typename grid_type::global_solution_vector_type::value_type temp_vec;
+  temp_vec <<   low_mach_solution.get_rho(x),
+                low_mach_solution.get_rho(x) * low_mach_solution.get_U(x),
+                low_mach_solution.get_rho(x) * low_mach_solution.get_T(x) /(gamma*mf*mf) /
+                (gamma - 1.0) +
+                low_mach_solution.get_rho(x) * low_mach_solution.get_U(x) *
+                low_mach_solution.get_U(x) * 0.5,
+                low_mach_solution.get_rho(x) * low_mach_solution.get_Y(x);
+  return temp_vec;
+}
 // template <typename grid_type, typename flow_type>
 // void deflagration_CJ_point(grid_type& grid, flow_type& flow) {
 //   using scalar_type = typename grid_type::scalar_type;
@@ -128,10 +145,13 @@ void deflagration_CJ_point(grid_type& grid, flow_type& flow) {
   using size_type = typename grid_type::size_type;
   scalar_type safety_factor = 0.999999999999;
   flow.mf = safety_factor*sqrt(1 + flow.Q_low_mach + flow.Q_low_mach*flow.gamma - sqrt(flow.Q_low_mach*(1 + flow.gamma)*(2 + flow.Q_low_mach + flow.Q_low_mach*flow.gamma)));
-  RK4_High_Mach_Solver<scalar_type> initial_low_mach = RK4_High_Mach_Solver<scalar_type>(flow.Le, flow.Q_low_mach,
+  RK4_High_Mach_Solver<scalar_type> unburned_solution = RK4_High_Mach_Solver<scalar_type>(flow.Le, flow.Q_low_mach,
                                                               flow.theta_low_mach, flow.gamma,
                                                               flow.mf, flow.Pr);
-  flow.lambda = initial_low_mach.get_lambda();
+  RK4_High_Mach_Solver_Backwards<scalar_type> burned_solution = RK4_High_Mach_Solver_Backwards<scalar_type>(flow.Le, flow.Q_low_mach,
+                                                              flow.theta_low_mach, flow.gamma,
+                                                              flow.mf, flow.Pr,unburned_solution.get_U(unburned_solution.length()));
+  flow.lambda = unburned_solution.get_lambda();
   // scalar_type safety_factor = 0.999999;
   scalar_type p_0 = 1.0/(flow.gamma*flow.mf*flow.mf);
   scalar_type zeta = (1.0 + flow.mf*flow.mf*flow.mf*flow.mf - 2.0 * flow.mf*flow.mf*(1.0+flow.Q_low_mach+flow.gamma*flow.Q_low_mach)) /
@@ -150,15 +170,19 @@ void deflagration_CJ_point(grid_type& grid, flow_type& flow) {
       (1.0 / (flow.gamma * flow.mf * flow.mf)) /
       (flow.gamma - 1.0) + 1.0 * 1.0 * 1.0 * 0.5,
       1.0 * 1.0;
-    } else if ((i+1)*grid.dx() > grid.domaine_length()*flame_location + initial_low_mach.length()) {
+    } else if ((i+1)*grid.dx() > grid.domaine_length()*flame_location + unburned_solution.length() + burned_solution.length() || (i+1)*grid.dx() > 0.99 * grid.domaine_length()) {
       grid.global_solution_vector[i] << rho_inf,
       rho_inf * u_inf,
       p_inf / (flow.gamma - 1.0) + rho_inf * u_inf * u_inf * 0.5,
       rho_inf * 0;
+    } else if ((i+1)*grid.dx() > grid.domaine_length()*flame_location + unburned_solution.length()) {
+      grid.global_solution_vector[i] << make_RK4_solution_vector<grid_type>(burned_solution,
+                                       (i+1)*grid.dx() - grid.domaine_length()*flame_location - unburned_solution.length(), flow.gamma, flow.mf);
+
     } else {
       // std::cout << i*grid.dx() << std::endl;
-        grid.global_solution_vector[i] << make_RK4_solution_vector<grid_type>(initial_low_mach,
-                                                        (i+1)*grid.dx() - grid.domaine_length()*flame_location, flow.gamma, flow.mf);
+        grid.global_solution_vector[i] << make_RK4_solution_vector<grid_type>(unburned_solution,
+                                       (i+1)*grid.dx() - grid.domaine_length()*flame_location, flow.gamma, flow.mf);
     }
   }
 }

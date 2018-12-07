@@ -1,12 +1,12 @@
-#ifndef RK4_HIGH_MACH_SOLVER_H
-#define RK4_HIGH_MACH_SOLVER_H
+#ifndef RK4_HIGH_MACH_SOLVER_BACKWARDS_H
+#define RK4_HIGH_MACH_SOLVER_BACKWARDS_H
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \file
 /// \brief  Header containg the definition of the class for a
-///         RK4_High_Mach_Solver
+///         RK4_High_Mach_Solver_Backwards
 ///////////////////////////////////////////////////////////////////////////////
 #include <iostream>
 #include <cmath>
@@ -14,11 +14,10 @@
 #include <algorithm>
 #include "Gnuplot_CS.h"
 #include <math.h>
-#include <cmath>
 
 // using scalar_type = long double;
 template <typename scalar_type>
-class RK4_High_Mach_Solver{
+class RK4_High_Mach_Solver_Backwards{
 
 ///////////////////////////////////////////////////////////////////////////////
   /// \brief  Header containg a solution to the time invarient Compressible_mach
@@ -31,27 +30,27 @@ public:
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief Default constructor.
-  RK4_High_Mach_Solver() = default;
+  RK4_High_Mach_Solver_Backwards() = default;
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief Copy constructor.
-  RK4_High_Mach_Solver(const RK4_High_Mach_Solver&) = default;
+  RK4_High_Mach_Solver_Backwards(const RK4_High_Mach_Solver_Backwards&) = default;
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief Move constructor.
-  RK4_High_Mach_Solver(RK4_High_Mach_Solver&&) = default;
+  RK4_High_Mach_Solver_Backwards(RK4_High_Mach_Solver_Backwards&&) = default;
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief Copy assignment operator.
-  RK4_High_Mach_Solver& operator=(const RK4_High_Mach_Solver&) = default;
+  RK4_High_Mach_Solver_Backwards& operator=(const RK4_High_Mach_Solver_Backwards&) = default;
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief Move assignment operator.
-  RK4_High_Mach_Solver& operator=(RK4_High_Mach_Solver&&) = default;
+  RK4_High_Mach_Solver_Backwards& operator=(RK4_High_Mach_Solver_Backwards&&) = default;
 
-  RK4_High_Mach_Solver(scalar_type le_in, scalar_type Q_in, scalar_type theta_in, scalar_type gamma_in, scalar_type mf_in, scalar_type Pr_in):
-    number_of_nodes(2e7), domaine_length(40), Le(le_in), Q(Q_in), theta(theta_in), gamma(gamma_in), mf(mf_in), Pr(Pr_in) {
-    delta_x = domaine_length/static_cast<scalar_type>(number_of_nodes);
+  RK4_High_Mach_Solver_Backwards(scalar_type le_in, scalar_type Q_in, scalar_type theta_in, scalar_type gamma_in, scalar_type mf_in, scalar_type Pr_in, scalar_type U_match):
+    number_of_nodes(1e7), domaine_length(400), Le(le_in), Q(Q_in), theta(theta_in), gamma(gamma_in), mf(mf_in), Pr(Pr_in) {
+    delta_x = -domaine_length/static_cast<scalar_type>(number_of_nodes);
     // std::cout << "delta_x: " << delta_x << std::endl;
     if (Q < 4 || Q > 9) {
       std::cout << "Make sure that Q :" << Q << " is the correct value." << std::endl;
@@ -63,19 +62,20 @@ public:
       std::cout << "Make sure that Le: " << Le << " is the correct value" << std::endl;
     }
     make_reactive_solution();
-    cut_data();
+    cut_data(U_match);
     export_data_to_dat();
   }
 
-  void cut_data(){
+  void cut_data(scalar_type U_match){
+    std::cout << x.size() << std::endl;
     std::vector<scalar_type> Theta_cut;
     std::vector<scalar_type> U_cut;
     std::vector<scalar_type> Y_cut;
     std::vector<scalar_type> x_cut;
     scalar_type Theta_var2 = Theta2();
     scalar_type U2 = (1 + gamma*Power(mf,2) - sqrt(1 + 2*gamma*Power(mf,2) + Power(gamma,2)*Power(mf,4) - 4*gamma*Power(mf,2)*Theta_var2))/(2.*gamma*Power(mf,2));
-      for(int i = 0; i < Theta_vec.size(); ++i){
-        if(Theta_vec[i] < Theta_var2 && Theta_vec[std::min(i+1,static_cast<int>(Theta_vec.size()-1))]-Theta_vec[std::max(i-1,0)] < 0){
+      for(int i = 0; i < Theta_vec.size()-1; ++i){
+        if(U_vec[i+1] < U_match){
           break;
         }
         Theta_cut.push_back(Theta_vec[i]);
@@ -87,10 +87,25 @@ public:
       U_vec =  U_cut;
       Y_vec =  Y_cut;
       x =  x_cut;
-    double change_in_x = *std::min_element(std::begin(x), std::end(x));
-    for (size_t i = 0; i < x.size(); ++i) {
-      x[i] -= change_in_x;
-    }
+      double change_in_x = *std::min_element(std::begin(x), std::end(x));
+      for (size_t i = 0; i < x.size(); ++i) {
+        x[i] -= change_in_x;
+      }
+      std::vector<scalar_type> x_temp;
+      std::vector<scalar_type> U_temp;
+      std::vector<scalar_type> Y_temp;
+      std::vector<scalar_type> Theta_temp;
+      for (size_t i = x.size(); i > 0; --i) {
+        std::cout << i << std::endl;
+        x_temp.push_back(x[i-1]);
+        U_temp.push_back(U_vec[i-1]);
+        Y_temp.push_back(Y_vec[i-1]);
+        Theta_temp.push_back(Theta_vec[i-1]);
+      }
+      x = x_temp;
+      U_vec = U_temp;
+      Y_vec = Y_temp;
+      Theta_vec = Theta_temp;
   }
 
   scalar_type Power(scalar_type var, int itt){
@@ -130,8 +145,9 @@ public:
   scalar_type length(){
     auto it_max = std::max_element(std::begin(x), std::end(x));
     auto it_min = std::min_element(std::begin(x), std::end(x));
+    std::cout << "length: " << *it_max - *it_min << std::endl;
     return *it_max - *it_min;
-    // return delta_x * Y_vec.size();
+    // return fabs(delta_x * Y_vec.size());
   };
 
   /////////////////////////////////////////////////////////////////////////
@@ -147,7 +163,7 @@ public:
       ++i;
     }
     return i;
-    // return delta_x * Y_vec.size();
+    // return static_cast<int>(location/fabs(delta_x));
   }
 
   /////////////////////////////////////////////////////////////////////////
@@ -191,9 +207,9 @@ scalar_type dydx_(scalar_type Theta_, scalar_type U_, scalar_type dYdx_, scalar_
   scalar_type Y1();
   // scalar_type eps();
 
-  scalar_type lambda_min = 1e+03;
-  scalar_type lambda = 3e+04;
-  scalar_type lambda_max = 1e+07;
+  scalar_type lambda_min = 43151.2;
+  scalar_type lambda = 43151.3;
+  scalar_type lambda_max = 43151.4;
   int number_of_nodes;
   std::vector<scalar_type> Y_vec;
   std::vector<scalar_type> U_vec;
@@ -223,7 +239,7 @@ private:
 //Gets a value between nodes.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename scalar_type>
-scalar_type RK4_High_Mach_Solver<scalar_type>::interpolate(std::vector<scalar_type> T, scalar_type location) {
+scalar_type RK4_High_Mach_Solver_Backwards<scalar_type>::interpolate(std::vector<scalar_type> T, scalar_type location) {
   int i = get_i(location);
   return (T[i+1] - T[i]) * (location - x[i]) / (x[i+1] - x[i]) + T[i];
 }
@@ -232,7 +248,7 @@ scalar_type RK4_High_Mach_Solver<scalar_type>::interpolate(std::vector<scalar_ty
 // Creates a .dat file containing solution to the Compressible_mach solution.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename scalar_type>
-void RK4_High_Mach_Solver<scalar_type>::export_data_to_dat() {
+void RK4_High_Mach_Solver_Backwards<scalar_type>::export_data_to_dat() {
   std::vector<std::vector<scalar_type>> data;
 
   std::vector<std::vector<scalar_type>> data_usual;
@@ -256,24 +272,24 @@ void RK4_High_Mach_Solver<scalar_type>::export_data_to_dat() {
   }
   std::vector<scalar_type> Y_usual(x.size());
   for(int i = 0; i < x.size(); ++i){
-    Y_usual[i] = Y_vec[i]/Y_vec[0];
+    Y_usual[i] = 0;//Y_vec[i]/Y_vec[0];
   }
 
   data = {x, U_vec, Theta_vec, Y_vec};//, U, Theta, dYdx};
   data_usual = {x,rho_usual, U_vec, p_usual, T_usual, Y_usual};
   std::string variables = "# x Y";
   std::string variables_usual = "# x rho U p T Y";
-  gnuplot_CS<scalar_type>("RK4", data, variables);
-	  // std::cout << "done plotting" << std::endl;
-  gnuplot_CS<scalar_type>("RK4_Usual", data_usual, variables_usual);
+  gnuplot_CS<scalar_type>("RK4_Burned", data, variables);
+  // std::cout << "done plotting" << std::endl;
+  gnuplot_CS<scalar_type>("RK4_Usual_Burned", data_usual, variables_usual);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 // Runs all required functions to solve the pde's
 ///////////////////////////////////////////////////////////////////////////////
 template <typename scalar_type>
-void RK4_High_Mach_Solver<scalar_type>::make_reactive_solution() {
-  while(fabs((lambda_max - lambda_min)/lambda) > 1e-15){
+void RK4_High_Mach_Solver_Backwards<scalar_type>::make_reactive_solution() {
+  // while((lambda_max - lambda_min)/std::log10(lambda) > 1e-10){
     // std::cout << lambda << std::endl;
     x.clear();
     Y_vec.clear();
@@ -282,10 +298,10 @@ void RK4_High_Mach_Solver<scalar_type>::make_reactive_solution() {
     setup_boundary_conditions();
     bool donecheck = 0;
     int i = 0;
-    for(int i = 0; i < number_of_nodes*2-2; ++i) {
+    for(int i = 0; i < number_of_nodes; ++i) {
       donecheck = runge_kutta_4(i);
       if(donecheck == 1){
-        if(!std::isfinite(Y)){
+        if(!isfinite(Y)){
           bisection_lambda(100);
         }
         break;
@@ -294,16 +310,16 @@ void RK4_High_Mach_Solver<scalar_type>::make_reactive_solution() {
     if(donecheck == 0){
       bisection_lambda(100.0);
     }
-    std::cout << "Lambda: " << lambda  << std::endl;
+    std::cout << "Lambda: " << lambda << std::endl;
     export_data_to_dat();
-  }
+  // }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 // setup all boundary conditions for the shooting method
 ///////////////////////////////////////////////////////////////////////////////
 template <typename scalar_type>
-scalar_type RK4_High_Mach_Solver<scalar_type>::U2(){
+scalar_type RK4_High_Mach_Solver_Backwards<scalar_type>::U2(){
 
   scalar_type zeta = (1.0 + mf*mf*mf*mf - 2.0 * mf*mf*(1.0+Q+gamma*Q)) / (pow(pow(mf, 2)*(1.0+gamma),2));
   scalar_type rho_inf = 1.0/((1.0 + pow(mf,2)*gamma)/(pow(mf,2)*(1.0 + gamma)) - sqrt(zeta));
@@ -311,7 +327,7 @@ scalar_type RK4_High_Mach_Solver<scalar_type>::U2(){
 
 }
 template <typename scalar_type>
-scalar_type RK4_High_Mach_Solver<scalar_type>::Theta2() {
+scalar_type RK4_High_Mach_Solver_Backwards<scalar_type>::Theta2() {
   scalar_type p_0 = 1/(gamma*mf*mf);
   scalar_type zeta = (1.0 + mf*mf*mf*mf - 2.0 * mf*mf*(1.0+Q+gamma*Q)) / (pow(pow(mf, 2)*(1.0+gamma),2));
   scalar_type rho_inf = 1.0/((1.0 + pow(mf,2)*gamma)/(pow(mf,2)*(1.0 + gamma)) - sqrt(zeta));
@@ -320,29 +336,32 @@ scalar_type RK4_High_Mach_Solver<scalar_type>::Theta2() {
 }
 
 template <typename scalar_type>
-scalar_type RK4_High_Mach_Solver<scalar_type>::Y1() {
+scalar_type RK4_High_Mach_Solver_Backwards<scalar_type>::Y1() {
  return (gamma-1)*0.5*mf*mf*(U2()*U2()-1)+Theta2()-1;
 }
 
 template <typename scalar_type>
-void RK4_High_Mach_Solver<scalar_type>::setup_boundary_conditions() {
-  Y = Y1();
-  U = 1.0;
-  Theta =1.0;
-  dYdx = -1e-8;
+void RK4_High_Mach_Solver_Backwards<scalar_type>::setup_boundary_conditions() {
+  Y = 0.0;//Y1();
+  U = 0.9999 * U2();//1.0;
+  std::cout << "U2 = " << U2() << std::endl;
+  std::cout << "Y1 = " << Y1() << std::endl;
+  std::cout << "T2 = " << Theta2() << std::endl;
+  Theta = 1.0001 * Theta2();//1.0;
+  dYdx =  0,0;//-1e-15;
 }
 
 template <typename scalar_type>
-scalar_type RK4_High_Mach_Solver<scalar_type>::dudx_(scalar_type Theta_, scalar_type U_, scalar_type dYdx_, scalar_type Y_) {
+scalar_type RK4_High_Mach_Solver_Backwards<scalar_type>::dudx_(scalar_type Theta_, scalar_type U_, scalar_type dYdx_, scalar_type Y_) {
   return 0.75/(Pr*gamma*mf*mf)*(Theta_/U_-1+gamma*mf*mf*(U_-1));
 }
 
 template <typename scalar_type>
-scalar_type RK4_High_Mach_Solver<scalar_type>::dThetadx_(scalar_type Theta_, scalar_type U_, scalar_type dYdx_, scalar_type Y_) {
+scalar_type RK4_High_Mach_Solver_Backwards<scalar_type>::dThetadx_(scalar_type Theta_, scalar_type U_, scalar_type dYdx_, scalar_type Y_) {
   return -1.0/Le*dYdx_+(gamma-1)/gamma*(U_-Theta_-gamma*mf*mf/2.0*(U_-1)*(U_-1))+Theta_-1+Y_-Y1();
 }
 template <typename scalar_type>
-scalar_type RK4_High_Mach_Solver<scalar_type>::ddyddx_(scalar_type Theta_, scalar_type U_, scalar_type dYdx_, scalar_type Y_) {
+scalar_type RK4_High_Mach_Solver_Backwards<scalar_type>::ddyddx_(scalar_type Theta_, scalar_type U_, scalar_type dYdx_, scalar_type Y_) {
   // if(fabs(Y_)<accuracy){
   //   return 0.0;
   // }
@@ -350,7 +369,7 @@ scalar_type RK4_High_Mach_Solver<scalar_type>::ddyddx_(scalar_type Theta_, scala
 }
 
 template <typename scalar_type>
-scalar_type RK4_High_Mach_Solver<scalar_type>::dydx_(scalar_type Theta_, scalar_type U_, scalar_type dYdx_, scalar_type Y_) {
+scalar_type RK4_High_Mach_Solver_Backwards<scalar_type>::dydx_(scalar_type Theta_, scalar_type U_, scalar_type dYdx_, scalar_type Y_) {
   // if(fabs(Y_)<accuracy){
   //   return 0.0;
   // }
@@ -361,7 +380,7 @@ scalar_type RK4_High_Mach_Solver<scalar_type>::dydx_(scalar_type Theta_, scalar_
 // Runge kutta 4
 ///////////////////////////////////////////////////////////////////////////////
 template <typename scalar_type>
-bool RK4_High_Mach_Solver<scalar_type>::runge_kutta_4(int i) {
+bool RK4_High_Mach_Solver_Backwards<scalar_type>::runge_kutta_4(int i) {
 
   scalar_type F1dYdx =   delta_x*ddyddx_(  Theta, U, dYdx, Y);
   scalar_type F1Y =      delta_x*dydx_(    Theta, U, dYdx, Y);
@@ -394,6 +413,11 @@ bool RK4_High_Mach_Solver<scalar_type>::runge_kutta_4(int i) {
   // }
   U = U + 1.0/6.0*(F1U + 2.0*F2U + 2.0*F3U + F4U);
   Theta = Theta + 1.0/6.0*(F1Theta + 2.0*F2Theta + 2.0*F3Theta + F4Theta);
+  // if(i == 0){
+  //   std::cout << "here" << std::endl;
+  // U = U2() -1e-10;///(4.0/3.0*Pr*gamma*mf*mf);
+  // Theta = Theta2() + 1e-10;
+  // }
   // x = x + delta_x;
 
   if((i%(number_of_nodes/32000) == 0)){
@@ -403,14 +427,14 @@ bool RK4_High_Mach_Solver<scalar_type>::runge_kutta_4(int i) {
     x.push_back(i*delta_x);
   }
 
-  if(!std::isfinite(Y)){
-    return 1;
-  }
+  // if(!isfinite(Y)){
+  //   return 1;
+  // }
 
-  if((Y < 0 || Y > 10)){
-    bisection_lambda(Y);
-    return 1;
-  }
+  // if((Y < 0 || Y > 10)){
+  //   bisection_lambda(Y);
+  //   return 1;
+  // }
   return 0;
 }
 
@@ -419,7 +443,7 @@ bool RK4_High_Mach_Solver<scalar_type>::runge_kutta_4(int i) {
 // Bisection for flame speed
 ///////////////////////////////////////////////////////////////////////////////
 template <typename scalar_type>
-inline void RK4_High_Mach_Solver<scalar_type>::bisection_lambda(scalar_type Y) {
+inline void RK4_High_Mach_Solver_Backwards<scalar_type>::bisection_lambda(scalar_type Y) {
   if (Y < 0.0){
     lambda_min = lambda;
     lambda = lambda + (lambda_max-lambda) / 2;
@@ -433,7 +457,7 @@ inline void RK4_High_Mach_Solver<scalar_type>::bisection_lambda(scalar_type Y) {
 }
 
 template <typename scalar_type>
-void RK4_High_Mach_Solver<scalar_type>::add_lambda_gap() {
+void RK4_High_Mach_Solver_Backwards<scalar_type>::add_lambda_gap() {
   if(check == old_check1 && check == old_check2 && check == old_check3){
     if (check == 0) {
       lambda_min -= (lambda_max-lambda_min);
