@@ -301,7 +301,7 @@ void RK4_High_Mach_Solver_Backwards<scalar_type>::make_reactive_solution() {
     for(int i = 0; i < number_of_nodes; ++i) {
       donecheck = runge_kutta_4(i);
       if(donecheck == 1){
-        if(!isfinite(Y)){
+        if(!std::isfinite(Y)){
           bisection_lambda(100);
         }
         break;
