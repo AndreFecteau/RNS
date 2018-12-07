@@ -227,7 +227,7 @@ solve(const size_type number_of_frames) {
   scalar_type frame_time_temp = frame_time;
   scalar_type frame_CFL = CFL;
   size_type position = 0;
-  plot<grid_type>(filename + std::to_string(static_cast<size_type>(global_current_frame)), grid.global_solution_vector,grid.dx());
+  plot_global_solution_vector(filename + std::to_string(static_cast<size_type>(global_current_frame)), grid.global_solution_vector.size());
   while (frame_counter < number_of_frames) {
     auto start = std::chrono::high_resolution_clock::now();
 
@@ -235,8 +235,9 @@ solve(const size_type number_of_frames) {
     global_solution_vector_backup = grid.global_solution_vector;
 
     residual = time_stepping.template timemarch<flux_type>(flow, grid, frame_CFL, frame_time_temp);
-
+#if defined(RECENTER_FLAME)
     position = flame_position_algorithm();
+#endif
     if (solution_is_unstable(residual, frame_CFL, frame_time_temp)) {
 #if defined(RECENTER_FLAME)
     } else if (flame_left_domaine(position, frame_time_temp)) {
@@ -246,13 +247,15 @@ solve(const size_type number_of_frames) {
       ++global_current_frame;
       ++frame_counter;
 
-      plot<grid_type>(filename + std::to_string(static_cast<size_type>(global_current_frame)), grid.global_solution_vector,grid.dx());
+      plot_global_solution_vector(filename + std::to_string(static_cast<size_type>(global_current_frame)), grid.global_solution_vector.size());
       serialize_to_file(*this, filename + std::to_string(static_cast<size_type>(global_current_frame)));
 
       auto finish = std::chrono::high_resolution_clock::now();
       std::chrono::duration<scalar_type> elapsed = finish - start;
       std::cout << "Frame: " << global_current_frame << " Frame_time = " <<  frame_time_temp << " Residual: " << residual << std::endl;
+#if defined(RECENTER_FLAME)
       std::cout << "position: " << position - flame_location*grid.per_FL();
+#endif
       std::cout << " Elapsed time: " << elapsed.count() << "\n";
 
 #if defined(RECENTER_FLAME)
@@ -265,12 +268,14 @@ solve(const size_type number_of_frames) {
     manufactured_solution_residual();
 #endif
   }
+#if defined(RECENTER_FLAME)
   const size_type h = std::max(static_cast<int>(50*grid.per_FL()), static_cast<int>(50*grid.per_FL()-(position - flame_location*grid.per_FL())));
   if(grid.global_solution_vector[h][1] / grid.global_solution_vector[h][0] < 1.0) {
     return 0;
   } else {
     return 1;
   }
+#endif
 }
 
 ///////////////////////////////////////////////////////////////////////////////

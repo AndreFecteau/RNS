@@ -1,12 +1,14 @@
 #define HYPERBOLIC
 #define VISCOUS
 #define SOURCE
-#define RECENTER_FLAME
+#define MANUFACTURED
+// #define RECENTER_FLAME
 
 #include<vector>
 #include <Eigen/Core>
 #include <chaiscript/chaiscript.hpp>
 #include <chaiscript/chaiscript_stdlib.hpp>
+#include <chaiscript/extras/math.hpp>
 
 #include "../Solver/Implicit_Marching.h"
 #include "../Implicit_Flux_and_Sources/Implicit_HLLE.h"
@@ -37,7 +39,8 @@ void register_RNS_Chaiscript(chaiscript::ChaiScript& chai) {
   chai.add(chaiscript::user_type<HLLE_flux_type>(), "HLLE");
   chai.add(chaiscript::user_type<CD2_flux_type>(), "Centered_Difference");
   chai.add(chaiscript::user_type<time_stepping_type>(), "Stepping");
-
+  auto mathlib = chaiscript::extras::math::bootstrap();
+  chai.add(mathlib);
 ///////////////////////////////////////////////Eigen////////////////////////////////////////////////
 //----------------------------------------------Type----------------------------------------------//
   chai.add(chaiscript::user_type<solution_vector_type>(),               "Solution_vector_type");
@@ -106,6 +109,7 @@ chai.add(chaiscript::fun(&set_initial_solution<grid1D_type, flow_type>),  "set_i
 chai.add(chaiscript::fun(&deflagration_CJ_point<grid1D_type, flow_type>), "deflagration_CJ_point");
 chai.add(chaiscript::fun(&detonation_CJ_point<grid1D_type, flow_type>),   "detonation_CJ_point");
 chai.add(chaiscript::fun(&RK4_mf_point<grid1D_type, flow_type>),          "deflagration_mf_point");
+chai.add(chaiscript::fun(&Incompressible_mf_point<grid1D_type, flow_type>),"Incompressible_mf_point");
 chai.add(chaiscript::fun(&manufactured_solution<grid1D_type, flow_type>), "manufactured_solution");
 chai.add(chaiscript::fun(&unserialize_to_file<HLLE_solver_type>),         "unserialize_to_file");
 chai.add(chaiscript::fun(&unserialize_to_file<CD2_solver_type>),          "unserialize_to_file");
@@ -227,18 +231,18 @@ chai.add(chaiscript::fun(&add_lambda_gap),             "add_lambda_gap");
 
 inline void execute_chaiscript_file(std::string filename) {
 
-  //chaiscript::ChaiScript chai;
-  chaiscript::ChaiScript chai(chaiscript::Std_Lib::library());
+  chaiscript::ChaiScript chai;
+  // chaiscript::ChaiScript chai(chaiscript::Std_Lib::library());
 
   register_RNS_Chaiscript(chai);
 
-  //try {
+  try {
     chai.eval_file(filename);
-  //} catch (const chaiscript::exception::eval_error &ee) {
-  //  std::cout << ee.pretty_print();
-  //  if ( !ee.call_stack.empty() ) {
-  //  std::cout << "during evaluation at (" << ee.call_stack[0].start().line << ", " << ee.call_stack[0].start().column << ")";
-  //}
-  //std::cout << '\n';
-  //}
+  } catch (const chaiscript::exception::eval_error &ee) {
+   std::cout << ee.pretty_print();
+   if ( !ee.call_stack.empty() ) {
+   std::cout << "during evaluation at (" << ee.call_stack[0].start().line << ", " << ee.call_stack[0].start().column << ")";
+  }
+  std::cout << '\n';
+  }
 }
