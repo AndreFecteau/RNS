@@ -19,12 +19,9 @@ std::string tostring(T name) {
 
 int main(){
 
-double per_FL = 64;
-double domaine_length = 100;
-double CFL = 1e6;
 int location = 0;
 
-  std::string filename = "dat_saves/Implicit_HLLE_R4096_D250_L94900/Plot_15";
+  std::string filename = "./dat_saves/CJ_point/Pr075_Le03_Q9_b5_g14/D500_F250_R256/Solution";
 
   global_solution_vector_type global_solution_vector;
   std::string line;

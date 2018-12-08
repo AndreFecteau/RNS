@@ -49,27 +49,27 @@ public:
   }
   /////////////////////////////////////////////////////////////////////////
   /// \brief Function to return T.
-  double T(){return T_var;};
+  double T() const {return T_var;};
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief Function to return u.
-  double u(){return u_var;};
+  double u() const {return u_var;};
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief Function to return rho.
-  double rho(){return rho_var;};
+  double rho() const {return rho_var;};
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief Function to return Y.
-  double Y(){return Y_var;};
+  double Y() const {return Y_var;};
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief Function to return p.
-  double p(){return T_var * rho_var;};
+  double p() const {return T_var * rho_var;};
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief Function to return primitive variable vector.
-  solution_vector_type w(){
+  solution_vector_type w() const {
     solution_vector_type temp; temp << rho(), u(), p(), Y();
     return temp;
   }

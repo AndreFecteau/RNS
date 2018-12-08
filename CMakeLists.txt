@@ -1,86 +1,68 @@
 # Set the minimum version of CMake that can be used
 # To find the cmake version run
 # $ cmake --version
-cmake_minimum_required (VERSION 3.2)
-
+cmake_minimum_required (VERSION 2.4 FATAL_ERROR)
 
 # Set the project name
-project (RNS_Solver)
+project (RNS_Solver CXX)
 
-# Set a default build type if none was specified
-if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
-  message("Setting build type to 'RelWithDebInfo' as none was specified.")
-  set(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING "Choose the type of build." FORCE)
-  # Set the possible values of build type for cmake-gui
-  set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release"
-  "MinSizeRel" "RelWithDebInfo")
-endif()
+# project version
+set(VERSION_MAJOR 1)
+set(VERSION_MINOR 0)
+set(VERSION_PATCH 0)
+
+# detect operating system and host processor
+message(STATUS "We are on a ${CMAKE_SYSTEM_NAME} system")
+message(STATUS "The host processor is ${CMAKE_HOST_SYSTEM_PROCESSOR}")
+
+# Set a default build type for single-configuration
+# CMake generators if no build type is set.
+if(NOT CMAKE_BUILD_TYPE)
+   SET(CMAKE_BUILD_TYPE RelWithDebInfo)
+endif(NOT CMAKE_BUILD_TYPE)
+
+# Select flags.
+SET(CMAKE_CXX_FLAGS "-Wall -Wextra")
+SET(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O3 -g")
+SET(CMAKE_CXX_FLAGS_RELEASE "-O3")
+SET(CMAKE_CXX_FLAGS_DEBUG  "-O0 -g")
 
 # try conditional compilation
 include(CheckCXXCompilerFlag)
-# CHECK_CXX_COMPILER_FLAG("-std=c++17" COMPILER_SUPPORTS_CXX17)
+CHECK_CXX_COMPILER_FLAG("-std=c++17" COMPILER_SUPPORTS_CXX17)
 CHECK_CXX_COMPILER_FLAG("-std=c++14" COMPILER_SUPPORTS_CXX14)
+CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
 
 # check results and add flag
-# if(COMPILER_SUPPORTS_CXX17)#
-#     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
-#     set(CMAKE_CXX_STANDARD 17)
-if(COMPILER_SUPPORTS_CXX14)#
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
+if(COMPILER_SUPPORTS_CXX17)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ldl -pthread -std=c++17")
+    set(CMAKE_CXX_STANDARD 17)
+    message(STATUS "Using the compiler C++17 ${CMAKE_CXX_COMPILER}")
+elseif(COMPILER_SUPPORTS_CXX14)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ldl -pthread -std=c++14")
     set(CMAKE_CXX_STANDARD 14)
+    message(STATUS "Using the compiler C++14 ${CMAKE_CXX_COMPILER}")
+elseif(COMPILER_SUPPORTS_CXX11)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ldl -pthread -std=c++11")
+    set(CMAKE_CXX_STANDARD 11)
+    message(STATUS "Using the compiler C++11 ${CMAKE_CXX_COMPILER}")
 else()
-    message(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++17 or C++14 support. Please use a different C++ compiler.")
+    message(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++11 || C++14 || C++17 support. Please use a different C++ compiler.")
 endif()
 
-# find a Eigen install
-# find_package (Eigen3 3.3.4 REQUIRED NO_MODULE)
-include_directories ( "/usr/include/eigen3" )
+option(USE_OPENMP "Use OpenMP in build" ON)
 
-# find a Cereal install
-# find_package (Cereal REQUIRED)
-include_directories ( "/usr/include/cereal" )
+# Check user include dirmake
+  include_directories (SYSTEM "~/include")
+# Standard path for libraries
+  include_directories (SYSTEM "/usr/include/eigen3")
+  include_directories (SYSTEM "/usr/include/cereal")
 
-# find a OpenMP install
-find_package (OpenMP)
+if (USE_OPENMP)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -fopenmp")
+  message(STATUS "Linked OpenMP compiler flag")
+endif (USE_OPENMP)
 
-# Set a default C++ compile flag
-set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -isystem /usr/include/eigen3")
-
-# Add OpenMP Flags if found
-#if(OpenMP_FOUND)
-#  message ("OpenMP found")
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
-#else()
-#  message (FATAL_ERROR "Cannot find OpenMP")
-#endif()
-
-# if(Cereal_FOUND)
-#   message ("Cereal found")
-# else()
-#   message (FATAL_ERROR "Cannot find Cereal")
-# endif()
-#
-# if(Eigen3_FOUND)
-#   message ("Eigen3 found")
-# else()
-#   message (FATAL_ERROR "Cannot find Eigen3")
-# endif()
-
-# Add an executable
 add_executable (RNS_Solver RNS_Main.cpp)
 
-# Link Eigen librairies
-# target_link_libraries (RNS_Solver Eigen3::Eigen)
-
-# Add an executable
-add_executable (RNS_Solver_restart RNS_Load.cpp)
-
-# Add an executable
-
-# Link Eigen librairies
-# target_link_libraries (RNS_Solver_restart Eigen3::Eigen)
-
-# add_executable (RNS_Solver_test Block_Triagonal_Matrix_Inverse_Test.cpp)
-# target_link_libraries (RNS_Solver_test Eigen3::Eigen)
+message(STATUS "Generated build with CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")

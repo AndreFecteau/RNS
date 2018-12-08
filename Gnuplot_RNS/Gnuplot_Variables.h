@@ -5,11 +5,10 @@
 #include <fstream>
 #include <cstdarg>
 #include <vector>
-#include "Variable_Vector_Isolator.h"
+#include "../Usefull_Headers/Variable_Vector_Isolator.h"
 
 template <typename global_solution_vector_type>
 void plot_v(std::string file_name, global_solution_vector_type solution_vector, double dx){
-  using solution_vector_type = typename global_solution_vector_type::value_type;
   std::ofstream gnu_input_file;
   gnu_input_file.open (file_name + ".dat");
   gnu_input_file << "#rho u E Y" << std::endl;
