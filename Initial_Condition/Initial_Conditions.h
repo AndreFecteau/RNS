@@ -27,6 +27,8 @@ void set_initial_solution(grid_type& grid, const flow_type& flow, const std::str
   typename grid_type::global_solution_vector_type::value_type temp;
   std::ifstream fin;
   std::string line;
+  dx = 0;
+  old_x = 0;
   fin.open(filename.c_str());
   if (!fin) {
     throw std::runtime_error("Could not load input file " + filename);
@@ -43,7 +45,7 @@ void set_initial_solution(grid_type& grid, const flow_type& flow, const std::str
     temp << rho, u, T, Y;
     primitive_variable.push_back(temp);
   }
-  for(int i = 0; i < primitive_variable.size(); ++i){
+  for(size_t i = 0; i < primitive_variable.size(); ++i){
     grid.global_solution_vector[i] << primitive_variable[i][0],
                                       primitive_variable[i][0] * primitive_variable[i][1],
                                       primitive_variable[i][0] * primitive_variable[i][2] / (flow.gamma-1) +
@@ -161,7 +163,6 @@ void deflagration_CJ_point(grid_type& grid, flow_type& flow) {
   scalar_type p_inf = p_0*((1.0 + pow(flow.mf,2)*flow.gamma*(1.0-1.0/rho_inf)));
   scalar_type u_inf = 1.0/rho_inf;
 
-  std::cout << "zeta:" << zeta << "p:" << p_inf << " rho: " << rho_inf << " u: " << u_inf << std::endl;
   scalar_type flame_location = 0.5;
   for (size_type i = 0; i < grid.number_of_cells(); ++i) {
     if (i*grid.dx() < grid.domaine_length()*flame_location) {
@@ -180,7 +181,6 @@ void deflagration_CJ_point(grid_type& grid, flow_type& flow) {
                                        (i+1)*grid.dx() - grid.domaine_length()*flame_location - unburned_solution.length(), flow.gamma, flow.mf);
 
     } else {
-      // std::cout << i*grid.dx() << std::endl;
         grid.global_solution_vector[i] << make_RK4_solution_vector<grid_type>(unburned_solution,
                                        (i+1)*grid.dx() - grid.domaine_length()*flame_location, flow.gamma, flow.mf);
     }
@@ -204,7 +204,6 @@ void detonation_CJ_point(grid_type& grid, flow_type& flow) {
   scalar_type p_inf = p_0*((1.0 + pow(flow.mf,2)*flow.gamma*(1.0-1.0/rho_inf)));
   scalar_type u_inf = 1.0/rho_inf;
 
-  std::cout << "zeta:" << zeta << "p:" << p_inf << " rho: " << rho_inf << " u: " << u_inf << std::endl;
   scalar_type flame_location = 0.5;
   for (size_type i = 0; i < grid.number_of_cells(); ++i) {
     if (i*grid.dx() < grid.domaine_length()*flame_location) {
@@ -266,7 +265,6 @@ void RK4_mf_point(grid_type& grid, flow_type& flow) {
                                                               flow.theta_low_mach, flow.gamma,
                                                               flow.mf, flow.Pr);
   flow.lambda = initial_low_mach.get_lambda();
-  scalar_type safety_factor = 0.999999;
   scalar_type p_0 = 1/(flow.gamma*flow.mf*flow.mf);
   scalar_type zeta = (1.0 + flow.mf*flow.mf*flow.mf*flow.mf - 2.0 * flow.mf*flow.mf*(1.0+flow.Q_low_mach+flow.gamma*flow.Q_low_mach)) /
                 (pow(pow(flow.mf, 2)*(1.0+flow.gamma),2));
@@ -275,7 +273,6 @@ void RK4_mf_point(grid_type& grid, flow_type& flow) {
   scalar_type p_inf = p_0*((1.0 + pow(flow.mf,2)*flow.gamma*(1.0-1.0/rho_inf)));
   scalar_type u_inf = 1.0/rho_inf;
 
-  std::cout << "zeta:" << zeta << "p:" << p_inf << " rho: " << rho_inf << " u: " << u_inf << std::endl;
   scalar_type flame_location = 0.5;
   for (size_type i = 0; i < grid.number_of_cells(); ++i) {
     if (i*grid.dx() < grid.domaine_length()*flame_location) {
@@ -290,7 +287,6 @@ void RK4_mf_point(grid_type& grid, flow_type& flow) {
       p_inf / (flow.gamma - 1.0) + rho_inf * u_inf * u_inf * 0.5,
       rho_inf * 0;
     } else {
-      // std::cout << i*grid.dx() << std::endl;
         grid.global_solution_vector[i] << make_RK4_solution_vector<grid_type>(initial_low_mach,
                                                         (i+1)*grid.dx() - grid.domaine_length()*flame_location, flow.gamma, flow.mf);
     }
@@ -304,7 +300,6 @@ void Incompressible_mf_point(grid_type& grid, flow_type& flow) {
   RK4_Low_Mach_Solver initial_low_mach = RK4_Low_Mach_Solver(flow.Le, flow.Q_low_mach,
                                                               flow.theta_low_mach, 1.01);
   flow.lambda = initial_low_mach.get_lambda();
-  scalar_type safety_factor = 0.999999;
   scalar_type p_0 = 1/(flow.gamma*flow.mf*flow.mf);
   scalar_type zeta = (1.0 + flow.mf*flow.mf*flow.mf*flow.mf - 2.0 * flow.mf*flow.mf*(1.0+flow.Q_low_mach+flow.gamma*flow.Q_low_mach)) /
                 (pow(pow(flow.mf, 2)*(1.0+flow.gamma),2));
@@ -313,7 +308,6 @@ void Incompressible_mf_point(grid_type& grid, flow_type& flow) {
   scalar_type p_inf = p_0*((1.0 + pow(flow.mf,2)*flow.gamma*(1.0-1.0/rho_inf)));
   scalar_type u_inf = 1.0/rho_inf;
 
-  std::cout << "zeta:" << zeta << "p:" << p_inf << " rho: " << rho_inf << " u: " << u_inf << std::endl;
   scalar_type flame_location = 0.5;
   for (size_type i = 0; i < grid.number_of_cells(); ++i) {
     if (i*grid.dx() < grid.domaine_length()*flame_location) {
@@ -328,7 +322,6 @@ void Incompressible_mf_point(grid_type& grid, flow_type& flow) {
       p_inf / (flow.gamma - 1.0) + rho_inf * u_inf * u_inf * 0.5,
       rho_inf * 0;
     } else {
-      // std::cout << i*grid.dx() << std::endl;
         grid.global_solution_vector[i] << make_RK4_solution_vector<grid_type>(initial_low_mach,
                                                         (i+1)*grid.dx() - grid.domaine_length()*flame_location, flow.gamma, flow.mf);
     }
@@ -336,13 +329,10 @@ void Incompressible_mf_point(grid_type& grid, flow_type& flow) {
 }
 
 template <typename grid_type, typename flow_type>
-void manufactured_solution(grid_type& grid, flow_type& flow){
+void manufactured_solution(grid_type& grid, flow_type&){
 grid.x_min = 0.0;
 grid.x_max = 2.0*atan(1.0)*4.0;
-// grid.number_of_cells() = ;
-// std::cout << dx << std::endl;
 grid.global_solution_vector.resize(grid.number_of_cells());
-// scalar_type dx = (x_max-x_min) / number_of_cells;
   for (size_t i = 0; i < grid.number_of_cells(); ++i) {
     typename grid_type::scalar_type x = (i+0.5)*grid.dx();
     grid.global_solution_vector[i] << (-0.45*tanh(4.0 * x - 10.0) + 0.55),

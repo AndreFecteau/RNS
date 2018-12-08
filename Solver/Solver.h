@@ -226,7 +226,9 @@ solve(const size_type number_of_frames) {
   size_type frame_counter = 0;
   scalar_type frame_time_temp = frame_time;
   scalar_type frame_CFL = CFL;
+#if defined(RECENTER_FLAME)
   size_type position = 0;
+#endif
   plot_global_solution_vector(filename + std::to_string(static_cast<size_type>(global_current_frame)), grid.global_solution_vector.size());
   while (frame_counter < number_of_frames) {
     auto start = std::chrono::high_resolution_clock::now();
@@ -276,6 +278,7 @@ solve(const size_type number_of_frames) {
     return 1;
   }
 #endif
+  return 0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -502,12 +505,11 @@ flame_left_domaine(const size_type &position, scalar_type &frame_time_temp) {
 ///////////////////////////////////////////////////////////////////////////////
 template <typename flow_properties_type, typename grid_type, typename flux_type, typename time_stepping_type>
 bool Solver<flow_properties_type, grid_type, flux_type, time_stepping_type>::
-solution_is_unstable(const scalar_type &residual, scalar_type &frame_CFL, scalar_type &frame_time_temp) {
+solution_is_unstable(const scalar_type &residual, scalar_type &frame_CFL, scalar_type &) {
   bool check = std::isnan(residual) || residual > 1e5;
   if(check){
     grid.global_solution_vector = global_solution_vector_backup;
     frame_CFL *= 0.5;
-    // frame_time_temp *= 0.5;
     std::cout << "." << std::flush;
   }
   return check;
