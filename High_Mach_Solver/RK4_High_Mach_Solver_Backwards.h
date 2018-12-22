@@ -48,7 +48,12 @@ public:
   /// \brief Move assignment operator.
   RK4_High_Mach_Solver_Backwards& operator=(RK4_High_Mach_Solver_Backwards&&) = default;
 
-  RK4_High_Mach_Solver_Backwards(scalar_type le_in, scalar_type Q_in, scalar_type theta_in, scalar_type gamma_in, scalar_type mf_in, scalar_type Pr_in, scalar_type U_match, scalar_type number_of_nodes_in = 1e8, scalar_type domaine_length_in = 40000):    number_of_nodes(number_of_nodes_in), domaine_length(domaine_length_in), Le(le_in), Q(Q_in), theta(theta_in), gamma(gamma_in), mf(mf_in), Pr(Pr_in) {
+  RK4_High_Mach_Solver_Backwards(scalar_type le_in, scalar_type Q_in, scalar_type theta_in,
+                                 scalar_type gamma_in, scalar_type mf_in, scalar_type Pr_in,
+                                 scalar_type U_match, int number_of_nodes_in = 1e8,
+                                 scalar_type domaine_length_in = 40000):
+                                 number_of_nodes(number_of_nodes_in), domaine_length(domaine_length_in),
+                                 Le(le_in), Q(Q_in), theta(theta_in), gamma(gamma_in), mf(mf_in), Pr(Pr_in) {
     delta_x = -domaine_length/static_cast<scalar_type>(number_of_nodes);
     if (Q < 4 || Q > 9) {
       std::cout << "Make sure that Q :" << Q << " is the correct value." << std::endl;
@@ -112,7 +117,7 @@ public:
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief Returns Y at a location.
-  scalar_type get_Y(scalar_type location) {return interpolate(Y_vec, location) / Y_vec[0];}
+  scalar_type get_Y(scalar_type location) {return 0.0;}
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief Returns Z at a location.

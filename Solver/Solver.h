@@ -165,7 +165,7 @@ using size_type = typename grid_type::size_type;
   /////////////////////////////////////////////////////////////////////////
   /// \brief
   /// \param
-  void plot_global_solution_vector(std::string plot_name, scalar_type number_of_cells_in_output) {
+  void plot_global_solution_vector(std::string plot_name, int number_of_cells_in_output) {
      plot_reduced<grid_type>(plot_name, grid, flow, number_of_cells_in_output);
   }
 
@@ -209,6 +209,37 @@ using size_type = typename grid_type::size_type;
   /// \param
   bool solution_is_unstable(const scalar_type &residual, scalar_type &frame_CFL, scalar_type &frame_time_temp);
 
+  void print_intro(size_type number_of_frames){
+    Color::Modifier red(Color::FG_RED);
+    Color::Modifier blue(Color::FG_BLUE);
+    Color::Modifier def(Color::FG_DEFAULT);
+    Color::Modifier black(Color::FG_BLACK);
+    std::cout << black <<
+    "//////////////////////////////////////////////////////////////////////////////////////////////////"
+    << def << "\n";
+    std::cout << red << "Solver Marching " << number_of_frames << " Frames of " << frame_time << " Time Units.\n";
+    std::cout << black <<
+    "//////////////////////////////////////////////////////////////////////////////////////////////////"
+    << def << std::endl;
+  }
+  void print_frame(size_type frame, scalar_type residual, scalar_type position, scalar_type elapsed_time){
+    Color::Modifier red(Color::FG_RED);
+    Color::Modifier blue(Color::FG_BLUE);
+    Color::Modifier def(Color::FG_DEFAULT);
+    Color::Modifier black(Color::FG_BLACK);
+    // std::cout << black <<
+    // ".................................................................................................."
+    // << def << "\n";
+    std::cout << blue << "Frame " << frame << ": Residual " << residual << "\n";
+    #if defined(RECENTER_FLAME)
+    std::cout << "Flame position: " << position;
+    #endif
+    std::cout << " Elapsed time: " << elapsed_time << "\n";
+    std::cout << black <<
+    ".................................................................................................."
+    << def << std::endl;
+  }
+
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -218,9 +249,10 @@ template <typename flow_properties_type, typename grid_type, typename flux_type,
 bool Solver<flow_properties_type, grid_type, flux_type, time_stepping_type>::
 solve(const size_type number_of_frames) {
 
-  std::cout << "//////////////////////" << std::endl;
-  std::cout << "Solver"<< std::endl;
-  std::cout << "//////////////////////" << std::endl;
+  print_intro(number_of_frames);
+  // std::cout << "//////////////////////" << std::endl;
+  // std::cout << "Solver"<< std::endl;
+  // std::cout << "//////////////////////" << std::endl;
 
   scalar_type residual = std::numeric_limits<scalar_type>::max();
   size_type frame_counter = 0;
@@ -254,11 +286,12 @@ solve(const size_type number_of_frames) {
 
       auto finish = std::chrono::high_resolution_clock::now();
       std::chrono::duration<scalar_type> elapsed = finish - start;
-      std::cout << "Frame: " << global_current_frame << " Frame_time = " <<  frame_time_temp << " Residual: " << residual << std::endl;
-#if defined(RECENTER_FLAME)
-      std::cout << "position: " << position - flame_location*grid.per_FL();
-#endif
-      std::cout << " Elapsed time: " << elapsed.count() << "\n";
+      print_frame(global_current_frame, residual, position - flame_location*grid.per_FL(), elapsed.count());
+//       std::cout << "Frame: " << global_current_frame << " Frame_time = " <<  frame_time_temp << " Residual: " << residual << std::endl;
+// #if defined(RECENTER_FLAME)
+//       std::cout << "position: " << position - flame_location*grid.per_FL();
+// #endif
+//       std::cout << " Elapsed time: " << elapsed.count() << "\n";
 
 #if defined(RECENTER_FLAME)
       recenter_solution(flame_location);
@@ -399,11 +432,12 @@ recenter_solution(const scalar_type &flame_location) {
 template <typename flow_properties_type, typename grid_type, typename flux_type, typename time_stepping_type>
 void Solver<flow_properties_type, grid_type, flux_type, time_stepping_type>::
 print_stats() {
-    std::cout << "Pr: " << flow.Pr << "\nLe: " << flow.Le << "\ngamma: " << flow.gamma << std::endl;
-    std::cout << "mf: " << flow.mf << "\nQ_low_mach: " << flow.Q_low_mach << "\ntheta_low_mach: " << flow.theta_low_mach << std::endl;
-    std::cout << "T_ignition: " << flow.T_ignition_scalar << "\nlambda: " << flow.lambda  << std::endl;
-    std::cout << "x_min: " << grid.x_min << "\nx_max: " << grid.x_max << "\nnumber_of_cells: " << grid.number_of_cells() << std::endl;
-    std::cout <<"Q: " << flow.Q() << "\ntheta: " << flow.theta() << std::endl;
+    flow.print();
+    // std::cout << "Pr: " << flow.Pr << "\nLe: " << flow.Le << "\ngamma: " << flow.gamma << std::endl;
+    // std::cout << "mf: " << flow.mf << "\nQ_low_mach: " << flow.Q_low_mach << "\ntheta_low_mach: " << flow.theta_low_mach << std::endl;
+    // std::cout << "T_ignition: " << flow.T_ignition_scalar << "\nlambda: " << flow.lambda  << std::endl;
+    // std::cout << "x_min: " << grid.x_min << "\nx_max: " << grid.x_max << "\nnumber_of_cells: " << grid.number_of_cells() << std::endl;
+    // std::cout <<"Q: " << flow.Q() << "\ntheta: " << flow.theta() << std::endl;
 
 }
 

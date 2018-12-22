@@ -1,16 +1,13 @@
-// #define HYPERBOLIC
-// #define VISCOUS
-// #define SOURCE
-// #define RECENTER_FLAME
-// #define RIGHT_CST_EXTR
-// #define LEFT_CST_EXTR
-// #define MANUFACTURED
-
 #include <iomanip>
+#include <iostream>
+#include "Text_Output.h"
 #include "ChaiScript/ChaiScript.h"
 
 int main(int argc, char* argv[]) {
 
+  /////////////////////////////////////////////////////////////////////
+  // Im pretty now
+  loading_text();
   /////////////////////////////////////////////////////////////////////
   // Enable floating-point exceptions (I cant do this due to the unkown
   // stable timestep i am trying and if fail re-starting)

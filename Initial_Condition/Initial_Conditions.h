@@ -45,7 +45,7 @@ void set_initial_solution(grid_type& grid, const flow_type& flow, const std::str
     temp << rho, u, T, Y;
     primitive_variable.push_back(temp);
   }
-  for(size_t i = 0; i < primitive_variable.size(); ++i){
+  for(int i = 0; i < primitive_variable.size(); ++i){
     grid.global_solution_vector[i] << primitive_variable[i][0],
                                       primitive_variable[i][0] * primitive_variable[i][1],
                                       primitive_variable[i][0] * primitive_variable[i][2] / (flow.gamma-1) +
@@ -152,7 +152,7 @@ void deflagration_CJ_point(grid_type& grid, flow_type& flow) {
                                                               flow.mf, flow.Pr);
   RK4_High_Mach_Solver_Backwards<scalar_type> burned_solution = RK4_High_Mach_Solver_Backwards<scalar_type>(flow.Le, flow.Q_low_mach,
                                                               flow.theta_low_mach, flow.gamma,
-                                                              flow.mf, flow.Pr,unburned_solution.get_U(unburned_solution.length() - 1e-5));
+                                                              flow.mf, flow.Pr,unburned_solution.get_U(unburned_solution.length()));
   flow.lambda = unburned_solution.get_lambda();
   // scalar_type safety_factor = 0.999999;
   scalar_type p_0 = 1.0/(flow.gamma*flow.mf*flow.mf);

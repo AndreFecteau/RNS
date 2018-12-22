@@ -1,8 +1,8 @@
 #define HYPERBOLIC
 #define VISCOUS
 #define SOURCE
-// #define MANUFACTURED
 #define RECENTER_FLAME
+// #define MANUFACTURED
 
 #include<vector>
 #include <Eigen/Core>

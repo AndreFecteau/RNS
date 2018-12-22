@@ -56,6 +56,33 @@ struct Non_Dimensional_Navier_Stokes {
     archive(Pr, Le, Q_low_mach, theta_low_mach, mf, gamma, lambda, T_ignition_scalar);
   }
 
+  void print() {
+    Color::Modifier red(Color::FG_RED);
+    Color::Modifier blue(Color::FG_BLUE);
+    Color::Modifier def(Color::FG_DEFAULT);
+    Color::Modifier black(Color::FG_BLACK);
+    std::cout << black <<
+    "//////////////////////////////////////////////////////////////////////////////////////////////////\n"
+    << red <<
+    "                                         Fluid Properties                                         \n"
+    << black <<
+    "//////////////////////////////////////////////////////////////////////////////////////////////////"
+    << def;
+    std::cout << blue << std::setw(25) << std::left << "\nPrandtl Number: "            << def << Pr                  <<
+                 blue << std::setw(25) << std::left << "\nLewis Number: "            << def << Le                  <<
+                 blue << std::setw(25) << std::left << "\ngamma: "                   << def << gamma               <<
+                 blue << std::setw(25) << std::left << "\nFlame Mach Number: "       << def << mf                  <<
+                 blue << std::setw(25) << std::left << "\nComparative Q: "           << def << Q_low_mach          <<
+                 blue << std::setw(25) << std::left << "\nComparative Theta: "       << def << theta_low_mach      <<
+                 blue << std::setw(25) << std::left << "\nIgnition Temperature: "    << def << T_ignition_scalar   <<
+                 blue << std::setw(25) << std::left << "\nEigen Value: "             << def << lambda              <<
+                 blue << std::setw(25) << std::left << "\nQ: "                       << def << Q()                 <<
+                 blue << std::setw(25) << std::left << "\nTheta: "                   << def << theta()             << std::endl;
+    std::cout << black <<
+    "//////////////////////////////////////////////////////////////////////////////////////////////////"
+    << def << std::endl;
+  }
+
 };
 
 

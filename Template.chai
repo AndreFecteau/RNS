@@ -9,7 +9,7 @@
 ///        Value.
 /// \tips  HLLE with 64 pt/fl to find general shape then switch to CD2 with 64 pt/fl to
 ///        itterate lambda.
-var per_fl = 64;
+var per_fl = 16;
 var domaine = 500;
 var number_of_cells = per_fl*domain;
 var xmin = 0.0;
@@ -45,7 +45,7 @@ auto flow = Flow(Pr, Le, Q_low_mach, theta_low_mach, mf, gamma, lambda, T_igniti
 /// \brief Choose Initial Conditions
 /*set_initial_solution(grid, ic);*/
 /*deflagration_CJ_point(grid, flow);*/
-deflagration_mf_point(grid, flow);
+deflagration_CJ_point(grid, flow);
 
 /////////////////////////////////////////////////////////////////////////
 /// \brief Sets up the block
@@ -56,15 +56,15 @@ var CFL = 5.0e4;
 var frame_time = 2.0e3;
 var filename = "Movie/Delete_";
 var flame_location = 250.0;
-var dissipation_magnitude = 0.0;
-auto solver= HLLE_solver(flow, grid, frame_time, CFL, Theta, zeta, filename, flame_location, dissipation_magnitude);
+var dissipation_magnitude = 0.9;
+auto cdsolver= CD2_solver(flow, grid, frame_time, CFL, Theta, zeta, filename, flame_location, dissipation_magnitude);
 
 
 solver.print_stats();
-solver.solve(1);
+/*solver.solve(1);*/
 
-auto cdsolver= CD2_solver(solver.get_flow();, solver.get_grid();, 1.0e1, 5.0e4, Theta, zeta, "Movie/DeleteCD_", flame_location, 0.9);
-cdsolver.refine(64);
+/*auto cdsolver= CD2_solver(solver.get_flow();, solver.get_grid();, 1.0e1, 5.0e4, Theta, zeta, "Movie/DeleteCD_", flame_location, 0.9);*/
+/*cdsolver.refine(64);*/
 cdsolver.solve(10);
 
 var lambda_min = solver.get_lambda() * 0.9;

@@ -49,7 +49,7 @@ public:
   /// \brief Move assignment operator.
   RK4_High_Mach_Solver& operator=(RK4_High_Mach_Solver&&) = default;
 
-  RK4_High_Mach_Solver(scalar_type le_in, scalar_type Q_in, scalar_type theta_in, scalar_type gamma_in, scalar_type mf_in, scalar_type Pr_in, scalar_type number_of_nodes_in = 2e7, scalar_type domaine_length_in = 40):
+  RK4_High_Mach_Solver(scalar_type le_in, scalar_type Q_in, scalar_type theta_in, scalar_type gamma_in, scalar_type mf_in, scalar_type Pr_in, int number_of_nodes_in = 2e7, scalar_type domaine_length_in = 40.0):
     number_of_nodes(number_of_nodes_in), domaine_length(domaine_length_in), Le(le_in), Q(Q_in), theta(theta_in), gamma(gamma_in), mf(mf_in), Pr(Pr_in) {
     delta_x = domaine_length/static_cast<scalar_type>(number_of_nodes);
     if (Q < 4 || Q > 9) {
@@ -64,6 +64,7 @@ public:
     make_reactive_solution();
     cut_data();
     export_data_to_dat();
+    lambda_final_print<scalar_type>(lambda);
   }
 
   void cut_data(){
@@ -72,10 +73,10 @@ public:
     std::vector<scalar_type> Y_cut;
     std::vector<scalar_type> x_cut;
     scalar_type Theta_var2 = Theta2();
-      for(size_t i = 0; i < Theta_vec.size(); ++i){
+      for(int i = 0; i < static_cast<int>(Theta_vec.size()); ++i){
         if(((Theta_vec[i] < Theta_var2) &&
-            (Theta_vec[std::min(i+1,static_cast<size_t>(Theta_vec.size()-1))]-Theta_vec[std::max(i-1,static_cast<size_t>(0))] < 0)) ||
-            (Y_vec[std::min(i+1,static_cast<size_t>(Y_vec.size()-1))]-Y_vec[std::max(i-1,static_cast<size_t>(0))] > 0)){
+            (Theta_vec[std::min(i+1,static_cast<int>(Theta_vec.size()-1))]-Theta_vec[std::max(i-1,static_cast<int>(0))] < 0)) ||
+            (Y_vec[std::min(i+1,static_cast<int>(Y_vec.size()-1))]-Y_vec[std::max(i-1,static_cast<int>(0))] > 0)){
           break;
         }
         Theta_cut.push_back(Theta_vec[i]);
@@ -191,9 +192,9 @@ scalar_type dydx_(scalar_type Theta_, scalar_type U_, scalar_type dYdx_, scalar_
   scalar_type Y1();
   // scalar_type eps();
 
-  scalar_type lambda_min = 1e+03;
+  scalar_type lambda_min =1e+03;
   scalar_type lambda = 3e+04;
-  scalar_type lambda_max = 1e+07;
+  scalar_type lambda_max =1e+07;
   int number_of_nodes;
   scalar_type domaine_length;
   scalar_type Le;
@@ -291,7 +292,7 @@ void RK4_High_Mach_Solver<scalar_type>::make_reactive_solution() {
     if(donecheck == 0){
       bisection_lambda(100.0);
     }
-    std::cout << "Lambda: " << lambda  << std::endl;
+    lambda_itteration_print<scalar_type>(lambda);
     export_data_to_dat();
   }
 }

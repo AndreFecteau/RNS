@@ -11,7 +11,7 @@ void plot_reduced(std::string file_name, grid_type grid, flow_type flow , int nu
   std::ofstream gnu_input_file;
   gnu_input_file.open (file_name + ".dat");
   gnu_input_file.precision(40);
-
+  number_of_cell_in_output = std::min(number_of_cell_in_output, static_cast<int>(grid.number_of_cells()));
   gnu_input_file << "#rho u p T Y" << std::endl;
   for (size_t i = 0; i < grid.number_of_cells(); i++) {
     if(i%(grid.number_of_cells()/number_of_cell_in_output) == 0 || i == grid.number_of_cells()-1){
