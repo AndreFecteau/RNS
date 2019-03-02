@@ -13,6 +13,7 @@
 #include <vector>
 #include <algorithm>
 #include "Gnuplot_CS.h"
+#include "../Text_Output.h"
 #include <math.h>
 #include <cmath>
 
@@ -49,7 +50,7 @@ public:
   /// \brief Move assignment operator.
   RK4_High_Mach_Solver& operator=(RK4_High_Mach_Solver&&) = default;
 
-  RK4_High_Mach_Solver(scalar_type le_in, scalar_type Q_in, scalar_type theta_in, scalar_type gamma_in, scalar_type mf_in, scalar_type Pr_in, int number_of_nodes_in = 2e7, scalar_type domaine_length_in = 40.0):
+  RK4_High_Mach_Solver(scalar_type le_in, scalar_type Q_in, scalar_type theta_in, scalar_type gamma_in, scalar_type mf_in, scalar_type Pr_in, int number_of_nodes_in = 1e6, scalar_type domaine_length_in = 40.0):
     number_of_nodes(number_of_nodes_in), domaine_length(domaine_length_in), Le(le_in), Q(Q_in), theta(theta_in), gamma(gamma_in), mf(mf_in), Pr(Pr_in) {
     delta_x = domaine_length/static_cast<scalar_type>(number_of_nodes);
     if (Q < 4 || Q > 9) {
@@ -168,13 +169,13 @@ public:
   /// \brief Sets up boundary conditions.
   void setup_boundary_conditions();
 
-scalar_type dudx_(scalar_type Theta_, scalar_type U_, scalar_type dYdx_, scalar_type Y_);
+scalar_type dudx_(scalar_type delta_x_, scalar_type Theta_, scalar_type U_, scalar_type dYdx_, scalar_type Y_);
 
-scalar_type dThetadx_(scalar_type Theta_, scalar_type U_, scalar_type dYdx_, scalar_type Y_);
+scalar_type dThetadx_(scalar_type delta_x_, scalar_type Theta_, scalar_type U_, scalar_type dYdx_, scalar_type Y_);
 
-scalar_type ddyddx_(scalar_type Theta_, scalar_type U_, scalar_type dYdx_, scalar_type Y_);
+scalar_type ddyddx_(scalar_type delta_x_, scalar_type Theta_, scalar_type U_, scalar_type dYdx_, scalar_type Y_);
 
-scalar_type dydx_(scalar_type Theta_, scalar_type U_, scalar_type dYdx_, scalar_type Y_);
+scalar_type dydx_(scalar_type delta_x_, scalar_type Theta_, scalar_type U_, scalar_type dYdx_, scalar_type Y_);
 
   /////////////////////////////////////////////////////////////////////////
   /// \brief One itteration of runge_kutta_4.
@@ -192,7 +193,7 @@ scalar_type dydx_(scalar_type Theta_, scalar_type U_, scalar_type dYdx_, scalar_
   scalar_type Y1();
   // scalar_type eps();
 
-  scalar_type lambda_min =1e+03;
+  scalar_type lambda_min =1e03;
   scalar_type lambda = 3e+04;
   scalar_type lambda_max =1e+07;
   int number_of_nodes;
@@ -273,7 +274,7 @@ void RK4_High_Mach_Solver<scalar_type>::export_data_to_dat() {
 ///////////////////////////////////////////////////////////////////////////////
 template <typename scalar_type>
 void RK4_High_Mach_Solver<scalar_type>::make_reactive_solution() {
-  while(fabs((lambda_max - lambda_min)/lambda) > 1e-15){
+  while(fabs((lambda_max - lambda_min)/lambda) > 1e-10){
     x.clear();
     Y_vec.clear();
     U_vec.clear();
@@ -331,22 +332,22 @@ void RK4_High_Mach_Solver<scalar_type>::setup_boundary_conditions() {
 }
 
 template <typename scalar_type>
-scalar_type RK4_High_Mach_Solver<scalar_type>::dudx_(scalar_type Theta_, scalar_type U_, scalar_type, scalar_type) {
+scalar_type RK4_High_Mach_Solver<scalar_type>::dudx_(scalar_type delta_x_, scalar_type Theta_, scalar_type U_, scalar_type, scalar_type) {
   return 0.75/(Pr*gamma*mf*mf)*(Theta_/U_-1+gamma*mf*mf*(U_-1));
 }
 
 template <typename scalar_type>
-scalar_type RK4_High_Mach_Solver<scalar_type>::dThetadx_(scalar_type Theta_, scalar_type U_, scalar_type dYdx_, scalar_type Y_) {
+scalar_type RK4_High_Mach_Solver<scalar_type>::dThetadx_(scalar_type delta_x_, scalar_type Theta_, scalar_type U_, scalar_type dYdx_, scalar_type Y_) {
   return -1.0/Le*dYdx_+(gamma-1)/gamma*(U_-Theta_-gamma*mf*mf/2.0*(U_-1)*(U_-1))+Theta_-1+Y_-Y1();
 }
 template <typename scalar_type>
-scalar_type RK4_High_Mach_Solver<scalar_type>::ddyddx_(scalar_type Theta_, scalar_type U_, scalar_type dYdx_, scalar_type Y_) {
+scalar_type RK4_High_Mach_Solver<scalar_type>::ddyddx_(scalar_type delta_x_, scalar_type Theta_, scalar_type U_, scalar_type dYdx_, scalar_type Y_) {
   return Le*(dYdx_+lambda*Y_/U_*exp(-theta/Theta_));
 }
 
 template <typename scalar_type>
-scalar_type RK4_High_Mach_Solver<scalar_type>::dydx_(scalar_type Theta_, scalar_type U_, scalar_type dYdx_, scalar_type Y_) {
-  return dYdx_ + delta_x * ddyddx_(Theta_, U_, dYdx_, Y_);
+scalar_type RK4_High_Mach_Solver<scalar_type>::dydx_(scalar_type delta_x_, scalar_type Theta_, scalar_type U_, scalar_type dYdx_, scalar_type Y_) {
+  return dYdx_ + delta_x_ * ddyddx_(delta_x_, Theta_, U_, dYdx_, Y_);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -355,25 +356,25 @@ scalar_type RK4_High_Mach_Solver<scalar_type>::dydx_(scalar_type Theta_, scalar_
 template <typename scalar_type>
 bool RK4_High_Mach_Solver<scalar_type>::runge_kutta_4(int i) {
 
-  scalar_type F1dYdx =   delta_x*ddyddx_(  Theta, U, dYdx, Y);
-  scalar_type F1Y =      delta_x*dydx_(    Theta, U, dYdx, Y);
-  scalar_type F1U =      delta_x*dudx_(    Theta, U, dYdx, Y);
-  scalar_type F1Theta =  delta_x*dThetadx_(Theta, U, dYdx, Y);
+  scalar_type F1dYdx =   delta_x*ddyddx_(  0.0, Theta, U, dYdx, Y);
+  scalar_type F1Y =      delta_x*dydx_(    0.0, Theta, U, dYdx, Y);
+  scalar_type F1U =      delta_x*dudx_(    0.0, Theta, U, dYdx, Y);
+  scalar_type F1Theta =  delta_x*dThetadx_(0.0, Theta, U, dYdx, Y);
 
-  scalar_type F2dYdx =   delta_x*ddyddx_(  Theta+0.5*F1Theta, U+0.5*F1U, dYdx+0.5*F1dYdx, Y+0.5*F1Y);
-  scalar_type F2Y =      delta_x*dydx_(    Theta+0.5*F1Theta, U+0.5*F1U, dYdx+0.5*F1dYdx, Y+0.5*F1Y);
-  scalar_type F2U =      delta_x*dudx_(    Theta+0.5*F1Theta, U+0.5*F1U, dYdx+0.5*F1dYdx, Y+0.5*F1Y);
-  scalar_type F2Theta =  delta_x*dThetadx_(Theta+0.5*F1Theta, U+0.5*F1U, dYdx+0.5*F1dYdx, Y+0.5*F1Y);
+  scalar_type F2dYdx =   delta_x*ddyddx_(  0.5*delta_x, Theta+0.5*F1Theta, U+0.5*F1U, dYdx+0.5*F1dYdx, Y+0.5*F1Y);
+  scalar_type F2Y =      delta_x*dydx_(    0.5*delta_x, Theta+0.5*F1Theta, U+0.5*F1U, dYdx+0.5*F1dYdx, Y+0.5*F1Y);
+  scalar_type F2U =      delta_x*dudx_(    0.5*delta_x, Theta+0.5*F1Theta, U+0.5*F1U, dYdx+0.5*F1dYdx, Y+0.5*F1Y);
+  scalar_type F2Theta =  delta_x*dThetadx_(0.5*delta_x, Theta+0.5*F1Theta, U+0.5*F1U, dYdx+0.5*F1dYdx, Y+0.5*F1Y);
 
-  scalar_type F3dYdx =   delta_x*ddyddx_(  Theta+0.5*F2Theta, U+0.5*F2U, dYdx+0.5*F2dYdx, Y+0.5*F2Y);
-  scalar_type F3Y =      delta_x*dydx_(    Theta+0.5*F2Theta, U+0.5*F2U, dYdx+0.5*F2dYdx, Y+0.5*F2Y);
-  scalar_type F3U =      delta_x*dudx_(    Theta+0.5*F2Theta, U+0.5*F2U, dYdx+0.5*F2dYdx, Y+0.5*F2Y);
-  scalar_type F3Theta =  delta_x*dThetadx_(Theta+0.5*F2Theta, U+0.5*F2U, dYdx+0.5*F2dYdx, Y+0.5*F2Y);
+  scalar_type F3dYdx =   delta_x*ddyddx_(  0.5*delta_x, Theta+0.5*F2Theta, U+0.5*F2U, dYdx+0.5*F2dYdx, Y+0.5*F2Y);
+  scalar_type F3Y =      delta_x*dydx_(    0.5*delta_x, Theta+0.5*F2Theta, U+0.5*F2U, dYdx+0.5*F2dYdx, Y+0.5*F2Y);
+  scalar_type F3U =      delta_x*dudx_(    0.5*delta_x, Theta+0.5*F2Theta, U+0.5*F2U, dYdx+0.5*F2dYdx, Y+0.5*F2Y);
+  scalar_type F3Theta =  delta_x*dThetadx_(0.5*delta_x, Theta+0.5*F2Theta, U+0.5*F2U, dYdx+0.5*F2dYdx, Y+0.5*F2Y);
 
-  scalar_type F4dYdx =   delta_x*ddyddx_(  Theta+ F3Theta, U+F3U, dYdx+F3dYdx, Y+ F3Y);
-  scalar_type F4Y =      delta_x*dydx_(    Theta+ F3Theta, U+F3U, dYdx+F3dYdx, Y+ F3Y);
-  scalar_type F4U =      delta_x*dudx_(    Theta+ F3Theta, U+F3U, dYdx+F3dYdx, Y+ F3Y);
-  scalar_type F4Theta =  delta_x*dThetadx_(Theta+ F3Theta, U+F3U, dYdx+F3dYdx, Y+ F3Y);
+  scalar_type F4dYdx =   delta_x*ddyddx_(  delta_x, Theta+ F3Theta, U+F3U, dYdx+F3dYdx, Y+ F3Y);
+  scalar_type F4Y =      delta_x*dydx_(    delta_x, Theta+ F3Theta, U+F3U, dYdx+F3dYdx, Y+ F3Y);
+  scalar_type F4U =      delta_x*dudx_(    delta_x, Theta+ F3Theta, U+F3U, dYdx+F3dYdx, Y+ F3Y);
+  scalar_type F4Theta =  delta_x*dThetadx_(delta_x, Theta+ F3Theta, U+F3U, dYdx+F3dYdx, Y+ F3Y);
 
 
   dYdx = dYdx + 1.0/6.0*(F1dYdx + 2.0*F2dYdx + 2.0*F3dYdx + F4dYdx);
