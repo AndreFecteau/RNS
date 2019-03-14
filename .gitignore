@@ -1,22 +1,16 @@
 # ignore a single file
-RNS_Solver
-RNS_Solver_restart
-Makefile
-cmake_install.cmake
-CMakeCache.txt
+#RNS_Solver
+#RNS_Solver_restart
+#Makefile
+#cmake_install.cmake
+#CMakeCache.txt
 
 # ignore an entire directory
-/CMakeFiles/
-/Movie/
-/Movie_Test/
-/dat_saves/
-/dat_saves_temp/
-/Images/
-/Latex/
+/build/
 
 # ignore a file type
 #*.json
-*.log
+#*.log
 
 # add an exception (using !) to the preceding rule to track a specific file
 #!package.json
